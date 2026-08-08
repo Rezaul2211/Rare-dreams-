@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDashboard, LogOut } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -22,6 +23,10 @@ function LayoutInner() {
     navigate('/');
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] font-sans text-neutral-900 pb-16 md:pb-0">
       {/* Header */}
@@ -37,17 +42,21 @@ function LayoutInner() {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity">
+            <Link 
+              to="/" 
+              onClick={scrollToTop}
+              className="text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity"
+            >
               Rare Dreams
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <Link to="/shop" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Shop All</Link>
-              <Link to="/category/Boys Wear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Boys Wear</Link>
-              <Link to="/category/Girls Wear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Girls Wear</Link>
-              <Link to="/category/Baby Essentials" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Baby</Link>
-              <Link to="/category/Footwear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Footwear</Link>
+              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Shop All</Link>
+              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Boys Wear</Link>
+              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Girls Wear</Link>
+              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Baby</Link>
+              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Footwear</Link>
             </nav>
 
             {/* Icons & Admin Shortcut */}
@@ -184,9 +193,20 @@ function LayoutInner() {
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="flex-grow flex flex-col">
-        <Outlet />
+      {/* Main Content with smooth page transition */}
+      <main className="flex-grow flex flex-col min-h-[60vh] overflow-x-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="flex-grow flex flex-col w-full"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
@@ -259,17 +279,18 @@ function LayoutInner() {
 
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 flex justify-around items-center h-16 z-50 px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <Link to="/" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
+        <Link to="/" onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Home size={20} className={location.pathname === '/' ? 'fill-black' : ''} />
           <span className="text-[10px] mt-1 font-bold">Home</span>
         </Link>
-        <Link to="/shop" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
+        <Link to="/shop" onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Grid size={20} className={location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'fill-black' : ''} />
           <span className="text-[10px] mt-1 font-bold">Shop</span>
         </Link>
         <Link 
           id="mobile-cart-icon"
           to="/cart" 
+          onClick={scrollToTop}
           className={`flex flex-col items-center justify-center w-full h-full relative transition-all ${
             location.pathname === '/cart' ? 'text-black' : 'text-neutral-400 hover:text-black'
           } ${isCartBouncing ? 'scale-125 text-black' : ''}`}
@@ -284,7 +305,7 @@ function LayoutInner() {
           </div>
           <span className="text-[10px] mt-1 font-bold">Cart</span>
         </Link>
-        <Link to={user ? '/account' : '/login'} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/account') || location.pathname.includes('/login') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
+        <Link to={user ? '/account' : '/login'} onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/account') || location.pathname.includes('/login') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <User size={20} className={location.pathname.includes('/account') || location.pathname.includes('/login') ? 'fill-black' : ''} />
           <span className="text-[10px] mt-1 font-bold">Account</span>
         </Link>

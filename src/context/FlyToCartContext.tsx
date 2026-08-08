@@ -38,28 +38,56 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       quantity: options?.quantity || 1,
     });
 
-    // 2. Calculate source rect (start position)
+    // 2. Calculate source rect (start position from product card image)
     let startX = window.innerWidth / 2;
     let startY = window.innerHeight / 2;
 
+    let targetElementOrCard: HTMLElement | null = null;
     if ('currentTarget' in eventOrElement && eventOrElement.currentTarget) {
-      const rect = eventOrElement.currentTarget.getBoundingClientRect();
-      startX = rect.left + rect.width / 2;
-      startY = rect.top + rect.height / 2;
+      targetElementOrCard = eventOrElement.currentTarget as HTMLElement;
     } else if (eventOrElement instanceof HTMLElement) {
-      const rect = eventOrElement.getBoundingClientRect();
-      startX = rect.left + rect.width / 2;
-      startY = rect.top + rect.height / 2;
+      targetElementOrCard = eventOrElement;
     }
 
-    // 3. Find target cart icon - strictly target the top-right header bag icon
-    let targetX = window.innerWidth - 40;
-    let targetY = 32;
+    if (targetElementOrCard) {
+      const cardContainer = targetElementOrCard.closest('.group') || targetElementOrCard.closest('[data-product-card]') || targetElementOrCard;
+      const imgElement = cardContainer.querySelector('img');
 
-    const targetElement = document.getElementById('header-cart-icon') || document.getElementById('mobile-cart-icon');
+      if (imgElement) {
+        const imgRect = imgElement.getBoundingClientRect();
+        startX = imgRect.left + imgRect.width / 2;
+        startY = imgRect.top + imgRect.height / 2;
+      } else {
+        const rect = targetElementOrCard.getBoundingClientRect();
+        startX = rect.left + rect.width / 2;
+        startY = rect.top + rect.height / 2;
+      }
+    }
 
-    if (targetElement) {
-      const targetRect = targetElement.getBoundingClientRect();
+    // 3. Find target cart icon - check header cart and mobile cart
+    let targetX = window.innerWidth - 36;
+    let targetY = 36;
+
+    const headerIcon = document.getElementById('header-cart-icon');
+    const mobileIcon = document.getElementById('mobile-cart-icon');
+
+    const isVisible = (el: HTMLElement | null) => {
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.bottom <= window.innerHeight;
+    };
+
+    let chosenTarget: HTMLElement | null = null;
+    if (headerIcon && isVisible(headerIcon)) {
+      chosenTarget = headerIcon;
+    } else if (mobileIcon && isVisible(mobileIcon)) {
+      chosenTarget = mobileIcon;
+    } else {
+      chosenTarget = headerIcon || mobileIcon;
+    }
+
+    if (chosenTarget) {
+      const targetRect = chosenTarget.getBoundingClientRect();
       targetX = targetRect.left + targetRect.width / 2;
       targetY = targetRect.top + targetRect.height / 2;
     }
@@ -87,38 +115,40 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsCartBouncing(true);
     setTimeout(() => {
       setIsCartBouncing(false);
-    }, 400);
+    }, 500);
   };
 
   return (
     <FlyToCartContext.Provider value={{ animateAddToCart, isCartBouncing }}>
       {children}
 
-      {/* Floating Animated Product Image flying straight to top-right header bag without rotation */}
+      {/* Floating Animated Product Image flying smoothly directly into bag icon */}
       <div className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden">
         {flyingItems.map((item) => (
           <motion.div
             key={item.id}
             initial={{
-              x: item.startX - 40,
-              y: item.startY - 40,
-              scale: 1.2,
+              left: item.startX,
+              top: item.startY,
+              x: '-50%',
+              y: '-50%',
+              scale: 1,
               opacity: 1,
-              rotate: 0,
             }}
             animate={{
-              x: item.targetX - 12,
-              y: item.targetY - 12,
-              scale: 0.1,
-              opacity: 0.85,
-              rotate: 0,
+              left: item.targetX,
+              top: item.targetY,
+              x: '-50%',
+              y: '-50%',
+              scale: 0.15,
+              opacity: 0.2,
             }}
             transition={{
-              duration: 0.75,
-              ease: [0.22, 1, 0.36, 1], // Smooth natural curve entering header bag
+              duration: 1.05, // Slower, smooth and visible speed as requested
+              ease: [0.16, 1, 0.3, 1], // Natural arc easing into the bag icon
             }}
             onAnimationComplete={() => handleAnimationComplete(item.id)}
-            className="absolute w-20 h-20 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white shrink-0"
+            className="fixed w-20 h-20 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white shrink-0"
           >
             <img src={item.image} alt="" className="w-full h-full object-cover" />
           </motion.div>
