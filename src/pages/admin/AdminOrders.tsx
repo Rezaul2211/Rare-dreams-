@@ -300,8 +300,13 @@ export default function AdminOrders() {
                       <p className="text-[10px] font-bold text-neutral-400 uppercase">Payment & Total</p>
                       <p className="font-medium text-neutral-900">
                         <span className="font-black text-neutral-900">৳ {order.total?.toFixed(0)}</span>
-                        <span className="text-neutral-400 text-[11px] uppercase ml-1">({order.paymentMethod})</span>
+                        <span className="text-neutral-500 text-[11px] uppercase font-bold ml-1">({order.paymentMethod})</span>
                       </p>
+                      {order.transactionId && (
+                        <p className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5 inline-block">
+                          TrxID: {order.transactionId}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -485,31 +490,48 @@ export default function AdminOrders() {
             </div>
 
             {/* Payment Info */}
-            <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Payment Method</p>
-                <p className="text-sm font-black text-neutral-900 uppercase mt-0.5">{selectedOrder.paymentMethod}</p>
-              </div>
+            <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Payment Method</p>
+                  <p className="text-sm font-black text-neutral-900 uppercase mt-0.5">{selectedOrder.paymentMethod}</p>
+                </div>
 
-              <div className="text-right">
-                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Payment Status</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
-                    selectedOrder.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {selectedOrder.paymentStatus || 'pending'}
-                  </span>
-                  <button 
-                    onClick={() => handlePaymentStatusChange(
-                      selectedOrder.id, 
-                      selectedOrder.paymentStatus === 'paid' ? 'pending' : 'paid'
-                    )}
-                    className="text-[11px] font-bold text-neutral-600 underline hover:text-black cursor-pointer"
-                  >
-                    Toggle
-                  </button>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Payment Status</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                      selectedOrder.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {selectedOrder.paymentStatus || 'pending'}
+                    </span>
+                    <button 
+                      onClick={() => handlePaymentStatusChange(
+                        selectedOrder.id, 
+                        selectedOrder.paymentStatus === 'paid' ? 'pending' : 'paid'
+                      )}
+                      className="text-[11px] font-bold text-neutral-600 underline hover:text-black cursor-pointer"
+                    >
+                      Toggle
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {(selectedOrder.senderNumber || selectedOrder.transactionId) && (
+                <div className="pt-2 border-t border-neutral-200/60 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase block">Sender Account</span>
+                    <span className="font-mono font-bold text-neutral-900">{selectedOrder.senderNumber || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase block">Transaction ID (TrxID)</span>
+                    <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                      {selectedOrder.transactionId || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Products Ordered */}

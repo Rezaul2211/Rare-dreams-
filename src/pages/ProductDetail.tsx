@@ -20,6 +20,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState<'description' | 'contact'>('description');
   
   const { animateAddToCart } = useFlyToCart();
   const addItem = useCartStore((state) => state.addItem);
@@ -147,28 +148,27 @@ export default function ProductDetail() {
             </div>
 
             {/* Short Description Box */}
-            <div className="bg-neutral-50 rounded-2xl p-4 text-sm text-neutral-600 leading-relaxed mb-6 border border-neutral-100">
-              {product.description?.substring(0, 150)}...
-              <span className="block mt-2 font-medium text-amber-600">✨ Style, shine & elegance — all in one piece!</span>
+            <div className="bg-neutral-50 rounded-2xl p-4 text-xs sm:text-sm text-neutral-600 leading-relaxed mb-6 border border-neutral-200/70 shadow-2xs">
+              {product.description?.substring(0, 160)}...
             </div>
 
             <div className="space-y-6 mb-6">
               {/* Colors */}
             {product.colorOptions && product.colorOptions.length > 0 && (
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Color: {selectedColor}</span>
+                <div className="flex justify-between items-center mb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Color: <span className="text-black">{selectedColor}</span></span>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {product.colorOptions.map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
                       className={clsx(
-                        "px-6 py-3 text-sm font-medium transition-all border",
+                        "px-5 py-2.5 text-xs font-bold rounded-2xl transition-all border shadow-2xs cursor-pointer",
                         selectedColor === color 
-                          ? "border-black bg-black text-white" 
-                          : "border-neutral-200 bg-white text-black hover:border-black"
+                          ? "border-black bg-neutral-900 text-white shadow-xs ring-2 ring-black/5" 
+                          : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
                       )}
                     >
                       {color}
@@ -181,20 +181,20 @@ export default function ProductDetail() {
             {/* Sizes */}
             {product.sizeOptions && product.sizeOptions.length > 0 && (
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Size: {selectedSize}</span>
-                  <button className="text-xs font-medium underline text-neutral-500 hover:text-black">Size Guide</button>
+                <div className="flex justify-between items-center mb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Size: <span className="text-black">{selectedSize}</span></span>
+                  <button className="text-xs font-medium underline text-neutral-500 hover:text-black cursor-pointer">Size Guide</button>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {product.sizeOptions.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
                       className={clsx(
-                        "w-12 h-12 flex items-center justify-center text-sm font-medium transition-all border",
+                        "min-w-12 h-12 px-3.5 flex items-center justify-center text-xs font-bold rounded-2xl transition-all border shadow-2xs cursor-pointer",
                         selectedSize === size 
-                          ? "border-black bg-black text-white" 
-                          : "border-neutral-200 bg-white text-black hover:border-black"
+                          ? "border-black bg-neutral-900 text-white shadow-xs ring-2 ring-black/5" 
+                          : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
                       )}
                     >
                       {size}
@@ -206,15 +206,15 @@ export default function ProductDetail() {
 
               {/* Quantity & Buttons Row */}
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <div className="flex items-center border border-neutral-200 rounded-xl h-12 w-32 shrink-0 overflow-hidden bg-white shadow-sm">
+                <div className="flex items-center border border-neutral-200/90 rounded-2xl h-12 w-32 shrink-0 overflow-hidden bg-white shadow-2xs">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg"
+                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-bold text-neutral-700 cursor-pointer"
                   >-</button>
-                  <span className="flex-1 text-center font-medium border-x border-neutral-100">{quantity}</span>
+                  <span className="flex-1 text-center font-bold text-sm border-x border-neutral-100">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
-                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg"
+                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-bold text-neutral-700 cursor-pointer"
                   >+</button>
                 </div>
               </div>
@@ -224,56 +224,135 @@ export default function ProductDetail() {
                 <button 
                   onClick={(e) => handleAddToCart(e)}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-2xl py-3.5 text-sm font-bold shadow-sm hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50"
+                  className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-2xl py-3.5 text-xs font-bold shadow-2xs hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
                 >
                   Add to Bag 🛍️
                 </button>
                 <button 
                   onClick={(e) => { handleAddToCart(); navigate('/checkout'); }}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-sm font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
+                  className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider"
                 >
-                  <Zap size={16} className="mr-1.5" /> 1 Click Order
+                  <Zap size={15} className="mr-1.5" /> 1 Click Order
                 </button>
               </div>
 
-              {/* Social Share & Contact */}
-              <div className="flex items-center justify-between pt-4 pb-2">
+              {/* Social Share */}
+              <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-neutral-500">Share:</span>
-                  <button className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">f</button>
-                  <button className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 transition-colors">X</button>
+                  <span className="text-xs text-neutral-500 font-medium">Share Product:</span>
+                  <button 
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity font-bold text-xs cursor-pointer shadow-2xs"
+                  >
+                    f
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert('Product link copied to clipboard!');
+                    }}
+                    className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-black transition-colors font-bold text-xs cursor-pointer shadow-2xs"
+                    title="Copy Link"
+                  >
+                    <Share2 size={14} />
+                  </button>
                 </div>
               </div>
 
               {/* WhatsApp Button */}
               <a 
-                href={`https://wa.me/1234567890?text=I'm interested in ${product.name}`}
+                href={`https://wa.me/8801700000000?text=Hi%20Rare%20Dreams!%20I'm%20interested%20in%20${encodeURIComponent(product.name)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full bg-green-500 text-white rounded-xl py-3.5 text-sm font-bold shadow-sm hover:bg-green-600 transition-colors flex items-center justify-center mt-2"
+                className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer border border-emerald-500"
               >
-                <MessageCircle size={20} className="mr-2" />
+                <MessageCircle size={18} className="mr-2 fill-white" />
                 Knock on WhatsApp for any help
               </a>
             </div>
           </div>
 
-          {/* Description Tabs */}
-          <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 overflow-hidden mb-8">
-            <div className="flex border-b border-neutral-200">
-              <button className="flex-1 py-4 text-sm font-bold border-b-2 border-black">Description</button>
-              <button className="flex-1 py-4 text-sm font-medium text-neutral-500 hover:text-black">Contact</button>
+          {/* Description & Contact Tabs */}
+          <div className="bg-white rounded-3xl shadow-2xs border border-neutral-200/80 overflow-hidden mb-8">
+            <div className="flex border-b border-neutral-200 bg-neutral-50/50">
+              <button 
+                onClick={() => setActiveTab('description')}
+                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  activeTab === 'description' 
+                    ? 'border-b-2 border-black text-black bg-white' 
+                    : 'text-neutral-400 hover:text-black'
+                }`}
+              >
+                Description
+              </button>
+              <button 
+                onClick={() => setActiveTab('contact')}
+                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  activeTab === 'contact' 
+                    ? 'border-b-2 border-black text-black bg-white' 
+                    : 'text-neutral-400 hover:text-black'
+                }`}
+              >
+                Contact & Support
+              </button>
             </div>
-            <div className="p-6 prose prose-sm prose-neutral max-w-none">
-              <p className="text-neutral-600 leading-relaxed">
-                {product.description}
-              </p>
-              {product.material && (
-                <>
-                  <p className="font-medium mt-4">Material & Care:</p>
-                  <p className="text-neutral-600">{product.material}</p>
-                </>
+
+            <div className="p-6">
+              {activeTab === 'description' ? (
+                <div className="prose prose-sm prose-neutral max-w-none space-y-4">
+                  <p className="text-neutral-700 leading-relaxed text-sm">
+                    {product.description}
+                  </p>
+                  {product.material && (
+                    <div className="pt-2">
+                      <p className="font-bold text-xs uppercase tracking-wider text-neutral-900 mb-1">Material & Care Instructions:</p>
+                      <p className="text-neutral-600 text-xs bg-neutral-50 p-3 rounded-xl border border-neutral-200/60 inline-block">{product.material}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4 text-xs sm:text-sm">
+                  <p className="text-neutral-600 leading-relaxed font-medium">
+                    Have any questions or need custom sizing help? Our support team is available 7 days a week.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <a 
+                      href="tel:01700000000" 
+                      className="flex items-center space-x-3 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
+                        <HeadphonesIcon size={18} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-neutral-400 block">Phone Support</span>
+                        <span className="font-bold text-neutral-900">+880 1700-000000</span>
+                      </div>
+                    </a>
+
+                    <a 
+                      href="https://wa.me/8801700000000" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="flex items-center space-x-3 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                        <MessageCircle size={18} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-emerald-800 block">WhatsApp Chat</span>
+                        <span className="font-bold text-emerald-950">+880 1700-000000</span>
+                      </div>
+                    </a>
+                  </div>
+
+                  <div className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80 space-y-1">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase block">Operating Hours</span>
+                    <p className="text-xs font-bold text-neutral-900">10:00 AM - 10:00 PM (Daily)</p>
+                    <p className="text-[11px] text-neutral-500">Fast delivery within 24-48 hours in Dhaka, and 2-3 days nationwide.</p>
+                  </div>
+                </div>
               )}
             </div>
           </div>

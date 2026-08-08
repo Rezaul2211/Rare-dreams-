@@ -45,9 +45,10 @@ export interface Order {
   subtotal: number;
   shipping: number;
   total: number;
-  paymentMethod: 'stripe' | 'bKash' | 'nagad' | 'cod';
+  paymentMethod: 'bKash' | 'nagad' | 'cod';
   paymentStatus: 'pending' | 'paid' | 'failed';
+  senderNumber?: string;
+  transactionId?: string;
   status: 'Pending' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-  stripeSessionId?: string;
   createdAt: any;
 }
