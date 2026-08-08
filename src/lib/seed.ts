@@ -218,6 +218,8 @@ let isSeeding = false;
 
 export async function seedProductsIfEmpty() {
   if (isSeeding) return;
+  if (localStorage.getItem('products_seeded_v1') === 'true') return;
+
   isSeeding = true;
   try {
     const productsRef = collection(db, 'products');
@@ -227,6 +229,7 @@ export async function seedProductsIfEmpty() {
     const limitSnapshot = await getDocs(limitQuery);
     
     if (!limitSnapshot.empty) {
+      localStorage.setItem('products_seeded_v1', 'true');
       isSeeding = false;
       return; // Already has products, skip.
     }
@@ -238,6 +241,7 @@ export async function seedProductsIfEmpty() {
       batch.set(doc(db, 'products', product.id), product);
     }
     await batch.commit();
+    localStorage.setItem('products_seeded_v1', 'true');
     console.log('Seeding complete.');
   } catch (error) {
     console.error('Error seeding products:', error);

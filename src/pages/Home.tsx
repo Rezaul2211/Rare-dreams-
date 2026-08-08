@@ -126,12 +126,11 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8">
             <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">Featured Collections</span>
-            <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-1">Shop By Category</h2>
-            <p className="text-neutral-500 text-sm mt-2 max-w-md mx-auto">Click any category below to open the collection page and explore products.</p>
+            <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-1 font-display">Shop By Category</h2>
           </div>
 
           {/* 2x2 Grid matching screenshot design */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             {[
               {
                 title: 'Boys Wear',
@@ -177,30 +176,12 @@ export default function Home() {
 
                 {/* Centered Overlay Title at bottom like screenshot */}
                 <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-0 right-0 text-center z-10 px-2">
-                  <h3 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                  <h3 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300 font-display">
                     {cat.title}
                   </h3>
                 </div>
               </Link>
             ))}
-          </div>
-
-          {/* Adult Fashion Collections Secondary Quick Links */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
-            <Link 
-              to="/category/Men" 
-              className="bg-neutral-900 text-white hover:bg-black p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold uppercase tracking-wider transition-all shadow-xs group"
-            >
-              <span>Men's Fashion</span>
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link 
-              to="/category/Women" 
-              className="bg-neutral-900 text-white hover:bg-black p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold uppercase tracking-wider transition-all shadow-xs group"
-            >
-              <span>Women's Fashion</span>
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
           </div>
         </div>
       </section>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { doc, setDoc, getDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Product } from '../../types';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -15,7 +15,7 @@ export default function ProductForm() {
   
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
-    category: 'Men',
+    category: 'Boys Wear',
     subcategory: '',
     price: 0,
     comparePrice: 0,
@@ -25,7 +25,7 @@ export default function ProductForm() {
     material: '',
     description: '',
     images: [],
-    status: 'draft',
+    status: 'published',
     sku: ''
   });
 
@@ -57,6 +57,29 @@ export default function ProductForm() {
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select valid image files');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const result = uploadEvent.target?.result as string;
+        if (result) {
+          setFormData(prev => ({
+            ...prev,
+            images: [...(prev.images || []), result]
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const addImage = () => {
@@ -158,27 +181,58 @@ export default function ProductForm() {
 
             {/* Images */}
             <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold mb-4">Images</h2>
-              <div className="flex space-x-2">
+              <h2 className="text-lg font-bold mb-2">Product Images</h2>
+              
+              {/* Local File Upload Button */}
+              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center hover:bg-neutral-50 transition-colors">
                 <input
-                  type="url"
-                  placeholder="Image URL"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="flex-1 border border-neutral-300 rounded-lg px-4 py-2 outline-none focus:border-black"
+                  type="file"
+                  id="file-upload"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
-                <button type="button" onClick={addImage} className="bg-black text-white px-4 py-2 rounded-lg font-medium">Add</button>
+                <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center space-y-2">
+                  <div className="w-10 h-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-700">
+                    <UploadCloud size={20} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-neutral-900 underline decoration-2">Upload from Phone / PC Storage</span>
+                    <p className="text-xs text-neutral-500 mt-0.5">Supports JPG, PNG, WEBP files</p>
+                  </div>
+                </label>
               </div>
+
+              {/* URL Option as alternative */}
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-neutral-500 mb-1">Or add image via web URL:</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="flex-1 border border-neutral-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-black"
+                  />
+                  <button type="button" onClick={addImage} className="bg-neutral-900 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-black">
+                    Add URL
+                  </button>
+                </div>
+              </div>
+
+              {/* Image Previews */}
               <div className="grid grid-cols-4 gap-4 mt-4">
                 {(formData.images || []).map((img, idx) => (
-                  <div key={idx} className="relative aspect-[3/4] bg-neutral-100 rounded-lg overflow-hidden group">
+                  <div key={idx} className="relative aspect-[3/4] bg-neutral-100 rounded-lg overflow-hidden group border border-neutral-200">
                     <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1.5 right-1.5 bg-black/70 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                      title="Remove image"
                     >
-                      <X size={16} />
+                      <X size={14} />
                     </button>
                   </div>
                 ))}
@@ -261,11 +315,14 @@ export default function ProductForm() {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none"
+                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none font-medium"
                 >
+                  <option value="Boys Wear">Boys Wear</option>
+                  <option value="Girls Wear">Girls Wear</option>
+                  <option value="Baby Essentials">Baby Essentials</option>
+                  <option value="Footwear">Footwear</option>
                   <option value="Men">Men</option>
                   <option value="Women">Women</option>
-                  <option value="Kids">Kids</option>
                 </select>
               </div>
 

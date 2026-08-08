@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Package, ShoppingCart, LayoutDashboard, LogOut, Store, Menu, X, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Package, ShoppingCart, LayoutDashboard, LogOut, Store, Menu, X, ShieldCheck, ArrowLeft, Users } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 
 export default function AdminLayout() {
@@ -23,17 +23,17 @@ export default function AdminLayout() {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Products', path: '/admin/products', icon: Package },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Customers', path: '/admin/customers', icon: Users },
   ];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-neutral-100 font-sans">
-      {/* Mobile Top Header with Direct Round Back Button */}
-      <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40 shadow-xs">
+      {/* Top Header with Single Direct Round Back Button */}
+      <div className="bg-white border-b border-neutral-200 px-4 py-3 flex justify-between items-center sticky top-0 z-40 shadow-xs">
         <div className="flex items-center space-x-3">
-          {/* Circular Direct Back Button */}
+          {/* Single Circular Direct Back Button */}
           <button 
             onClick={() => navigate('/')} 
             className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 transition-colors shadow-sm shrink-0"
@@ -53,7 +53,7 @@ export default function AdminLayout() {
 
         <button 
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2 text-neutral-700 hover:bg-neutral-100 rounded-xl"
+          className="md:hidden p-2 text-neutral-700 hover:bg-neutral-100 rounded-xl"
           aria-label="Toggle menu"
         >
           {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -66,21 +66,12 @@ export default function AdminLayout() {
         ${isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button 
-              onClick={() => navigate('/')} 
-              className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 transition-colors shadow-sm shrink-0"
-              title="Return to Store"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <div className="inline-flex items-center space-x-1 text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded mb-1">
-                <ShieldCheck size={12} />
-                <span>Verified Admin</span>
-              </div>
-              <h2 className="text-lg font-black uppercase tracking-tighter">Rare Dreams</h2>
+          <div>
+            <div className="inline-flex items-center space-x-1 text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded mb-1">
+              <ShieldCheck size={12} />
+              <span>Verified Admin</span>
             </div>
+            <h2 className="text-lg font-black uppercase tracking-tighter">Rare Dreams</h2>
           </div>
           <button className="md:hidden p-1 text-neutral-400" onClick={() => setIsMobileOpen(false)}>
             <X size={20} />
@@ -136,29 +127,6 @@ export default function AdminLayout() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-y-auto">
-        {/* Top Header Bar for Admin Panel */}
-        <div className="bg-white border-b border-neutral-200 px-6 py-3.5 flex justify-between items-center sticky top-0 z-30 shadow-xs">
-          <div className="flex items-center space-x-3">
-            <button 
-              onClick={() => navigate('/')} 
-              className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 transition-colors shadow-xs"
-              title="Return to Main Store"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Admin Workspace</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Link
-              to="/"
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-black text-white hover:bg-neutral-800 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-xs"
-            >
-              <Store size={15} className="text-amber-400" />
-              <span>Return to Store</span>
-            </Link>
-          </div>
-        </div>
-
         <div className="p-4 md:p-8 flex-1">
           <Outlet />
         </div>
