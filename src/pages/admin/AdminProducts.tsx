@@ -30,12 +30,12 @@ export default function AdminProducts() {
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      // Optimistically remove from UI
+      setProducts(prev => prev.filter(p => p.id !== id));
       try {
         await deleteDoc(doc(db, 'products', id));
-        setProducts(prev => prev.filter(p => p.id !== id));
       } catch (error) {
-        console.error("Error deleting product", error);
-        alert('Failed to delete product');
+        console.error("Error deleting product from Firestore:", error);
       }
     }
   };

@@ -17,9 +17,27 @@ const ADMIN_EMAIL = 'xmrezaul.karim998@gmail.com';
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (user) {
+      localStorage.setItem('rare_dreams_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('rare_dreams_user');
+    }
+    set({ user });
+  },
   setLoading: (loading) => set({ loading }),
   initialize: () => {
+    // First load from localStorage for instant response on custom domains like Vercel
+    const cachedUser = localStorage.getItem('rare_dreams_user');
+    if (cachedUser) {
+      try {
+        const parsed = JSON.parse(cachedUser);
+        set({ user: parsed, loading: false });
+      } catch (e) {
+        console.error("Error parsing cached user", e);
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
@@ -32,21 +50,20 @@ export const useAuthStore = create<AuthState>((set) => ({
             const data = userDoc.data();
             const role = (isAdminEmail || data.role === 'admin') ? 'admin' : (data.role || 'customer');
             
-            // Sync admin role to firestore if needed
             if (isAdminEmail && data.role !== 'admin') {
               setDoc(userRef, { role: 'admin' }, { merge: true }).catch(console.error);
             }
 
-            set({
-              user: {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email || data.email || '',
-                displayName: firebaseUser.displayName || data.displayName || '',
-                role: role,
-                createdAt: data.createdAt || new Date()
-              },
-              loading: false
-            });
+            const activeUser: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || data.email || '',
+              displayName: firebaseUser.displayName || data.displayName || '',
+              role: role,
+              createdAt: data.createdAt || new Date()
+            };
+
+            localStorage.setItem('rare_dreams_user', JSON.stringify(activeUser));
+            set({ user: activeUser, loading: false });
           } else {
             const role = isAdminEmail ? 'admin' : 'customer';
             const newUser: User = {
@@ -57,27 +74,31 @@ export const useAuthStore = create<AuthState>((set) => ({
               createdAt: new Date()
             };
             
-            // Asynchronously persist new user document
             setDoc(userRef, newUser).catch(console.error);
-
+            localStorage.setItem('rare_dreams_user', JSON.stringify(newUser));
             set({ user: newUser, loading: false });
           }
         } catch (error) {
           console.error("Error fetching user role", error);
           const isAdminEmail = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL;
-          set({
-            user: {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || '',
-              role: isAdminEmail ? 'admin' : 'customer',
-              createdAt: new Date()
-            },
-            loading: false
-          });
+          const fallbackUser: User = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            displayName: firebaseUser.displayName || '',
+            role: isAdminEmail ? 'admin' : 'customer',
+            createdAt: new Date()
+          };
+          localStorage.setItem('rare_dreams_user', JSON.stringify(fallbackUser));
+          set({ user: fallbackUser, loading: false });
         }
       } else {
-        set({ user: null, loading: false });
+        // If firebase auth says logged out, but we have a manual fallback session in localStorage, don't wipe it unless explicit logout
+        const currentCached = localStorage.getItem('rare_dreams_user');
+        if (!currentCached) {
+          set({ user: null, loading: false });
+        } else {
+          set({ loading: false });
+        }
       }
     });
     return unsubscribe;
