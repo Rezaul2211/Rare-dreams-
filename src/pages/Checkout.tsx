@@ -114,21 +114,24 @@ export default function Checkout() {
           <form id="checkout-form" onSubmit={handleSubmit} className="space-y-10">
             {/* Contact */}
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest mb-4">Contact Information</h2>
-              {!user && (
-                <p className="text-sm text-neutral-500 mb-4">
-                  Already have an account? <Link to="/login" className="text-black underline font-medium">Log in</Link> for faster checkout.
-                </p>
-              )}
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-4">Contact & Delivery Information</h2>
+              {!user ? (
+                <div className="bg-neutral-50 p-3.5 rounded-xl border border-neutral-200 mb-4 flex items-center justify-between">
+                  <p className="text-xs text-neutral-600">
+                    Checking out as <strong>Guest</strong>. No account required to complete your order!
+                  </p>
+                  <Link to="/login" className="text-xs text-black font-bold underline shrink-0 ml-2">Log In (Optional)</Link>
+                </div>
+              ) : null}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <input type="text" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black" />
+                  <input type="text" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black rounded-xl" />
                 </div>
                 <div>
-                  <input type="text" name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black" />
+                  <input type="text" name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black rounded-xl" />
                 </div>
                 <div className="col-span-2">
-                  <input type="tel" name="phone" placeholder="Phone Number" required value={formData.phone} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black" />
+                  <input type="tel" name="phone" placeholder="Phone Number (e.g. 01700000000)" required value={formData.phone} onChange={handleChange} className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-black rounded-xl" />
                 </div>
               </div>
             </div>
@@ -197,7 +200,7 @@ export default function Checkout() {
                       <p className="text-xs text-neutral-500">{item.selectedSize} / {item.selectedColor}</p>
                     </div>
                   </div>
-                  <span className="font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-bold">৳{(item.price * item.quantity).toFixed(0)}</span>
                 </div>
               ))}
             </div>
@@ -205,17 +208,17 @@ export default function Checkout() {
             <div className="space-y-4 pt-6 border-t border-neutral-200 text-sm mb-6">
               <div className="flex justify-between">
                 <span className="text-neutral-500">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">৳{subtotal.toFixed(0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-500">Shipping</span>
-                <span className="font-medium">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+                <span className="font-medium">{shipping === 0 ? 'Free' : `৳${shipping.toFixed(0)}`}</span>
               </div>
             </div>
             
             <div className="flex justify-between items-end mb-8 pt-6 border-t border-neutral-200">
               <span className="text-sm font-bold uppercase tracking-wider">Total</span>
-              <span className="text-2xl font-bold">${total.toFixed(2)}</span>
+              <span className="text-2xl font-bold">৳{total.toFixed(0)}</span>
             </div>
 
             <button 
