@@ -1,0 +1,65 @@
+{
+  "collections": {
+    "users": {
+      "rules": {
+        "read": "request.auth != null && (request.auth.uid == resource.id || request.auth.token.admin == true)",
+        "write": "request.auth != null && (request.auth.uid == resource.id || request.auth.token.admin == true)"
+      },
+      "schema": {
+        "email": "string",
+        "displayName": "string",
+        "role": "string",
+        "createdAt": "timestamp"
+      }
+    },
+    "products": {
+      "rules": {
+        "read": "true",
+        "write": "request.auth != null && request.auth.token.admin == true"
+      },
+      "schema": {
+        "name": "string",
+        "category": "string",
+        "subcategory": "string?",
+        "price": "number",
+        "comparePrice": "number?",
+        "discount": "number?",
+        "stockQuantity": "number",
+        "sizeOptions": "list?",
+        "colorOptions": "list?",
+        "material": "string?",
+        "description": "string",
+        "images": "list",
+        "status": "string",
+        "sku": "string?",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp?"
+      }
+    },
+    "orders": {
+      "rules": {
+        "read": "request.auth != null && (resource.data.userId == request.auth.uid || request.auth.token.admin == true)",
+        "create": "request.auth != null",
+        "update": "request.auth != null && request.auth.token.admin == true",
+        "delete": "request.auth != null && request.auth.token.admin == true"
+      },
+      "schema": {
+        "userId": "string",
+        "customerName": "string",
+        "phone": "string",
+        "address": "string",
+        "city": "string",
+        "postalCode": "string",
+        "products": "list",
+        "subtotal": "number",
+        "shipping": "number",
+        "total": "number",
+        "paymentMethod": "string",
+        "paymentStatus": "string",
+        "status": "string",
+        "stripeSessionId": "string?",
+        "createdAt": "timestamp"
+      }
+    }
+  }
+}
