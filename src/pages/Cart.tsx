@@ -114,7 +114,7 @@ export default function Cart() {
             </div>
             <div>
               <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">Fast Nationwide Delivery</p>
-              <p className="text-xs text-neutral-500 mt-0.5">Free shipping across Bangladesh on orders over ৳ 2000.</p>
+              <p className="text-xs text-neutral-500 mt-0.5">Express delivery across all cities in Bangladesh.</p>
             </div>
           </div>
         </div>

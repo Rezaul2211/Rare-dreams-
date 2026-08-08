@@ -132,64 +132,72 @@ export default function Login() {
         try {
           const userCredential = await signInWithEmailAndPassword(auth, emailClean, password);
           const user = userCredential.user;
-          const userRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userRef);
+          const role = isAdminEmail ? 'admin' : 'customer';
           
-          const role = isAdminEmail ? 'admin' : (userDoc.exists() ? userDoc.data().role || 'customer' : 'customer');
           activeUser = {
             uid: user.uid,
             email: user.email || emailClean,
-            displayName: user.displayName || userDoc.data()?.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
+            displayName: user.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
             role: role,
             createdAt: new Date()
           };
 
-          if (!userDoc.exists() || (isAdminEmail && userDoc.data()?.role !== 'admin')) {
-            await setDoc(userRef, { role: role, email: emailClean }, { merge: true }).catch(console.error);
+          try {
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+              activeUser.displayName = userDoc.data().displayName || activeUser.displayName;
+              activeUser.role = isAdminEmail ? 'admin' : (userDoc.data().role || 'customer');
+            } else {
+              await setDoc(userRef, { role, email: emailClean, displayName: activeUser.displayName }, { merge: true });
+            }
+          } catch (docErr) {
+            console.warn("Firestore user sync skipped:", docErr);
           }
         } catch (authErr: any) {
-          console.warn("Firebase Auth native provider error, attempting Firestore fallback:", authErr);
+          console.warn("Firebase Auth native provider error, attempting fallback:", authErr);
           
-          // Fallback authentication via Firestore directly when Firebase Auth provider is disabled
-          if (authErr.code === 'auth/operation-not-allowed' || authErr.code === 'auth/unauthorized-domain' || authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential') {
-            const role = isAdminEmail ? 'admin' : 'customer';
-            const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
-            const userRef = doc(db, 'users', customUid);
+          const role = isAdminEmail ? 'admin' : 'customer';
+          const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
+          const userRef = doc(db, 'users', customUid);
+          
+          let uData: any = null;
+          try {
             const userDoc = await getDoc(userRef);
-
             if (userDoc.exists()) {
-              const uData = userDoc.data();
-              if (uData.password && uData.password !== password && !isAdminEmail) {
-                setError('Invalid password. Please check your credentials.');
-                setLoading(false);
-                return;
-              }
-              activeUser = {
-                uid: uData.uid || customUid,
-                email: uData.email || emailClean,
-                displayName: uData.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
-                role: isAdminEmail ? 'admin' : (uData.role || 'customer'),
-                createdAt: uData.createdAt || new Date()
-              };
-            } else {
-              // If account doesn't exist in Firestore yet and it's admin, auto-create
-              if (isAdminEmail) {
-                activeUser = {
-                  uid: customUid,
-                  email: emailClean,
-                  displayName: 'Rezaul Karim (Admin)',
-                  role: 'admin',
-                  createdAt: new Date()
-                };
-                await setDoc(userRef, { ...activeUser, password }, { merge: true }).catch(console.error);
-              } else {
-                setError('No account found with this email. Please click "Create Account" below to sign up.');
-                setLoading(false);
-                return;
-              }
+              uData = userDoc.data();
             }
+          } catch (docErr) {
+            console.warn("Firestore lookup error:", docErr);
+          }
+
+          if (uData) {
+            if (uData.password && uData.password !== password && !isAdminEmail) {
+              setError('ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড প্রদান করুন। (Invalid Password)');
+              setLoading(false);
+              return;
+            }
+            activeUser = {
+              uid: uData.uid || customUid,
+              email: uData.email || emailClean,
+              displayName: uData.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
+              role: isAdminEmail ? 'admin' : (uData.role || 'customer'),
+              createdAt: uData.createdAt || new Date()
+            };
           } else {
-            throw authErr;
+            // New fallback user login
+            activeUser = {
+              uid: customUid,
+              email: emailClean,
+              displayName: isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer',
+              role: role,
+              createdAt: new Date()
+            };
+            try {
+              await setDoc(userRef, { ...activeUser, password }, { merge: true });
+            } catch (e) {
+              console.warn("Could not write fallback user doc:", e);
+            }
           }
         }
 
@@ -218,14 +226,42 @@ export default function Login() {
             createdAt: new Date()
           };
 
-          await setDoc(doc(db, 'users', user.uid), { ...newUser, password }).catch(console.error);
+          try {
+            await setDoc(doc(db, 'users', user.uid), { ...newUser, password }, { merge: true });
+          } catch (e) {
+            console.warn("Save user doc failed:", e);
+          }
         } catch (authErr: any) {
-          console.warn("Firebase Auth signup error, using Firestore fallback:", authErr);
+          console.warn("Firebase Auth signup error, using fallback:", authErr);
 
-          if (authErr.code === 'auth/operation-not-allowed' || authErr.code === 'auth/unauthorized-domain') {
-            const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
-            const userRef = doc(db, 'users', customUid);
-            
+          const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
+          const userRef = doc(db, 'users', customUid);
+
+          let existingData: any = null;
+          try {
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+              existingData = userDoc.data();
+            }
+          } catch (e) {
+            console.warn("Read existing user doc failed:", e);
+          }
+
+          if (authErr.code === 'auth/email-already-in-use' || existingData) {
+            if (existingData && existingData.password && existingData.password !== password && !isAdminEmail) {
+              setError('এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে। পাসওয়ার্ড ভুল হয়েছে, দয়া করে "Sign In" এ গিয়ে সঠিক পাসওয়ার্ড দিয়ে লগইন করুন।');
+              setLoading(false);
+              return;
+            }
+
+            newUser = {
+              uid: existingData?.uid || customUid,
+              email: emailClean,
+              displayName: name || existingData?.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer User'),
+              role: isAdminEmail ? 'admin' : (existingData?.role || role),
+              createdAt: existingData?.createdAt || new Date()
+            };
+          } else {
             newUser = {
               uid: customUid,
               email: emailClean,
@@ -234,14 +270,11 @@ export default function Login() {
               password: password,
               createdAt: new Date()
             };
-
-            await setDoc(userRef, newUser, { merge: true }).catch(console.error);
-          } else if (authErr.code === 'auth/email-already-in-use') {
-            setError('An account with this email address already exists. Please sign in instead.');
-            setLoading(false);
-            return;
-          } else {
-            throw authErr;
+            try {
+              await setDoc(userRef, newUser, { merge: true });
+            } catch (e) {
+              console.warn("Save custom user doc failed:", e);
+            }
           }
         }
 
@@ -257,11 +290,11 @@ export default function Login() {
     } catch (err: any) {
       console.error("Auth error:", err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Invalid email address or password. Please check your credentials.');
+        setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে। দয়া করে পরীক্ষা করে আবার চেষ্টা করুন।');
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('An account with this email address already exists. Please sign in instead.');
+        setError('এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে। "Sign In" এ গিয়ে পাসওয়ার্ড দিন।');
       } else {
-        setError(err.message || 'Authentication failed. Please try again.');
+        setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে। অনুগ্রহ করে "Sign In" বা "Create Account" দিয়ে আবার চেষ্টা করুন।');
       }
     } finally {
       setLoading(false);

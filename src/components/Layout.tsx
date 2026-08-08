@@ -24,11 +24,6 @@ function LayoutInner() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] font-sans text-neutral-900 pb-16 md:pb-0">
-      {/* Top Banner */}
-      <div className="bg-black text-white text-xs py-2 text-center tracking-wider font-medium">
-        FREE SHIPPING ON ORDERS OVER ৳ 2000
-      </div>
-
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

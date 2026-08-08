@@ -285,8 +285,8 @@ export default function ProductDetail() {
                 <Truck size={24} />
               </div>
               <div>
-                <h4 className="font-bold text-neutral-900">Free Shipping & Delivery</h4>
-                <p className="text-sm text-neutral-500">Free shipping on orders over a specific amount</p>
+                <h4 className="font-bold text-neutral-900">Standard Delivery</h4>
+                <p className="text-sm text-neutral-500">Fast and reliable shipping across Bangladesh</p>
               </div>
             </div>
             <div className="flex items-start gap-4">

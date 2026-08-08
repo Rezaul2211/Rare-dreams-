@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { createContext, useContext, useState } from 'react';
+import { motion } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
 import { Product } from '../types';
-import { ShoppingBag, Check } from 'lucide-react';
 
 interface FlyingItem {
   id: string;
@@ -11,7 +10,6 @@ interface FlyingItem {
   startY: number;
   targetX: number;
   targetY: number;
-  name: string;
 }
 
 interface FlyToCartContextType {
@@ -24,7 +22,6 @@ const FlyToCartContext = createContext<FlyToCartContextType | undefined>(undefin
 export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [flyingItems, setFlyingItems] = useState<FlyingItem[]>([]);
   const [isCartBouncing, setIsCartBouncing] = useState(false);
-  const [lastAddedName, setLastAddedName] = useState<string | null>(null);
   const addItem = useCartStore((state) => state.addItem);
 
   const animateAddToCart = (
@@ -32,7 +29,7 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     eventOrElement: React.MouseEvent<HTMLElement> | HTMLElement,
     options?: { size?: string; color?: string; quantity?: number }
   ) => {
-    // 1. First add to cart store
+    // 1. Add to cart store
     addItem({
       ...product,
       cartItemId: crypto.randomUUID(),
@@ -41,7 +38,7 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       quantity: options?.quantity || 1,
     });
 
-    // 2. Calculate source rect
+    // 2. Calculate source rect (start position)
     let startX = window.innerWidth / 2;
     let startY = window.innerHeight / 2;
 
@@ -55,14 +52,11 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       startY = rect.top + rect.height / 2;
     }
 
-    // 3. Find target cart icon (header or mobile bottom nav)
-    let targetX = window.innerWidth - 60;
+    // 3. Find target cart icon - strictly target the top-right header bag icon
+    let targetX = window.innerWidth - 40;
     let targetY = 32;
 
-    const isMobile = window.innerWidth < 768;
-    const targetElement = isMobile 
-      ? document.getElementById('mobile-cart-icon') || document.getElementById('header-cart-icon')
-      : document.getElementById('header-cart-icon') || document.getElementById('mobile-cart-icon');
+    const targetElement = document.getElementById('header-cart-icon') || document.getElementById('mobile-cart-icon');
 
     if (targetElement) {
       const targetRect = targetElement.getBoundingClientRect();
@@ -82,82 +76,54 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         startY,
         targetX,
         targetY,
-        name: product.name,
       },
     ]);
-
-    setLastAddedName(product.name);
-
-    // Auto remove notification after 3s
-    setTimeout(() => {
-      setLastAddedName(null);
-    }, 3000);
   };
 
   const handleAnimationComplete = (id: string) => {
     setFlyingItems((prev) => prev.filter((item) => item.id !== id));
     
-    // Trigger bounce on cart icon
+    // Trigger bounce effect on cart icon
     setIsCartBouncing(true);
     setTimeout(() => {
       setIsCartBouncing(false);
-    }, 500);
+    }, 400);
   };
 
   return (
     <FlyToCartContext.Provider value={{ animateAddToCart, isCartBouncing }}>
       {children}
 
-      {/* Floating Animated Thumbnails */}
+      {/* Floating Animated Product Image flying straight to top-right header bag without rotation */}
       <div className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden">
         {flyingItems.map((item) => (
           <motion.div
             key={item.id}
             initial={{
-              x: item.startX - 32,
-              y: item.startY - 32,
-              scale: 1,
+              x: item.startX - 40,
+              y: item.startY - 40,
+              scale: 1.2,
               opacity: 1,
               rotate: 0,
             }}
             animate={{
-              x: item.targetX - 20,
-              y: item.targetY - 20,
-              scale: 0.25,
+              x: item.targetX - 12,
+              y: item.targetY - 12,
+              scale: 0.1,
               opacity: 0.85,
-              rotate: 360,
+              rotate: 0,
             }}
             transition={{
-              duration: 0.7,
-              ease: [0.16, 1, 0.3, 1], // Custom smooth cubic-bezier curve
+              duration: 0.75,
+              ease: [0.22, 1, 0.36, 1], // Smooth natural curve entering header bag
             }}
             onAnimationComplete={() => handleAnimationComplete(item.id)}
-            className="absolute w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white"
+            className="absolute w-20 h-20 rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white shrink-0"
           >
             <img src={item.image} alt="" className="w-full h-full object-cover" />
           </motion.div>
         ))}
       </div>
-
-      {/* Premium Toast Feedback */}
-      <AnimatePresence>
-        {lastAddedName && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-20 right-4 md:right-8 z-[9999] bg-neutral-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-neutral-700 flex items-center space-x-3 backdrop-blur-md"
-          >
-            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 font-bold">
-              <Check size={18} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-white uppercase tracking-wider">Added to Bag!</p>
-              <p className="text-xs text-neutral-300 truncate max-w-[200px]">{lastAddedName}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </FlyToCartContext.Provider>
   );
 };
