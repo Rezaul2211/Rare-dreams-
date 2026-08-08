@@ -92,13 +92,8 @@ export const useAuthStore = create<AuthState>((set) => ({
           set({ user: fallbackUser, loading: false });
         }
       } else {
-        // If firebase auth says logged out, but we have a manual fallback session in localStorage, don't wipe it unless explicit logout
-        const currentCached = localStorage.getItem('rare_dreams_user');
-        if (!currentCached) {
-          set({ user: null, loading: false });
-        } else {
-          set({ loading: false });
-        }
+        localStorage.removeItem('rare_dreams_user');
+        set({ user: null, loading: false });
       }
     });
     return unsubscribe;

@@ -32,7 +32,7 @@ export default function Login() {
       const userData = {
         uid: user.uid,
         email: user.email || '',
-        displayName: user.displayName || name || 'Customer User',
+        displayName: user.displayName || name || (isAdmin ? 'Admin' : 'Customer User'),
         role: role,
         createdAt: new Date()
       };
@@ -49,38 +49,17 @@ export default function Login() {
         navigate('/account');
       }
     } catch (err: any) {
-      console.warn("Google Sign-in popup fallback mode engaged:", err);
-      // Fallback: If Google popup is restricted or domain unauthorized on Vercel
-      const fallbackUser = {
-        uid: 'google-user-' + Date.now(),
-        email: 'user@raredreams.com',
-        displayName: 'Google User',
-        role: 'customer',
-        createdAt: new Date()
-      };
-      useAuthStore.getState().setUser(fallbackUser as any);
-      navigate('/account');
+      console.error("Google Sign-in error:", err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain (raredreams.vercel.app) is not authorized in your Firebase Console. Please add raredreams.vercel.app to Firebase Console -> Authentication -> Settings -> Authorized Domains.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in popup was closed before completing.');
+      } else {
+        setError(err.message || 'Failed to sign in with Google');
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDirectAdminLogin = () => {
-    setLoading(true);
-    const adminUser = {
-      uid: 'admin-rezaul-001',
-      email: 'xmrezaul.karim998@gmail.com',
-      displayName: 'Rezaul Karim (Admin)',
-      role: 'admin',
-      createdAt: new Date()
-    };
-    useAuthStore.getState().setUser(adminUser as any);
-    // Also record in Firestore
-    setDoc(doc(db, 'users', adminUser.uid), adminUser, { merge: true }).catch(console.error);
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/admin');
-    }, 400);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,33 +67,29 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    const isAdminEmail = email.trim().toLowerCase() === 'xmrezaul.karim998@gmail.com';
+    const emailClean = email.trim().toLowerCase();
+    const isAdminEmail = emailClean === 'xmrezaul.karim998@gmail.com';
 
     try {
       if (isLogin) {
-        let uid = 'user-' + Date.now();
-        let userDisplayName = name || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer');
-
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          uid = userCredential.user.uid;
-          if (userCredential.user.displayName) userDisplayName = userCredential.user.displayName;
-        } catch (fbErr: any) {
-          console.warn("Firebase Auth fallback engaged:", fbErr);
-          // Auto fallback so site login NEVER blocks the user on Vercel
-        }
-
-        const role = isAdminEmail ? 'admin' : 'customer';
+        const userCredential = await signInWithEmailAndPassword(auth, emailClean, password);
+        const user = userCredential.user;
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        const role = isAdminEmail ? 'admin' : (userDoc.exists() ? userDoc.data().role || 'customer' : 'customer');
         const activeUser = {
-          uid: uid,
-          email: email.trim(),
-          displayName: userDisplayName,
+          uid: user.uid,
+          email: user.email || emailClean,
+          displayName: user.displayName || userDoc.data()?.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
           role: role,
           createdAt: new Date()
         };
 
-        // Save to firestore asynchronously
-        setDoc(doc(db, 'users', uid), activeUser, { merge: true }).catch(console.error);
+        if (!userDoc.exists() || (isAdminEmail && userDoc.data()?.role !== 'admin')) {
+          await setDoc(userRef, { role: role, email: emailClean }, { merge: true }).catch(console.error);
+        }
+
         useAuthStore.getState().setUser(activeUser as any);
 
         if (isAdminEmail) {
@@ -123,24 +98,19 @@ export default function Login() {
           navigate('/account');
         }
       } else {
-        let uid = 'user-' + Date.now();
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          uid = userCredential.user.uid;
-        } catch (fbErr: any) {
-          console.warn("Firebase signup fallback engaged:", fbErr);
-        }
-
+        const userCredential = await createUserWithEmailAndPassword(auth, emailClean, password);
+        const user = userCredential.user;
         const role = isAdminEmail ? 'admin' : 'customer';
+
         const newUser = {
-          uid: uid,
-          email: email.trim(),
-          displayName: name || (isAdminEmail ? 'Admin' : 'Customer'),
+          uid: user.uid,
+          email: emailClean,
+          displayName: name || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer User'),
           role: role,
           createdAt: new Date()
         };
 
-        setDoc(doc(db, 'users', uid), newUser, { merge: true }).catch(console.error);
+        await setDoc(doc(db, 'users', user.uid), newUser);
         useAuthStore.getState().setUser(newUser as any);
 
         if (isAdminEmail) {
@@ -150,7 +120,18 @@ export default function Login() {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      console.error("Auth error:", err);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email address or password. Please check your credentials.');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email address already exists. Please sign in instead.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('Email/Password Sign-in is disabled in Firebase Console. Please enable Email/Password under Authentication -> Sign-in method.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain is not authorized in Firebase. Add raredreams.vercel.app to Authorized Domains in Firebase Console.');
+      } else {
+        setError(err.message || 'Authentication failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -340,25 +321,12 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Admin Note & Direct Instant Login */}
-        <div className="mt-8 bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
-          <div className="flex gap-2.5 items-start mb-3">
-            <ShieldCheck className="text-amber-600 shrink-0 mt-0.5" size={18} />
-            <div>
-              <p className="text-xs font-bold text-amber-950 uppercase tracking-tight">Admin Dashboard Access</p>
-              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                Owner account (<code className="font-mono text-amber-900 font-semibold">xmrezaul.karim998@gmail.com</code>)
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleDirectAdminLogin}
-            disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-xl py-2.5 px-3 text-xs font-bold uppercase tracking-wider transition-colors shadow-xs flex items-center justify-center space-x-1.5"
-          >
-            <span>One-Click Admin Login</span>
-          </button>
+        {/* Admin Access Info */}
+        <div className="mt-8 bg-neutral-50 p-4 rounded-2xl border border-neutral-200 flex gap-3 items-start">
+          <ShieldCheck className="text-neutral-500 shrink-0 mt-0.5" size={18} />
+          <p className="text-[11px] text-neutral-600 leading-relaxed">
+            <strong>Store Administrator Notice:</strong> Sign in using your registered admin email (<code className="font-mono text-neutral-900 font-semibold">xmrezaul.karim998@gmail.com</code>) to access the store management dashboard.
+          </p>
         </div>
       </motion.div>
     </div>

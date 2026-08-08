@@ -139,52 +139,54 @@ export default function ProductForm() {
   if (fetching) return <div>Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center space-x-4 mb-8">
-        <button onClick={() => navigate('/admin/products')} className="p-2 bg-white rounded-full border border-neutral-200 hover:bg-neutral-50 transition-colors">
-          <ArrowLeft size={20} />
+    <div className="max-w-4xl mx-auto px-2 sm:px-6 py-4 w-full overflow-hidden">
+      <div className="flex items-center space-x-3 mb-6">
+        <button onClick={() => navigate('/admin/products')} className="p-2 bg-white rounded-full border border-neutral-200 hover:bg-neutral-50 transition-colors shrink-0">
+          <ArrowLeft size={18} />
         </button>
-        <h1 className="text-3xl font-bold tracking-tight">{isEditing ? 'Edit Product' : 'Add New Product'}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">{isEditing ? 'Edit Product' : 'Add New Product'}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
           {/* Main Info */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold mb-4">Basic Information</h2>
+          <div className="lg:col-span-2 space-y-6 w-full min-w-0">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
+              <h2 className="text-base sm:text-lg font-bold">Basic Information</h2>
               
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Product Name</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Product Name</label>
                 <input
                   type="text"
                   name="name"
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  placeholder="e.g. Premium Cotton Shirt"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Description</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Description</label>
                 <textarea
                   name="description"
                   required
-                  rows={6}
+                  rows={5}
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  placeholder="Detailed product description..."
                 />
               </div>
             </div>
 
             {/* Images */}
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold mb-2">Product Images</h2>
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
+              <h2 className="text-base sm:text-lg font-bold">Product Images</h2>
               
               {/* Local File Upload Button */}
-              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center hover:bg-neutral-50 transition-colors">
+              <div className="border-2 border-dashed border-neutral-300 rounded-2xl p-4 text-center hover:bg-neutral-50 transition-colors w-full">
                 <input
                   type="file"
                   id="file-upload"
@@ -194,37 +196,37 @@ export default function ProductForm() {
                   className="hidden"
                 />
                 <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center space-y-2">
-                  <div className="w-10 h-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-700">
+                  <div className="w-10 h-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-700 shrink-0">
                     <UploadCloud size={20} />
                   </div>
-                  <div>
-                    <span className="text-sm font-bold text-neutral-900 underline decoration-2">Upload from Phone / PC Storage</span>
-                    <p className="text-xs text-neutral-500 mt-0.5">Supports JPG, PNG, WEBP files</p>
+                  <div className="text-center px-2">
+                    <span className="text-xs sm:text-sm font-bold text-neutral-900 underline decoration-2 block">Upload from Phone / PC Storage</span>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">Supports JPG, PNG, WEBP files</p>
                   </div>
                 </label>
               </div>
 
               {/* URL Option as alternative */}
-              <div className="pt-2">
+              <div className="pt-2 w-full">
                 <label className="block text-xs font-semibold text-neutral-500 mb-1">Or add image via web URL:</label>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <input
                     type="url"
                     placeholder="https://example.com/image.jpg"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    className="flex-1 border border-neutral-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-black"
+                    className="flex-1 border border-neutral-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:border-black min-w-0"
                   />
-                  <button type="button" onClick={addImage} className="bg-neutral-900 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-black">
+                  <button type="button" onClick={addImage} className="bg-neutral-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black shrink-0">
                     Add URL
                   </button>
                 </div>
               </div>
 
               {/* Image Previews */}
-              <div className="grid grid-cols-4 gap-4 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4 w-full">
                 {(formData.images || []).map((img, idx) => (
-                  <div key={idx} className="relative aspect-[3/4] bg-neutral-100 rounded-lg overflow-hidden group border border-neutral-200">
+                  <div key={idx} className="relative aspect-[3/4] bg-neutral-100 rounded-xl overflow-hidden group border border-neutral-200">
                     <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
@@ -240,49 +242,49 @@ export default function ProductForm() {
             </div>
 
             {/* Variants */}
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold mb-4">Variants & Attributes</h2>
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
+              <h2 className="text-base sm:text-lg font-bold">Variants & Attributes</h2>
               
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Sizes</label>
-                  <div className="flex space-x-2 mb-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full">
+                <div className="w-full min-w-0">
+                  <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Sizes</label>
+                  <div className="flex items-center space-x-2 mb-2 w-full">
                     <input
                       type="text"
-                      placeholder="e.g. S, M, L"
+                      placeholder="e.g. S, M, L, XL"
                       value={sizeInput}
                       onChange={(e) => setSizeInput(e.target.value)}
-                      className="flex-1 border border-neutral-300 rounded-lg px-3 py-1.5 text-sm outline-none"
+                      className="flex-1 min-w-0 border border-neutral-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:border-black"
                     />
-                    <button type="button" onClick={() => addArrayItem('sizeOptions', sizeInput, setSizeInput)} className="bg-neutral-200 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-neutral-300">Add</button>
+                    <button type="button" onClick={() => addArrayItem('sizeOptions', sizeInput, setSizeInput)} className="bg-neutral-900 text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-bold shrink-0 hover:bg-black">Add</button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {(formData.sizeOptions || []).map((size, idx) => (
-                      <span key={idx} className="inline-flex items-center bg-neutral-100 px-2 py-1 rounded-md text-sm border border-neutral-200">
+                      <span key={idx} className="inline-flex items-center bg-neutral-100 px-2.5 py-1 rounded-lg text-xs font-semibold border border-neutral-200">
                         {size}
-                        <button type="button" onClick={() => removeArrayItem('sizeOptions', idx)} className="ml-2 text-neutral-500 hover:text-red-500"><X size={14} /></button>
+                        <button type="button" onClick={() => removeArrayItem('sizeOptions', idx)} className="ml-1.5 text-neutral-400 hover:text-red-500"><X size={12} /></button>
                       </span>
                     ))}
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Colors</label>
-                  <div className="flex space-x-2 mb-2">
+                <div className="w-full min-w-0">
+                  <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Colors</label>
+                  <div className="flex items-center space-x-2 mb-2 w-full">
                     <input
                       type="text"
-                      placeholder="e.g. Black, White"
+                      placeholder="e.g. Black, White, Red"
                       value={colorInput}
                       onChange={(e) => setColorInput(e.target.value)}
-                      className="flex-1 border border-neutral-300 rounded-lg px-3 py-1.5 text-sm outline-none"
+                      className="flex-1 min-w-0 border border-neutral-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:border-black"
                     />
-                    <button type="button" onClick={() => addArrayItem('colorOptions', colorInput, setColorInput)} className="bg-neutral-200 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-neutral-300">Add</button>
+                    <button type="button" onClick={() => addArrayItem('colorOptions', colorInput, setColorInput)} className="bg-neutral-900 text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-bold shrink-0 hover:bg-black">Add</button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {(formData.colorOptions || []).map((color, idx) => (
-                      <span key={idx} className="inline-flex items-center bg-neutral-100 px-2 py-1 rounded-md text-sm border border-neutral-200">
+                      <span key={idx} className="inline-flex items-center bg-neutral-100 px-2.5 py-1 rounded-lg text-xs font-semibold border border-neutral-200">
                         {color}
-                        <button type="button" onClick={() => removeArrayItem('colorOptions', idx)} className="ml-2 text-neutral-500 hover:text-red-500"><X size={14} /></button>
+                        <button type="button" onClick={() => removeArrayItem('colorOptions', idx)} className="ml-1.5 text-neutral-400 hover:text-red-500"><X size={12} /></button>
                       </span>
                     ))}
                   </div>
@@ -292,17 +294,17 @@ export default function ProductForm() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold mb-4">Organization & Pricing</h2>
+          <div className="space-y-6 w-full min-w-0">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
+              <h2 className="text-base sm:text-lg font-bold">Organization & Pricing</h2>
               
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Status</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Status</label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -310,12 +312,12 @@ export default function ProductForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Category</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Category</label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none font-medium"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                 >
                   <option value="Boys Wear">Boys Wear</option>
                   <option value="Girls Wear">Girls Wear</option>
@@ -327,7 +329,7 @@ export default function ProductForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Price ($)</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Price (৳)</label>
                 <input
                   type="number"
                   name="price"
@@ -336,12 +338,12 @@ export default function ProductForm() {
                   required
                   value={formData.price}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Compare at Price ($)</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Compare at Price (৳)</label>
                 <input
                   type="number"
                   name="comparePrice"
@@ -349,12 +351,12 @@ export default function ProductForm() {
                   step="0.01"
                   value={formData.comparePrice}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Stock Quantity</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Stock Quantity</label>
                 <input
                   type="number"
                   name="stockQuantity"
@@ -362,7 +364,7 @@ export default function ProductForm() {
                   required
                   value={formData.stockQuantity}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
                 />
               </div>
             </div>
@@ -370,9 +372,9 @@ export default function ProductForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white px-6 py-4 rounded-xl text-lg font-bold hover:bg-neutral-800 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full bg-black text-white px-6 py-4 rounded-2xl text-base font-bold hover:bg-neutral-800 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md"
             >
-              <Save size={20} />
+              <Save size={18} />
               <span>{loading ? 'Saving...' : 'Save Product'}</span>
             </button>
           </div>
