@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight, Star, Heart, ShoppingCart, Shirt, Baby, UserCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Star, Heart, Shirt, Baby, UserCircle2 } from 'lucide-react';
 import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { LazyImage } from '../components/LazyImage';
 import { ProductSkeleton } from '../components/ProductSkeleton';
+import { ProductCard } from '../components/ProductCard';
 
 const HERO_SLIDES = [
   {
@@ -208,55 +209,7 @@ export default function Home() {
           ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {featuredProducts.map((product, index) => (
-                <motion.div 
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="group flex flex-col bg-white rounded-2xl shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 relative"
-                >
-                  {/* Heart Icon Overlay */}
-                  <button className="absolute top-3 right-3 z-10 p-2 bg-white/80 backdrop-blur-md rounded-full shadow-sm text-neutral-400 hover:text-red-500 hover:bg-white transition-all">
-                    <Heart size={18} strokeWidth={2} />
-                  </button>
-                  
-                  <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden bg-neutral-100">
-                    {product.images && product.images.length > 0 ? (
-                      <LazyImage 
-                        src={product.images[0]} 
-                        alt={product.name}
-                        className="group-hover:scale-108 transition-transform duration-500"
-                        containerClassName="w-full h-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-neutral-400">No image</div>
-                    )}
-                    {product.discount && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                        Sale
-                      </div>
-                    )}
-                  </Link>
-                  <div className="p-4 flex flex-col flex-grow">
-                    <Link to={`/product/${product.id}`}>
-                      <h3 className="text-sm font-medium text-neutral-800 line-clamp-2 mb-2 leading-tight group-hover:text-black transition-colors">{product.name}</h3>
-                    </Link>
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-lg leading-none">৳ {product.price.toFixed(2)}</span>
-                        {product.comparePrice && (
-                          <span className="text-xs text-neutral-400 line-through mt-1">৳ {product.comparePrice.toFixed(2)}</span>
-                        )}
-                      </div>
-                      <Link 
-                        to={`/product/${product.id}`}
-                        className="w-10 h-10 bg-neutral-900 text-white rounded-full flex items-center justify-center hover:bg-neutral-700 transition-colors shadow-sm"
-                      >
-                        <ShoppingCart size={18} />
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
+                <ProductCard key={product.id} product={product} index={index} />
               ))}
             </div>
           ) : (

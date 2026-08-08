@@ -4,8 +4,9 @@ import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDash
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { auth } from '../lib/firebase';
+import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
 
-export default function Layout() {
+function LayoutInner() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const items = useCartStore((state) => state.items);
@@ -13,6 +14,7 @@ export default function Layout() {
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isCartBouncing } = useFlyToCart();
 
   const handleLogout = () => {
     auth.signOut();
@@ -23,37 +25,38 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] font-sans text-neutral-900 pb-16 md:pb-0">
       {/* Top Banner */}
-      <div className="bg-black text-white text-xs py-2 text-center tracking-wider">
-        FREE SHIPPING ON ORDERS OVER $200
+      <div className="bg-black text-white text-xs py-2 text-center tracking-wider font-medium">
+        FREE SHIPPING ON ORDERS OVER ৳ 2000
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-200">
+      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden p-2"
+              className="md:hidden p-2 rounded-xl hover:bg-neutral-100 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
             {/* Logo */}
-            <Link to="/" className="text-2xl font-bold tracking-tighter uppercase shrink-0">
+            <Link to="/" className="text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity">
               Rare Dreams
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <Link to="/shop" className="text-sm font-medium hover:text-neutral-500 transition-colors uppercase tracking-wide">Shop All</Link>
-              <Link to="/category/Men" className="text-sm font-medium hover:text-neutral-500 transition-colors uppercase tracking-wide">Men</Link>
-              <Link to="/category/Women" className="text-sm font-medium hover:text-neutral-500 transition-colors uppercase tracking-wide">Women</Link>
-              <Link to="/category/Kids" className="text-sm font-medium hover:text-neutral-500 transition-colors uppercase tracking-wide">Kids</Link>
+              <Link to="/shop" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Shop All</Link>
+              <Link to="/category/Boys Wear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Boys Wear</Link>
+              <Link to="/category/Girls Wear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Girls Wear</Link>
+              <Link to="/category/Baby Essentials" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Baby</Link>
+              <Link to="/category/Footwear" className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Footwear</Link>
             </nav>
 
             {/* Icons & Admin Shortcut */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {/* Visible Admin Dashboard link button for admins */}
               {user?.role === 'admin' && (
                 <Link 
@@ -61,11 +64,11 @@ export default function Layout() {
                   className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-sm"
                 >
                   <ShieldCheck size={14} className="text-amber-400" />
-                  <span>Admin Dashboard</span>
+                  <span>Admin Panel</span>
                 </Link>
               )}
 
-              <button className="p-2 hover:bg-neutral-100 rounded-full transition-colors hidden sm:block">
+              <button className="p-2 hover:bg-neutral-100 rounded-2xl transition-colors hidden sm:block">
                 <Search size={20} />
               </button>
 
@@ -73,7 +76,7 @@ export default function Layout() {
               <div className="relative hidden sm:block">
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-2 hover:bg-neutral-100 rounded-full transition-colors flex items-center"
+                  className="p-2 hover:bg-neutral-100 rounded-2xl transition-colors flex items-center"
                   aria-label="User Account Menu"
                 >
                   <User size={20} />
@@ -135,10 +138,17 @@ export default function Layout() {
                 )}
               </div>
 
-              <Link to="/cart" className="p-2 hover:bg-neutral-100 rounded-full transition-colors relative">
+              {/* Desktop Header Cart Icon */}
+              <Link 
+                id="header-cart-icon"
+                to="/cart" 
+                className={`p-2.5 hover:bg-neutral-100 rounded-2xl transition-all relative ${
+                  isCartBouncing ? 'scale-125 ring-2 ring-black bg-neutral-100' : ''
+                }`}
+              >
                 <ShoppingBag size={20} />
                 {itemCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-black rounded-full">
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-black leading-none text-white bg-black rounded-full shadow-sm animate-pulse">
                     {itemCount}
                   </span>
                 )}
@@ -151,26 +161,27 @@ export default function Layout() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-neutral-200">
             <div className="px-4 pt-2 pb-6 space-y-1">
-              <Link to="/shop" className="block px-3 py-3 text-base font-medium border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All</Link>
-              <Link to="/category/Men" className="block px-3 py-3 text-base font-medium border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Men</Link>
-              <Link to="/category/Women" className="block px-3 py-3 text-base font-medium border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Women</Link>
-              <Link to="/category/Kids" className="block px-3 py-3 text-base font-medium border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Kids</Link>
+              <Link to="/shop" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All</Link>
+              <Link to="/category/Boys Wear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Wear</Link>
+              <Link to="/category/Girls Wear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Wear</Link>
+              <Link to="/category/Baby Essentials" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Essentials</Link>
+              <Link to="/category/Footwear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear</Link>
 
               {user?.role === 'admin' && (
                 <Link 
                   to="/admin" 
-                  className="flex items-center justify-between px-3 py-3 text-base font-bold text-amber-900 bg-amber-50 rounded-xl my-2 uppercase tracking-wide" 
+                  className="flex items-center justify-between px-3 py-3 text-sm font-bold text-amber-900 bg-amber-50 rounded-xl my-2 uppercase tracking-wide" 
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <div className="flex items-center space-x-2">
-                    <ShieldCheck size={20} className="text-amber-600" />
-                    <span>Admin Dashboard</span>
+                    <ShieldCheck size={18} className="text-amber-600" />
+                    <span>Admin Panel</span>
                   </div>
-                  <span className="text-[10px] bg-amber-600 text-white px-2 py-0.5 rounded font-black">ADMIN</span>
+                  <span className="text-[10px] bg-amber-600 text-white px-2 py-0.5 rounded-md font-black">ADMIN</span>
                 </Link>
               )}
 
-              <Link to={user ? '/account' : '/login'} className="block px-3 py-3 text-base font-medium border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to={user ? '/account' : '/login'} className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
                 {user ? 'My Account' : 'Sign In'}
               </Link>
             </div>
@@ -184,7 +195,7 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-neutral-200 pt-16 pb-8 md:pb-8 mt-auto">
+      <footer className="bg-white border-t border-neutral-200/80 pt-16 pb-8 md:pb-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
             <div className="md:col-span-4">
@@ -196,7 +207,7 @@ export default function Layout() {
               </p>
               <div className="flex space-x-4">
                 {['Facebook', 'Instagram', 'Twitter'].map((social) => (
-                  <a key={social} href="#" className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white transition-colors">
+                  <a key={social} href="#" className="w-10 h-10 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white transition-colors">
                     <span className="text-xs font-medium">{social[0]}</span>
                   </a>
                 ))}
@@ -206,10 +217,10 @@ export default function Layout() {
             <div className="md:col-span-2">
               <h4 className="text-sm font-bold text-neutral-900 mb-6">Shop</h4>
               <ul className="space-y-4">
-                <li><Link to="/category/Men" className="text-neutral-500 hover:text-black text-sm transition-colors">Men's Collection</Link></li>
-                <li><Link to="/category/Women" className="text-neutral-500 hover:text-black text-sm transition-colors">Women's Collection</Link></li>
-                <li><Link to="/category/Kids" className="text-neutral-500 hover:text-black text-sm transition-colors">Kids' Collection</Link></li>
-                <li><Link to="/shop" className="text-neutral-500 hover:text-black text-sm transition-colors">New Arrivals</Link></li>
+                <li><Link to="/category/Boys Wear" className="text-neutral-500 hover:text-black text-sm transition-colors">Boys Wear</Link></li>
+                <li><Link to="/category/Girls Wear" className="text-neutral-500 hover:text-black text-sm transition-colors">Girls Wear</Link></li>
+                <li><Link to="/category/Baby Essentials" className="text-neutral-500 hover:text-black text-sm transition-colors">Baby Essentials</Link></li>
+                <li><Link to="/category/Footwear" className="text-neutral-500 hover:text-black text-sm transition-colors">Footwear</Link></li>
               </ul>
             </div>
             
@@ -252,32 +263,47 @@ export default function Layout() {
       </footer>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 flex justify-around items-center h-16 z-50 px-2 pb-safe shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <Link to="/" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-500 hover:text-black'}`}>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 flex justify-around items-center h-16 z-50 px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        <Link to="/" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Home size={20} className={location.pathname === '/' ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-medium">Home</span>
+          <span className="text-[10px] mt-1 font-bold">Home</span>
         </Link>
-        <Link to="/shop" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'text-black' : 'text-neutral-500 hover:text-black'}`}>
+        <Link to="/shop" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Grid size={20} className={location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-medium">Category</span>
+          <span className="text-[10px] mt-1 font-bold">Shop</span>
         </Link>
-        <Link to="/cart" className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${location.pathname === '/cart' ? 'text-black' : 'text-neutral-500 hover:text-black'}`}>
+        <Link 
+          id="mobile-cart-icon"
+          to="/cart" 
+          className={`flex flex-col items-center justify-center w-full h-full relative transition-all ${
+            location.pathname === '/cart' ? 'text-black' : 'text-neutral-400 hover:text-black'
+          } ${isCartBouncing ? 'scale-125 text-black' : ''}`}
+        >
           <div className="relative">
             <ShoppingBag size={20} className={location.pathname === '/cart' ? 'fill-black' : ''} />
             {itemCount > 0 && (
-              <span className="absolute -top-1 -right-2 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-white bg-black rounded-full">
+              <span className="absolute -top-1.5 -right-2.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-black text-white bg-black rounded-full shadow-xs">
                 {itemCount}
               </span>
             )}
           </div>
-          <span className="text-[10px] mt-1 font-medium">Cart</span>
+          <span className="text-[10px] mt-1 font-bold">Cart</span>
         </Link>
-        <Link to={user ? '/account' : '/login'} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/account') || location.pathname.includes('/login') ? 'text-black' : 'text-neutral-500 hover:text-black'}`}>
+        <Link to={user ? '/account' : '/login'} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/account') || location.pathname.includes('/login') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <User size={20} className={location.pathname.includes('/account') || location.pathname.includes('/login') ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-medium">Account</span>
+          <span className="text-[10px] mt-1 font-bold">Account</span>
         </Link>
       </div>
     </div>
   );
 }
+
+export default function Layout() {
+  return (
+    <FlyToCartProvider>
+      <LayoutInner />
+    </FlyToCartProvider>
+  );
+}
+
 

@@ -4,6 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCartStore } from '../store/useCartStore';
+import { useFlyToCart } from '../context/FlyToCartContext';
 import { ChevronRight, Heart, Share2, Info, Star, MessageCircle, Zap, ShieldCheck, Truck, HeadphonesIcon, RotateCcw } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
@@ -20,6 +21,7 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   
+  const { animateAddToCart } = useFlyToCart();
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e?: React.MouseEvent<HTMLElement>) => {
     if (!product) return;
     
     // Validate selections if options exist
@@ -56,15 +58,21 @@ export default function ProductDetail() {
       return;
     }
 
-    addItem({
-      ...product,
-      cartItemId: crypto.randomUUID(),
-      selectedSize,
-      selectedColor,
-      quantity,
-    });
-    
-    navigate('/cart');
+    if (e) {
+      animateAddToCart(product, e, {
+        size: selectedSize,
+        color: selectedColor,
+        quantity,
+      });
+    } else {
+      addItem({
+        ...product,
+        cartItemId: crypto.randomUUID(),
+        selectedSize,
+        selectedColor,
+        quantity,
+      });
+    }
   };
 
   if (loading) {
@@ -214,16 +222,16 @@ export default function ProductDetail() {
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <button 
-                  onClick={handleAddToCart}
+                  onClick={(e) => handleAddToCart(e)}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-xl py-3.5 text-sm font-bold shadow-sm hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                  className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-2xl py-3.5 text-sm font-bold shadow-sm hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50"
                 >
-                  Add to Cart
+                  Add to Bag 🛍️
                 </button>
                 <button 
-                  onClick={() => { handleAddToCart(); navigate('/checkout'); }}
+                  onClick={(e) => { handleAddToCart(); navigate('/checkout'); }}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-emerald-600 text-white rounded-xl py-3.5 text-sm font-bold shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                  className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-sm font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center"
                 >
                   <Zap size={16} className="mr-1.5" /> 1 Click Order
                 </button>

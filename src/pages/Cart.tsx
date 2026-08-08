@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
-import { X, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Truck } from 'lucide-react';
 import { LazyImage } from '../components/LazyImage';
 
 export default function Cart() {
@@ -9,112 +9,154 @@ export default function Cart() {
   const navigate = useNavigate();
 
   const subtotal = getSubtotal();
-  const shipping = subtotal > 200 ? 0 : 15;
+  const shipping = subtotal > 2000 ? 0 : 60; // 60 Taka delivery fee in Bangladesh or Free over 2000 ৳
   const total = subtotal + (subtotal > 0 ? shipping : 0);
 
   if (items.length === 0) {
     return (
-      <div className="flex-grow flex flex-col items-center justify-center py-32 px-4 text-center">
-        <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mb-6 text-neutral-300">
-          <ShoppingBag size={48} />
+      <div className="flex-grow flex flex-col items-center justify-center py-24 px-4 text-center">
+        <div className="w-24 h-24 bg-neutral-100 rounded-3xl flex items-center justify-center mb-6 text-neutral-400 shadow-inner">
+          <ShoppingBag size={44} />
         </div>
-        <h2 className="text-3xl font-bold uppercase tracking-tighter mb-4">Your cart is empty</h2>
-        <p className="text-neutral-500 mb-8 max-w-md">
-          Looks like you haven't added anything to your cart yet. Discover our latest collections.
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-3">Your Bag is Empty</h2>
+        <p className="text-neutral-500 mb-8 max-w-md text-sm leading-relaxed">
+          Looks like you haven't added anything to your cart yet. Explore our latest arrivals to get started.
         </p>
         <Link 
           to="/shop" 
-          className="bg-black text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors"
+          className="bg-black text-white px-8 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all shadow-md active:scale-95"
         >
-          Continue Shopping
+          Explore Shop
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 w-full flex-grow">
-      <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter mb-12">Shopping Cart</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full flex-grow">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900">Your Shopping Bag</h1>
+          <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mt-1">{items.length} {items.length === 1 ? 'item' : 'items'} in your cart</p>
+        </div>
+        <Link 
+          to="/shop"
+          className="text-xs font-bold text-neutral-600 hover:text-black uppercase tracking-wider underline underline-offset-4"
+        >
+          Continue Shopping
+        </Link>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-12">
-        <div className="w-full lg:w-2/3">
-          <div className="border-t border-neutral-200">
-            {items.map((item) => (
-              <div key={item.cartItemId} className="flex py-8 border-b border-neutral-200">
-                <Link to={`/product/${item.id}`} className="w-32 h-40 bg-neutral-100 shrink-0 block relative">
-                  {item.images && item.images.length > 0 && (
-                    <LazyImage src={item.images[0]} alt={item.name} className="w-full h-full object-cover" containerClassName="w-full h-full" />
-                  )}
-                </Link>
-                <div className="ml-6 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-sm font-bold uppercase tracking-wide mb-1">
-                        <Link to={`/product/${item.id}`} className="hover:underline">{item.name}</Link>
-                      </h3>
-                      <div className="text-sm text-neutral-500 space-y-1">
-                        {item.selectedColor && <p>Color: {item.selectedColor}</p>}
-                        {item.selectedSize && <p>Size: {item.selectedSize}</p>}
-                      </div>
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Cart Items List */}
+        <div className="w-full lg:w-2/3 space-y-4">
+          {items.map((item) => (
+            <div 
+              key={item.cartItemId} 
+              className="bg-white rounded-2xl md:rounded-3xl p-4 sm:p-5 border border-neutral-200/80 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center relative"
+            >
+              <Link to={`/product/${item.id}`} className="w-24 h-28 sm:w-28 sm:h-32 bg-neutral-100 rounded-2xl overflow-hidden shrink-0 block relative">
+                {item.images && item.images.length > 0 && (
+                  <LazyImage src={item.images[0]} alt={item.name} className="w-full h-full object-cover" containerClassName="w-full h-full" />
+                )}
+              </Link>
+
+              <div className="flex-1 w-full flex flex-col justify-between self-stretch">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-0.5">{item.category || 'Collection'}</span>
+                    <h3 className="text-sm font-bold text-neutral-900 leading-snug">
+                      <Link to={`/product/${item.id}`} className="hover:text-neutral-600 transition-colors">{item.name}</Link>
+                    </h3>
+                    <div className="text-xs text-neutral-500 font-medium space-x-3 mt-1 flex items-center">
+                      {item.selectedSize && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">Size: {item.selectedSize}</span>}
+                      {item.selectedColor && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">Color: {item.selectedColor}</span>}
                     </div>
-                    <button 
-                      onClick={() => removeItem(item.cartItemId)}
-                      className="p-2 text-neutral-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
                   </div>
-                  <div className="mt-auto flex justify-between items-end">
-                    <div className="flex items-center border border-neutral-300 w-28 h-10">
-                      <button 
-                        onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                        className="flex-1 flex justify-center items-center hover:bg-neutral-50"
-                      >-</button>
-                      <span className="flex-1 text-center font-medium text-sm">{item.quantity}</span>
-                      <button 
-                        onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                        className="flex-1 flex justify-center items-center hover:bg-neutral-50"
-                      >+</button>
-                    </div>
-                    <span className="font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+
+                  <button 
+                    onClick={() => removeItem(item.cartItemId)}
+                    className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                    aria-label="Remove Item"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between">
+                  {/* Quantity controls */}
+                  <div className="flex items-center border border-neutral-200 rounded-xl bg-neutral-50 overflow-hidden w-28 h-9 shadow-2xs">
+                    <button 
+                      onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                      className="flex-1 flex justify-center items-center hover:bg-neutral-200 transition-colors font-bold text-neutral-700"
+                    >-</button>
+                    <span className="flex-1 text-center font-bold text-xs text-neutral-900">{item.quantity}</span>
+                    <button 
+                      onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                      className="flex-1 flex justify-center items-center hover:bg-neutral-200 transition-colors font-bold text-neutral-700"
+                    >+</button>
+                  </div>
+
+                  {/* Price */}
+                  <div className="text-right">
+                    <span className="text-xs text-neutral-400 block">Total</span>
+                    <span className="font-extrabold text-base sm:text-lg text-neutral-900">৳ {(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
+
+          {/* Delivery Policy Card */}
+          <div className="bg-neutral-50 rounded-2xl md:rounded-3xl p-5 border border-neutral-200/80 shadow-2xs flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 shrink-0">
+              <Truck size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">Fast Nationwide Delivery</p>
+              <p className="text-xs text-neutral-500 mt-0.5">Free shipping across Bangladesh on orders over ৳ 2000.</p>
+            </div>
           </div>
         </div>
 
+        {/* Order Summary Card */}
         <div className="w-full lg:w-1/3">
-          <div className="bg-neutral-50 p-8 border border-neutral-200 sticky top-24">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-6">Order Summary</h2>
+          <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-md sticky top-24">
+            <h2 className="text-base font-extrabold uppercase tracking-wider text-neutral-900 mb-6 pb-4 border-b border-neutral-100">Order Summary</h2>
             
-            <div className="space-y-4 mb-6 pb-6 border-b border-neutral-200 text-sm">
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <div className="space-y-3.5 mb-6 text-sm">
+              <div className="flex justify-between items-center text-neutral-600">
+                <span>Subtotal</span>
+                <span className="font-bold text-neutral-900">৳ {subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-500">Shipping</span>
-                <span className="font-medium">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+              <div className="flex justify-between items-center text-neutral-600">
+                <span>Estimated Shipping</span>
+                <span className="font-bold text-neutral-900">
+                  {shipping === 0 ? <span className="text-emerald-600 font-bold uppercase text-xs">FREE</span> : `৳ ${shipping.toFixed(2)}`}
+                </span>
               </div>
             </div>
             
-            <div className="flex justify-between items-end mb-8">
-              <span className="text-sm font-bold uppercase tracking-wider">Total</span>
-              <span className="text-2xl font-bold">${total.toFixed(2)}</span>
+            <div className="pt-4 border-t border-neutral-200 flex justify-between items-end mb-8">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">Total Amount</span>
+                <span className="text-2xl font-black text-neutral-900">৳ {total.toFixed(2)}</span>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">Cash / BKash on Delivery</span>
             </div>
 
             <button 
               onClick={() => navigate('/checkout')}
-              className="w-full bg-black text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors flex items-center justify-center space-x-2"
+              className="w-full bg-neutral-900 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black active:scale-95 transition-all flex items-center justify-center space-x-2 shadow-lg"
             >
               <span>Proceed to Checkout</span>
               <ArrowRight size={16} />
             </button>
             
-            <p className="text-xs text-neutral-500 text-center mt-6 uppercase tracking-wider">
-              Taxes calculated at checkout
-            </p>
+            <div className="flex items-center justify-center space-x-2 mt-6 text-neutral-400 text-[11px] font-medium">
+              <ShieldCheck size={14} className="text-emerald-500" />
+              <span>Safe & Secure 100% Guaranteed</span>
+            </div>
           </div>
         </div>
       </div>

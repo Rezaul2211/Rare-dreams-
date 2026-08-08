@@ -3,9 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
-import { SlidersHorizontal, Heart, ShoppingCart, ArrowUpDown, Sparkles } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpDown, Sparkles } from 'lucide-react';
 import { LazyImage } from '../components/LazyImage';
 import { ProductSkeleton } from '../components/ProductSkeleton';
+import { ProductCard } from '../components/ProductCard';
 import { motion } from 'motion/react';
 
 export default function Shop() {
@@ -209,63 +210,7 @@ export default function Shop() {
         ) : sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {sortedProducts.map((product, index) => (
-              <motion.div 
-                key={product.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="group flex flex-col bg-white rounded-2xl shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-200/80 relative"
-              >
-                {/* Heart Icon Overlay */}
-                <button className="absolute top-3 right-3 z-10 p-2 bg-white/80 backdrop-blur-md rounded-full shadow-sm text-neutral-400 hover:text-red-500 hover:bg-white transition-all">
-                  <Heart size={18} strokeWidth={2} />
-                </button>
-                
-                <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden bg-neutral-100">
-                  {product.images && product.images.length > 0 ? (
-                    <LazyImage 
-                      src={product.images[0]} 
-                      alt={product.name}
-                      className="group-hover:scale-108 transition-transform duration-500"
-                      containerClassName="w-full h-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-neutral-400 text-xs">No image</div>
-                  )}
-                  {product.stockQuantity === 0 && (
-                    <div className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                      Sold Out
-                    </div>
-                  )}
-                  {product.discount && product.stockQuantity > 0 && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                      -{product.discount}% OFF
-                    </div>
-                  )}
-                </Link>
-                <div className="p-4 flex flex-col flex-grow">
-                  <div className="mb-1">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{product.category || 'Collection'}</span>
-                  </div>
-                  <Link to={`/product/${product.id}`}>
-                    <h3 className="text-sm font-semibold text-neutral-800 line-clamp-2 mb-3 leading-snug group-hover:text-black transition-colors">{product.name}</h3>
-                  </Link>
-                  <div className="mt-auto flex items-center justify-between pt-2 border-t border-neutral-100">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-base md:text-lg leading-none text-neutral-900">৳ {product.price.toFixed(2)}</span>
-                      {product.comparePrice && (
-                        <span className="text-xs text-neutral-400 line-through mt-1">৳ {product.comparePrice.toFixed(2)}</span>
-                      )}
-                    </div>
-                    <Link 
-                      to={`/product/${product.id}`}
-                      className="w-9 h-9 bg-neutral-900 text-white rounded-full flex items-center justify-center hover:bg-black transition-colors shadow-sm"
-                    >
-                      <ShoppingCart size={16} />
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
+              <ProductCard key={product.id} product={product} index={index} />
             ))}
           </div>
         ) : (
