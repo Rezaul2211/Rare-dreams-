@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Account from './pages/Account';
 
 import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import ProductForm from './pages/admin/ProductForm';
 import AdminOrders from './pages/admin/AdminOrders';
@@ -57,7 +58,7 @@ export default function App() {
         </Route>
         
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/products" replace />} />
+          <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="products/new" element={<ProductForm />} />
           <Route path="products/edit/:id" element={<ProductForm />} />

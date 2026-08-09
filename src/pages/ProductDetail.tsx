@@ -11,6 +11,7 @@ import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
 import { ProductCard } from '../components/ProductCard';
 import { ProductSkeleton } from '../components/ProductSkeleton';
+import SEO from '../components/SEO';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -130,6 +131,14 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 w-full">
+      <SEO 
+        title={`${product.name} - ৳${product.price.toFixed(0)}`}
+        description={product.description?.substring(0, 160) || `Buy ${product.name} online at Rare Dreams. Category: ${product.category}. Premium quality and fast nationwide delivery.`}
+        image={product.images?.[0]}
+        type="product"
+        keywords={`${product.name}, ${product.category}, ${product.subcategory || ''}, Rare Dreams, online shopping Bangladesh`}
+      />
+
       {/* Breadcrumbs */}
       <div className="flex items-center space-x-2 text-xs font-medium uppercase tracking-wider text-neutral-500 mb-8">
         <span className="hover:text-black cursor-pointer" onClick={() => navigate('/')}>Home</span>

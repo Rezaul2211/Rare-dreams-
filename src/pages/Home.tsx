@@ -8,6 +8,7 @@ import { Product } from '../types';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
 import { DEFAULT_HERO_SLIDES, DEFAULT_CATEGORIES, BannerSlide, CategoryImageSetting } from './admin/AdminSettings';
+import SEO from '../components/SEO';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -90,6 +91,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col w-full">
+      <SEO 
+        title="Rare Dreams | Premium Kids & Fashion Apparel"
+        description="Discover Rare Dreams - Premier online shopping destination in Bangladesh for boys wear, girls dresses, baby essentials, and stylish footwear."
+        keywords="Rare Dreams, kids fashion, boys wear, girls dresses, baby clothes, footwear, Bangladesh online store"
+      />
+
       {/* Hero Slider with Touch Swipe & Reduced Gap */}
       <section className="relative w-full bg-white pt-2 md:pt-4 pb-2 overflow-hidden">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">

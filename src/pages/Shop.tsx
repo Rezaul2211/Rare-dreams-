@@ -8,6 +8,7 @@ import { LazyImage } from '../components/LazyImage';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
 import { motion } from 'motion/react';
+import SEO from '../components/SEO';
 
 export default function Shop() {
   const { category } = useParams();
@@ -140,6 +141,13 @@ export default function Shop() {
 
   return (
     <div className="w-full pb-16 bg-[#FAFAFA]">
+      <SEO 
+        title={category ? `${categoryDetails.title} | Rare Dreams` : (searchQuery ? `Search: "${searchQuery}" | Rare Dreams` : 'Shop All Collections | Rare Dreams')}
+        description={categoryDetails.description}
+        image={categoryDetails.image}
+        keywords={`${category || 'Shop'}, kids wear, boys apparel, girls dresses, baby essentials, footwear, Rare Dreams`}
+      />
+
       {/* Category Hero Header Banner */}
       <div className="relative bg-neutral-900 text-white min-h-[260px] md:min-h-[320px] flex items-center justify-center overflow-hidden mb-8">
         <img 
