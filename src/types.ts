@@ -25,11 +25,33 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface AddressItem {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export interface PaymentMethodItem {
+  id: string;
+  type: 'bKash' | 'Nagad' | 'Card' | 'Bank';
+  accountNumber: string;
+  accountName: string;
+  isDefault?: boolean;
+}
+
 export interface User {
   uid: string;
   email: string;
   displayName: string;
+  phoneNumber?: string;
+  photoURL?: string;
   role: 'customer' | 'admin';
+  addresses?: AddressItem[];
+  paymentMethods?: PaymentMethodItem[];
   createdAt: any;
 }
 
