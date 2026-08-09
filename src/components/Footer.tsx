@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import PolicyModal from './PolicyModal';
+import Logo from './Logo';
 
 export default function Footer() {
   const { config } = useStoreConfigStore();
@@ -89,8 +90,8 @@ export default function Footer() {
             {/* COL 1: BRAND INFO & SOCIAL LINKS */}
             <div className="md:col-span-4 space-y-5">
               <div>
-                <Link to="/" onClick={scrollToTop} className="inline-block">
-                  <h3 className="text-2xl font-black tracking-tight text-white uppercase font-display">Rare Dreams</h3>
+                <Link to="/" onClick={scrollToTop} className="inline-block hover:opacity-90 transition-opacity">
+                  <Logo variant="dark" size="md" showText={true} />
                 </Link>
                 <p className="text-xs text-neutral-400 leading-relaxed mt-2 pr-4">
                   Elevate your style with Rare Dreams—Bangladesh’s premier destination for high-end luxury fashion, Boys, Girls, and Baby Wear.

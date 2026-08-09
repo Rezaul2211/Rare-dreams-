@@ -5,7 +5,8 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart } from 'lucide-react';
+import { useWishlistStore } from '../store/useWishlistStore';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
@@ -28,8 +29,16 @@ export default function ProductDetail() {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
 
+  const { isWishlisted, toggleWishlist } = useWishlistStore();
   const { animateAddToCart } = useFlyToCart();
   const addItem = useCartStore((state) => state.addItem);
+  const favorited = product ? isWishlisted(product.id) : false;
+
+  // Calculate discount percentage if not explicitly defined
+  let discountPct = product?.discount;
+  if (!discountPct && product?.comparePrice && product.comparePrice > product.price) {
+    discountPct = Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100);
+  }
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -152,7 +161,28 @@ export default function ProductDetail() {
         {/* Images */}
         <div className="w-full lg:w-1/2 flex flex-col">
           {/* Main Image */}
-          <div className="w-full relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm mb-4">
+          <div className="w-full relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm mb-4 group">
+            {/* Wishlist Heart Button */}
+            <button 
+              type="button"
+              onClick={() => product && toggleWishlist(product.id)}
+              aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
+              className={`absolute top-4 right-4 z-10 p-3 rounded-full shadow-md backdrop-blur-md transition-all cursor-pointer ${
+                favorited 
+                  ? 'bg-red-50 text-red-500 ring-2 ring-red-200 scale-110' 
+                  : 'bg-white/80 text-neutral-500 hover:text-red-500 hover:bg-white hover:scale-105'
+              }`}
+            >
+              <Heart size={20} strokeWidth={favorited ? 0 : 2} fill={favorited ? "currentColor" : "none"} />
+            </button>
+
+            {/* Discount Badge on Product Detail Image */}
+            {discountPct && discountPct > 0 ? (
+              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-amber-600 text-white text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-md border border-white/20">
+                {discountPct}% OFF
+              </div>
+            ) : null}
+
             {product.images && product.images.length > 0 ? (
               <LazyImage 
                 src={product.images[selectedImage]} 
@@ -194,10 +224,15 @@ export default function ProductDetail() {
             </div>
             
             <div className="flex items-center space-x-3 mb-6">
-              <span className="text-2xl font-bold">৳ {product.price.toFixed(2)}</span>
-              {product.comparePrice && (
-                <span className="text-base text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900">৳ {product.price.toFixed(2)}</span>
+              {product.comparePrice && product.comparePrice > product.price && (
+                <span className="text-lg text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
               )}
+              {discountPct && discountPct > 0 ? (
+                <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                  Save {discountPct}%
+                </span>
+              ) : null}
             </div>
 
             {/* Short Description Box */}

@@ -5,6 +5,7 @@ import { Heart, ShoppingBag, Check } from 'lucide-react';
 import { Product } from '../types';
 import { LazyImage } from './LazyImage';
 import { useFlyToCart } from '../context/FlyToCartContext';
+import { useWishlistStore } from '../store/useWishlistStore';
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +14,22 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const { animateAddToCart } = useFlyToCart();
+  const { isWishlisted, toggleWishlist } = useWishlistStore();
   const [added, setAdded] = React.useState(false);
+
+  const favorited = isWishlisted(product.id);
+
+  // Calculate discount percentage if not explicitly given
+  let discountPct = product.discount;
+  if (!discountPct && product.comparePrice && product.comparePrice > product.price) {
+    discountPct = Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100);
+  }
+
+  const handleWishlistClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product.id);
+  };
 
   const handleCartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -40,10 +56,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
       {/* Heart Wishlist Overlay */}
       <button 
         type="button"
-        aria-label="Add to Wishlist"
-        className="absolute top-3 right-3 z-10 p-2 bg-white/80 backdrop-blur-md rounded-full shadow-sm text-neutral-400 hover:text-red-500 hover:bg-white transition-all cursor-pointer"
+        onClick={handleWishlistClick}
+        aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
+        className={`absolute top-3 right-3 z-10 p-2 rounded-full shadow-sm backdrop-blur-md transition-all cursor-pointer ${
+          favorited 
+            ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-110 ring-2 ring-red-200' 
+            : 'bg-white/80 text-neutral-400 hover:text-red-500 hover:bg-white hover:scale-105'
+        }`}
       >
-        <Heart size={18} strokeWidth={2} />
+        <Heart size={18} strokeWidth={favorited ? 0 : 2} fill={favorited ? "currentColor" : "none"} />
       </button>
 
       {/* Image Thumbnail Link */}
@@ -66,9 +87,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
           <div className="absolute top-3 left-3 bg-neutral-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm">
             Sold Out
           </div>
-        ) : product.discount ? (
-          <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm">
-            -{product.discount}% OFF
+        ) : discountPct && discountPct > 0 ? (
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md border border-white/20">
+            {discountPct}% OFF
           </div>
         ) : null}
       </Link>
@@ -93,7 +114,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
             <span className="font-extrabold text-base md:text-lg leading-none text-neutral-900">
               ৳ {product.price.toFixed(2)}
             </span>
-            {product.comparePrice && (
+            {product.comparePrice && product.comparePrice > product.price && (
               <span className="text-xs text-neutral-400 line-through mt-1">
                 ৳ {product.comparePrice.toFixed(2)}
               </span>
@@ -119,3 +140,4 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
     </motion.div>
   );
 };
+

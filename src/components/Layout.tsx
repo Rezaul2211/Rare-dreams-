@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDashboard, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDashboard, LogOut, Heart } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { auth } from '../lib/firebase';
 import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
 import { HeaderSearch } from './HeaderSearch';
 import Footer from './Footer';
 import WhatsAppSupportWidget from './WhatsAppSupportWidget';
+import Logo from './Logo';
 
 
 function LayoutInner() {
@@ -16,8 +18,10 @@ function LayoutInner() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const items = useCartStore((state) => state.items);
+  const wishlistIds = useWishlistStore((state) => state.wishlistIds);
   const user = useAuthStore((state) => state.user);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const wishlistCount = wishlistIds.length;
   const navigate = useNavigate();
   const location = useLocation();
   const { isCartBouncing } = useFlyToCart();
@@ -37,144 +41,73 @@ function LayoutInner() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 gap-4">
-            {/* Mobile Left: Menu Button & Search Toggle */}
-            <div className="flex items-center space-x-1 md:hidden">
-              <button 
-                className="p-2 rounded-xl hover:bg-neutral-100 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Toggle Navigation Menu"
-              >
-                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-              </button>
-              <button
-                className="p-2 rounded-xl hover:bg-neutral-100 transition-colors text-neutral-700"
-                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                aria-label="Search"
-              >
-                <Search size={20} />
-              </button>
-            </div>
-
-            {/* Logo */}
+          <div className="flex justify-between items-center h-16 sm:h-20 gap-4">
+            {/* LEFT: Logo */}
             <Link 
               to="/" 
               onClick={scrollToTop}
-              className="text-xl sm:text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity font-display"
+              className="shrink-0 hover:opacity-90 transition-opacity flex items-center py-1"
+              aria-label="Rare Dreams Home"
             >
-              Rare Dreams
+              <Logo size="md" variant="light" />
             </Link>
 
-            {/* Desktop Center: Search Bar & Navigation */}
-            <div className="hidden md:flex items-center space-x-6 flex-1 max-w-2xl mx-4">
-              <div className="w-full">
-                <HeaderSearch />
-              </div>
-            </div>
-
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-6 shrink-0">
-              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Shop All</Link>
-              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Boys</Link>
-              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Girls</Link>
-              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Baby</Link>
-              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Shoes</Link>
+            {/* CENTER: Desktop Nav Links or Search */}
+            <nav className="hidden lg:flex items-center space-x-8">
+              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shop All</Link>
+              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Boys</Link>
+              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Girls</Link>
+              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Baby</Link>
+              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shoes</Link>
             </nav>
 
-            {/* Right Icons & User Menu */}
-            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            {/* RIGHT: Action Icons (Search, Cart, Menu) - Exact Zopono style */}
+            <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
               {/* Visible Admin Dashboard link button for admins */}
               {user?.role === 'admin' && (
                 <Link 
                   to="/admin" 
-                  className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-xs"
+                  className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-xs"
                 >
                   <ShieldCheck size={14} className="text-amber-400" />
-                  <span>Admin Panel</span>
+                  <span>Admin</span>
                 </Link>
               )}
 
-              {/* User Menu Dropdown */}
-              <div className="relative hidden sm:block">
-                <button 
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-2.5 hover:bg-neutral-100 rounded-2xl transition-colors flex items-center"
-                  aria-label="User Account Menu"
-                >
-                  <User size={20} />
-                </button>
+              {/* Search Toggle Icon */}
+              <button
+                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                aria-label="Search"
+              >
+                <Search size={22} strokeWidth={1.75} />
+              </button>
 
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-neutral-100 py-2 z-50 text-left">
-                    {user ? (
-                      <>
-                        <div className="px-4 py-3 border-b border-neutral-100">
-                          <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">Signed in as</p>
-                          <p className="text-sm font-medium truncate text-neutral-900">{user.displayName || user.email}</p>
-                          {user.role === 'admin' && (
-                            <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded uppercase">
-                              Admin Role
-                            </span>
-                          )}
-                        </div>
-
-                        {user.role === 'admin' && (
-                          <Link 
-                            to="/admin" 
-                            className="flex items-center space-x-2.5 px-4 py-2.5 text-sm font-bold text-neutral-900 hover:bg-neutral-50 transition-colors border-b border-neutral-100"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <LayoutDashboard size={16} className="text-amber-500" />
-                            <span>Admin Dashboard</span>
-                          </Link>
-                        )}
-
-                        <Link 
-                          to="/account" 
-                          className="flex items-center space-x-2.5 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <User size={16} />
-                          <span>My Account</span>
-                        </Link>
-
-                        <button 
-                          onClick={handleLogout}
-                          className="w-full flex items-center space-x-2.5 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
-                        >
-                          <LogOut size={16} />
-                          <span>Sign Out</span>
-                        </button>
-                      </>
-                    ) : (
-                      <Link 
-                        to="/login" 
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <User size={16} />
-                        <span>Sign In / Register</span>
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Header Cart Icon */}
+              {/* Header Cart Bag Icon with Counter */}
               <Link 
                 id="header-cart-icon"
                 to="/cart" 
-                className={`p-2.5 hover:bg-neutral-100 rounded-2xl transition-all relative ${
+                className={`p-2.5 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-800 ${
                   isCartBouncing ? 'scale-125 ring-2 ring-black bg-neutral-100' : ''
                 }`}
+                aria-label="Cart"
               >
-                <ShoppingBag size={20} />
+                <ShoppingBag size={22} strokeWidth={1.75} />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-black leading-none text-white bg-black rounded-full shadow-sm animate-pulse">
+                  <span className="absolute top-1 right-0.5 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-bold leading-none text-white bg-neutral-800 rounded-full shadow-sm">
                     {itemCount}
                   </span>
                 )}
               </Link>
+
+              {/* Hamburger Menu Toggle Button */}
+              <button 
+                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle Navigation Menu"
+              >
+                {isMobileMenuOpen ? <X size={24} strokeWidth={1.75} /> : <Menu size={24} strokeWidth={1.75} />}
+              </button>
             </div>
           </div>
         </div>

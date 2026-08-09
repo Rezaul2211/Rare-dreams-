@@ -329,7 +329,7 @@ export default function ProductForm() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Price (৳)</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Selling Price (৳)</label>
                 <input
                   type="number"
                   name="price"
@@ -338,12 +338,12 @@ export default function ProductForm() {
                   required
                   value={formData.price}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Compare at Price (৳)</label>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Original / Compare Price (৳)</label>
                 <input
                   type="number"
                   name="comparePrice"
@@ -352,7 +352,62 @@ export default function ProductForm() {
                   value={formData.comparePrice}
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
+                  placeholder="Regular price before discount"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">
+                  Discount / Offer Badge (%)
+                </label>
+                <div className="space-y-2">
+                  <input
+                    type="number"
+                    name="discount"
+                    min="0"
+                    max="100"
+                    value={formData.discount || ''}
+                    onChange={handleChange}
+                    placeholder="e.g. 20 for 20% OFF"
+                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none font-bold text-red-600 focus:border-red-500"
+                  />
+                  
+                  {/* Preset Offer Percentage Buttons */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {[10, 15, 20, 25, 30, 50].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => {
+                          const basePrice = formData.comparePrice || formData.price || 0;
+                          const discountedPrice = basePrice > 0 ? Math.round(basePrice * (1 - pct / 100)) : formData.price;
+                          setFormData(prev => ({
+                            ...prev,
+                            discount: pct,
+                            comparePrice: basePrice > 0 ? basePrice : (prev.price ? Math.round(prev.price / (1 - pct / 100)) : 0),
+                            price: basePrice > 0 ? discountedPrice : prev.price
+                          }));
+                        }}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all ${
+                          formData.discount === pct
+                            ? 'bg-red-600 text-white border-red-600'
+                            : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
+                        }`}
+                      >
+                        {pct}% OFF
+                      </button>
+                    ))}
+                    {formData.discount ? (
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, discount: undefined }))}
+                        className="px-2 py-1 text-xs font-medium text-neutral-500 hover:text-red-600 underline"
+                      >
+                        Clear Offer
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
               <div>
