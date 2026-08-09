@@ -15,9 +15,8 @@ import {
   MoreVertical, 
   ChevronDown, 
   ShieldCheck,
-  ArrowUpRight
+  TrendingDown
 } from 'lucide-react';
-import { motion } from 'motion/react';
 
 export default function AdminDashboard() {
   const { user } = useAuthStore();
@@ -33,8 +32,15 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         // Fetch products count
-        const productsSnap = await getDocs(collection(db, 'products'));
-        const productCount = productsSnap.size || 256;
+        let productCount = 256;
+        try {
+          const productsSnap = await getDocs(collection(db, 'products'));
+          if (productsSnap.size > 0) {
+            productCount = productsSnap.size;
+          }
+        } catch {
+          productCount = 256;
+        }
 
         // Fetch recent orders
         let ordersData: any[] = [];
@@ -43,15 +49,13 @@ export default function AdminDashboard() {
           const ordersSnap = await getDocs(q);
           ordersData = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch {
-          const simpleQ = query(collection(db, 'orders'), limit(4));
-          const ordersSnap = await getDocs(simpleQ);
-          ordersData = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // fallback
         }
 
         if (ordersData.length > 0) {
           setRecentOrders(ordersData);
         } else {
-          // Default mock matching screenshot 2
+          // Default mock matching reference screenshot 2
           setRecentOrders([
             {
               id: 'RD-7845',
@@ -101,242 +105,235 @@ export default function AdminDashboard() {
     .trim() || 'Rezaul Karim';
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* 1. WELCOME BANNER (Matching Screenshot 2) */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 text-white rounded-3xl p-6 sm:p-8 shadow-lg">
-        <div className="relative z-10 max-w-xl">
-          <span className="text-sm font-medium text-white/90">Welcome back,</span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white font-display tracking-tight mt-0.5 flex items-center gap-2">
+    <div className="space-y-4 sm:space-y-5 max-w-7xl mx-auto pb-8 font-sans">
+      {/* 1. WELCOME BANNER (Matching Reference Screenshot 2) */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#818CF8] via-[#A78BFA] to-[#C084FC] text-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm">
+        <div className="relative z-10 max-w-md">
+          <span className="text-xs sm:text-sm font-medium text-white/95">Welcome back,</span>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-0.5 flex items-center gap-1.5">
             <span>{cleanAdminName}</span>
-            <span className="inline-block animate-bounce">👋</span>
+            <span className="inline-block">👋</span>
           </h1>
-          <div className="mt-3">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/20 shadow-xs">
-              <ShieldCheck size={14} className="text-amber-300" />
+          <div className="mt-2.5">
+            <span className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white/20 backdrop-blur-md text-white text-[11px] sm:text-xs font-semibold rounded-full border border-white/25 shadow-xs">
+              <ShieldCheck size={13} className="text-amber-300 fill-amber-300/30" />
               <span>Store Administrator</span>
             </span>
           </div>
         </div>
 
-        {/* Floating 3D illustration graphics on right */}
-        <div className="absolute right-4 bottom-0 top-0 hidden md:flex items-center justify-end pointer-events-none opacity-90 pr-6">
-          <div className="relative w-48 h-40">
-            <div className="absolute -top-2 right-4 w-28 h-28 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl flex items-center justify-center transform rotate-6">
-              <ShoppingBag size={48} className="text-purple-200" />
+        {/* 3D Shopping Bag Illustration on Right */}
+        <div className="absolute right-2 sm:right-6 bottom-0 top-0 flex items-center justify-end pointer-events-none opacity-90">
+          <div className="relative w-32 h-28 sm:w-44 sm:h-36">
+            {/* 3D translucent shopping bag background card */}
+            <div className="absolute top-1 right-2 w-20 h-20 sm:w-28 sm:h-28 bg-white/20 rounded-2xl backdrop-blur-md border border-white/30 shadow-lg flex flex-col items-center justify-center transform rotate-6">
+              <ShoppingBag size={38} className="text-white drop-shadow-md" />
             </div>
-            <div className="absolute bottom-2 right-12 w-24 h-24 bg-indigo-900/30 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl flex items-center justify-center transform -rotate-12">
-              <BarChart3 size={36} className="text-amber-300" />
+            {/* Floating chart mini card */}
+            <div className="absolute bottom-1 right-10 sm:right-16 w-16 h-16 sm:w-22 sm:h-22 bg-indigo-950/20 rounded-xl backdrop-blur-md border border-white/30 shadow-md flex items-center justify-center transform -rotate-6">
+              <BarChart3 size={28} className="text-amber-300" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. KPI 4 STATS CARDS GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. KPI 4 STATS CARDS (Matching Reference Screenshot 2 - Horizontal compact layout) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Orders */}
-        <div className="bg-white p-5 rounded-3xl border border-neutral-100 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center">
-              <ShoppingBag size={22} />
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-neutral-100 shadow-2xs flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F3EFFF] text-[#7C3AED] flex items-center justify-center shrink-0">
+            <ShoppingBag size={20} className="sm:w-[22px] sm:h-[22px]" />
           </div>
-          <div>
-            <span className="text-xs font-medium text-neutral-500">Total Orders</span>
-            <div className="text-2xl font-black text-neutral-900 font-mono tracking-tight mt-0.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-neutral-500 font-medium truncate">Total Orders</p>
+            <p className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight leading-snug">
               {stats.totalOrders.toLocaleString()}
-            </div>
-            <div className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+            </p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 18.2%</span>
               <span className="text-neutral-400 font-normal">vs last 7 days</span>
-            </div>
+            </p>
           </div>
         </div>
 
         {/* Total Sales */}
-        <div className="bg-white p-5 rounded-3xl border border-neutral-100 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <TrendingUp size={22} />
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-neutral-100 shadow-2xs flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center shrink-0">
+            <TrendingUp size={20} className="sm:w-[22px] sm:h-[22px]" />
           </div>
-          <div>
-            <span className="text-xs font-medium text-neutral-500">Total Sales</span>
-            <div className="text-2xl font-black text-neutral-900 font-mono tracking-tight mt-0.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-neutral-500 font-medium truncate">Total Sales</p>
+            <p className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight leading-snug">
               ৳ {stats.totalSales.toLocaleString()}
-            </div>
-            <div className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+            </p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 24.5%</span>
               <span className="text-neutral-400 font-normal">vs last 7 days</span>
-            </div>
+            </p>
           </div>
         </div>
 
         {/* Total Customers */}
-        <div className="bg-white p-5 rounded-3xl border border-neutral-100 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
-              <Users size={22} />
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-neutral-100 shadow-2xs flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center shrink-0">
+            <Users size={20} className="sm:w-[22px] sm:h-[22px]" />
           </div>
-          <div>
-            <span className="text-xs font-medium text-neutral-500">Total Customers</span>
-            <div className="text-2xl font-black text-neutral-900 font-mono tracking-tight mt-0.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-neutral-500 font-medium truncate">Total Customers</p>
+            <p className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight leading-snug">
               {stats.totalCustomers.toLocaleString()}
-            </div>
-            <div className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+            </p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 12.1%</span>
               <span className="text-neutral-400 font-normal">vs last 7 days</span>
-            </div>
+            </p>
           </div>
         </div>
 
         {/* Total Products */}
-        <div className="bg-white p-5 rounded-3xl border border-neutral-100 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
-              <Package size={22} />
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-neutral-100 shadow-2xs flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
+            <Package size={20} className="sm:w-[22px] sm:h-[22px]" />
           </div>
-          <div>
-            <span className="text-xs font-medium text-neutral-500">Total Products</span>
-            <div className="text-2xl font-black text-neutral-900 font-mono tracking-tight mt-0.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-xs text-neutral-500 font-medium truncate">Total Products</p>
+            <p className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight leading-snug">
               {stats.totalProducts.toLocaleString()}
-            </div>
-            <div className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+            </p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
               <span>↑ 7.8%</span>
               <span className="text-neutral-400 font-normal">vs last 7 days</span>
-            </div>
+            </p>
           </div>
         </div>
       </div>
 
-      {/* 3. CHARTS ROW (Order Status Donut & Sales Overview Line Chart) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Order Status Donut Chart Card */}
-        <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Order Status</h3>
-            <button className="text-neutral-400 hover:text-neutral-700">
-              <MoreVertical size={18} />
+      {/* 3. CHARTS ROW (Order Status Donut & Sales Overview Line Chart - Exactly side-by-side as in Reference Screenshot 2) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Order Status Card */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-100 shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs sm:text-sm font-bold text-neutral-900">Order Status</h3>
+            <button className="text-neutral-400 hover:text-neutral-600 p-1">
+              <MoreVertical size={16} />
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-2">
-            {/* SVG Donut */}
-            <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
+          <div className="flex items-center justify-between gap-3 sm:gap-4 my-auto py-1">
+            {/* SVG Donut Chart */}
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                {/* Pending arc 25.6% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#F59E0B" strokeWidth="16" strokeDasharray="64 175" strokeDashoffset="0" />
-                {/* Processing arc 32.9% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6" strokeWidth="16" strokeDasharray="78 161" strokeDashoffset="-64" />
-                {/* Shipped arc 26.4% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#10B981" strokeWidth="16" strokeDasharray="63 176" strokeDashoffset="-142" />
-                {/* Delivered arc 15.1% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6" strokeWidth="16" strokeDasharray="36 203" strokeDashoffset="-205" />
+                {/* Pending arc (Amber) 25.6% */}
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#F59E0B" strokeWidth="15" strokeDasharray="61 178" strokeDashoffset="0" />
+                {/* Processing arc (Blue) 32.9% */}
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6" strokeWidth="15" strokeDasharray="78 161" strokeDashoffset="-61" />
+                {/* Shipped arc (Green) 26.4% */}
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#10B981" strokeWidth="15" strokeDasharray="63 176" strokeDashoffset="-139" />
+                {/* Delivered arc (Purple) 15.1% */}
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6" strokeWidth="15" strokeDasharray="36 203" strokeDashoffset="-202" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-base font-black text-neutral-900 font-mono">1,248</span>
-                <span className="text-[10px] text-neutral-400 uppercase font-bold tracking-wider">Total</span>
+                <span className="text-sm sm:text-base font-bold text-neutral-900 leading-none">1,248</span>
+                <span className="text-[9px] sm:text-[10px] text-neutral-400 uppercase font-semibold mt-0.5">Total</span>
               </div>
             </div>
 
-            {/* Legend List */}
-            <div className="flex-1 space-y-2.5 w-full">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                  <span className="font-semibold text-neutral-700">Pending</span>
+            {/* Donut Legend Items */}
+            <div className="flex-1 space-y-2 text-[11px] sm:text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span className="font-medium text-neutral-600">Pending</span>
                 </div>
-                <span className="font-bold text-neutral-900 font-mono">320 (25.6%)</span>
+                <span className="font-semibold text-neutral-800">320 (25.6%)</span>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                  <span className="font-semibold text-neutral-700">Processing</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span className="font-medium text-neutral-600">Processing</span>
                 </div>
-                <span className="font-bold text-neutral-900 font-mono">410 (32.9%)</span>
+                <span className="font-semibold text-neutral-800">410 (32.9%)</span>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                  <span className="font-semibold text-neutral-700">Shipped</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span className="font-medium text-neutral-600">Shipped</span>
                 </div>
-                <span className="font-bold text-neutral-900 font-mono">330 (26.4%)</span>
+                <span className="font-semibold text-neutral-800">330 (26.4%)</span>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                  <span className="font-semibold text-neutral-700">Delivered</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span className="font-medium text-neutral-600">Delivered</span>
                 </div>
-                <span className="font-bold text-neutral-900 font-mono">188 (15.1%)</span>
+                <span className="font-semibold text-neutral-800">188 (15.1%)</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Sales Overview Line Chart Card */}
-        <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Sales Overview</h3>
-            <button className="text-xs font-semibold text-neutral-600 bg-neutral-100 px-3 py-1.5 rounded-xl flex items-center space-x-1 hover:bg-neutral-200 transition-colors">
+        {/* Sales Overview Card */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-100 shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs sm:text-sm font-bold text-neutral-900">Sales Overview</h3>
+            <button className="text-[11px] font-medium text-neutral-600 bg-neutral-100/80 px-2.5 py-1 rounded-lg flex items-center space-x-1 hover:bg-neutral-200 transition-colors">
               <span>This Week</span>
-              <ChevronDown size={14} />
+              <ChevronDown size={12} />
             </button>
           </div>
 
-          {/* SVG Line Chart */}
-          <div className="pt-2">
-            <div className="h-44 w-full relative">
+          <div className="pt-2 my-auto">
+            <div className="h-32 sm:h-36 w-full relative">
               {/* Y Axis Grid Lines */}
-              <div className="absolute inset-0 flex flex-col justify-between text-[10px] text-neutral-400 font-mono pointer-events-none">
-                <div className="border-b border-neutral-100 pb-0.5">40K</div>
-                <div className="border-b border-neutral-100 pb-0.5">30K</div>
-                <div className="border-b border-neutral-100 pb-0.5">20K</div>
-                <div className="border-b border-neutral-100 pb-0.5">10K</div>
+              <div className="absolute inset-0 flex flex-col justify-between text-[9px] text-neutral-400 font-medium pointer-events-none pr-1">
+                <div className="border-b border-neutral-100/80 pb-0.5">40K</div>
+                <div className="border-b border-neutral-100/80 pb-0.5">30K</div>
+                <div className="border-b border-neutral-100/80 pb-0.5">20K</div>
+                <div className="border-b border-neutral-100/80 pb-0.5">10K</div>
                 <div>0</div>
               </div>
 
               {/* Chart SVG Curve */}
-              <svg className="w-full h-full relative z-10 overflow-visible" viewBox="0 0 300 120" preserveAspectRatio="none">
+              <svg className="w-full h-full relative z-10 pl-6 overflow-visible" viewBox="0 0 300 120" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />
+                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
                     <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
 
-                {/* Filled gradient under line */}
+                {/* Filled gradient */}
                 <path
                   d="M 10 90 Q 50 40, 90 70 T 170 30 T 250 50 T 290 20 L 290 120 L 10 120 Z"
                   fill="url(#salesGradient)"
                 />
 
-                {/* Main line */}
+                {/* Main curve */}
                 <path
                   d="M 10 90 Q 50 40, 90 70 T 170 30 T 250 50 T 290 20"
                   fill="none"
                   stroke="#7C3AED"
-                  strokeWidth="3.5"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                 />
 
-                {/* Interactive Points */}
-                <circle cx="10" cy="90" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="50" cy="40" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="90" cy="70" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="130" cy="50" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="170" cy="30" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="210" cy="55" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="250" cy="50" r="4" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="290" cy="20" r="5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2.5" />
+                {/* Data point dots */}
+                <circle cx="10" cy="90" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="50" cy="40" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="90" cy="70" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="130" cy="50" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="170" cy="30" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="210" cy="55" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="250" cy="50" r="3.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
+                <circle cx="290" cy="20" r="4.5" fill="#7C3AED" stroke="#FFFFFF" strokeWidth="2" />
               </svg>
             </div>
 
             {/* X Axis Labels */}
-            <div className="flex justify-between text-[10px] text-neutral-400 font-medium pt-2">
+            <div className="flex justify-between pl-6 text-[10px] text-neutral-400 font-medium pt-1">
               <span>Aug 1</span>
               <span>Aug 3</span>
               <span>Aug 5</span>
@@ -346,52 +343,52 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 4. RECENT ORDERS LIST */}
-      <div className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-2xs space-y-4">
+      {/* 4. RECENT ORDERS LIST (Matching Reference Screenshot 2) */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-100 shadow-2xs space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Recent Orders</h3>
+          <h3 className="text-xs sm:text-sm font-bold text-neutral-900">Recent Orders</h3>
           <Link 
             to="/admin/orders" 
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
           >
             View All
           </Link>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {recentOrders.map((ord, idx) => {
             const statusClass = 
-              ord.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800' :
-              ord.status?.toLowerCase() === 'shipped' ? 'bg-emerald-100 text-emerald-800' :
-              ord.status?.toLowerCase() === 'processing' ? 'bg-blue-100 text-blue-800' :
-              'bg-amber-100 text-amber-800';
+              ord.status?.toLowerCase() === 'delivered' ? 'bg-[#F3EFFF] text-[#7C3AED]' :
+              ord.status?.toLowerCase() === 'shipped' ? 'bg-[#DCFCE7] text-[#16A34A]' :
+              ord.status?.toLowerCase() === 'processing' ? 'bg-[#E0F2FE] text-[#0284C7]' :
+              'bg-[#FEF3C7] text-[#D97706]';
 
             return (
               <div 
                 key={ord.id || idx} 
-                className="flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-50 transition-colors border border-neutral-100/60"
+                className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-neutral-100/80 hover:bg-neutral-50/80 transition-colors"
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2.5 min-w-0">
                   <img 
                     src={ord.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop`} 
                     alt={ord.customerName} 
-                    className="w-10 h-10 rounded-full object-cover shrink-0 border border-neutral-200"
+                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-neutral-200/60"
                   />
-                  <div>
-                    <span className="text-xs font-black text-neutral-900 font-mono block">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-neutral-900 leading-tight">
                       #{ord.id.slice(0, 8)}
-                    </span>
-                    <span className="text-xs text-neutral-500 font-medium">
+                    </p>
+                    <p className="text-[11px] text-neutral-500 truncate">
                       Customer: {ord.customerName || ord.name || 'User'}
-                    </span>
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <span className="text-xs font-black text-neutral-900 font-mono">
+                <div className="flex items-center space-x-3 shrink-0">
+                  <span className="text-xs sm:text-sm font-bold text-neutral-900">
                     ৳ {(ord.total || ord.subtotal || 2450).toLocaleString()}
                   </span>
-                  <span className={`px-3 py-1 rounded-xl text-xs font-bold ${statusClass}`}>
+                  <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold ${statusClass}`}>
                     {ord.status || 'Pending'}
                   </span>
                 </div>
@@ -401,63 +398,63 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 5. QUICK ACTIONS */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-tight">Quick Actions</h3>
-        <div className="grid grid-cols-5 gap-3 sm:gap-4 text-center">
+      {/* 5. QUICK ACTIONS (Matching Reference Screenshot 2 - 5 Column Grid) */}
+      <div className="space-y-2.5">
+        <h3 className="text-xs sm:text-sm font-bold text-neutral-800">Quick Actions</h3>
+        <div className="grid grid-cols-5 gap-2 sm:gap-3 text-center">
           {/* Add Product */}
           <Link
             to="/admin/products/new"
-            className="bg-white p-3.5 sm:p-4 rounded-3xl border border-neutral-100 shadow-2xs hover:shadow-md transition-all group flex flex-col items-center"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-purple-200 transition-all flex flex-col items-center justify-center"
           >
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center mb-2">
-              <Plus size={22} />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#F3EFFF] text-[#7C3AED] flex items-center justify-center mb-1.5">
+              <Plus size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">Add Product</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Add Product</span>
           </Link>
 
           {/* Orders */}
           <Link
             to="/admin/orders"
-            className="bg-white p-3.5 sm:p-4 rounded-3xl border border-neutral-100 shadow-2xs hover:shadow-md transition-all group flex flex-col items-center"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-emerald-200 transition-all flex flex-col items-center justify-center"
           >
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center mb-2">
-              <ClipboardList size={22} />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center mb-1.5">
+              <ClipboardList size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">Orders</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Orders</span>
           </Link>
 
           {/* Customers */}
           <Link
             to="/admin/customers"
-            className="bg-white p-3.5 sm:p-4 rounded-3xl border border-neutral-100 shadow-2xs hover:shadow-md transition-all group flex flex-col items-center"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-amber-200 transition-all flex flex-col items-center justify-center"
           >
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-100 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors flex items-center justify-center mb-2">
-              <Users size={22} />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center mb-1.5">
+              <Users size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">Customers</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Customers</span>
           </Link>
 
           {/* Reports */}
           <Link
             to="/admin/settings"
-            className="bg-white p-3.5 sm:p-4 rounded-3xl border border-neutral-100 shadow-2xs hover:shadow-md transition-all group flex flex-col items-center"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-sky-200 transition-all flex flex-col items-center justify-center"
           >
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors flex items-center justify-center mb-2">
-              <BarChart3 size={22} />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-1.5">
+              <BarChart3 size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">Reports</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Reports</span>
           </Link>
 
           {/* Coupons */}
           <Link
             to="/admin/settings"
-            className="bg-white p-3.5 sm:p-4 rounded-3xl border border-neutral-100 shadow-2xs hover:shadow-md transition-all group flex flex-col items-center"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-rose-200 transition-all flex flex-col items-center justify-center"
           >
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors flex items-center justify-center mb-2">
-              <Ticket size={22} />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center mb-1.5">
+              <Ticket size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <span className="text-xs font-bold text-neutral-800">Coupons</span>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Coupons</span>
           </Link>
         </div>
       </div>
