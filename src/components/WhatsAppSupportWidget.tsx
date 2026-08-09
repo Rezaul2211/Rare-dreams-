@@ -13,6 +13,7 @@ import {
   Brain
 } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
+import { sendAiMessage } from '../services/aiService';
 
 interface ChatMsg {
   id: string;
@@ -68,7 +69,7 @@ export default function WhatsAppSupportWidget() {
     window.open(waUrl, '_blank');
   };
 
-  // Send AI Message with Gemini
+  // Send AI Message using AI Service (Groq / Gemini / Fallback)
   const handleSendAiMessage = async (e?: React.FormEvent, directText?: string) => {
     if (e) e.preventDefault();
     const query = (directText || aiInput).trim();
@@ -88,17 +89,13 @@ export default function WhatsAppSupportWidget() {
     setAiLoading(true);
 
     try {
-      const res = await fetch('/api/ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: query })
-      });
-      const data = await res.json();
+      // Uses aiService with a smooth thinking state timer (1.4s)
+      const res = await sendAiMessage({ message: query, minThinkingMs: 1400 });
 
       const aiMsg: ChatMsg = {
         id: 'ai-' + Date.now(),
         sender: 'ai',
-        text: data.reply || "আমাদের কাস্টমার টিমের সাথে সরাসরি কথা বলতে হোয়াটসঅ্যাপ ট্যাবে মেসেজ করুন।",
+        text: res.reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, aiMsg]);
