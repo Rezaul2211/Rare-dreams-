@@ -10,7 +10,9 @@ import {
   ShieldCheck,
   ChevronRight,
   HelpCircle,
-  Brain
+  Brain,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { sendAiMessage } from '../services/aiService';
@@ -53,6 +55,73 @@ export default function WhatsAppSupportWidget() {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isOpen, mode, chatMessages, aiLoading]);
+
+  // Voice Input (Web Speech API) States
+  const [isListening, setIsListening] = useState(false);
+  const [activeVoiceTarget, setActiveVoiceTarget] = useState<'ai' | 'wa' | null>(null);
+  const [speechLang, setSpeechLang] = useState<'bn-BD' | 'en-US'>('bn-BD');
+  const recognitionRef = useRef<any>(null);
+
+  const SpeechRecognitionClass = typeof window !== 'undefined' &&
+    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+  const startListening = (targetMode: 'ai' | 'wa' = 'ai') => {
+    if (!SpeechRecognitionClass) return;
+
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+
+      const recognition = new SpeechRecognitionClass();
+      recognition.lang = speechLang;
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setActiveVoiceTarget(targetMode);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0].transcript)
+          .join('');
+        
+        if (targetMode === 'ai') {
+          setAiInput(transcript);
+        } else {
+          setWaText(transcript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+        setActiveVoiceTarget(null);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setActiveVoiceTarget(null);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition error:', err);
+      setIsListening(false);
+      setActiveVoiceTarget(null);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+    setActiveVoiceTarget(null);
+  };
 
   // Clean WhatsApp phone number
   const getCleanWaNumber = () => {
@@ -236,24 +305,59 @@ export default function WhatsAppSupportWidget() {
 
                 {/* Textarea + Integrated Direct Send Button */}
                 <form onSubmit={handleOpenWhatsApp} className="space-y-2 pt-1 border-t border-neutral-100">
-                  <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">
-                    আপনার মেসেজ লিখুন বা এডিট করুন:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">
+                      আপনার মেসেজ লিখুন বা এডিট করুন:
+                    </label>
+                    {!!SpeechRecognitionClass && (
+                      <button
+                        type="button"
+                        onClick={() => setSpeechLang(prev => prev === 'bn-BD' ? 'en-US' : 'bn-BD')}
+                        className="text-[8.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
+                      >
+                        {speechLang === 'bn-BD' ? 'ভয়েস: বাংলা 🇧🇩' : 'Voice: English 🇺🇸'}
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <textarea
                       rows={2}
                       value={waText}
                       onChange={(e) => setWaText(e.target.value)}
-                      placeholder="এখানে লিখুন..."
-                      className="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 pr-10 outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none text-neutral-800"
+                      placeholder={
+                        isListening && activeVoiceTarget === 'wa'
+                          ? (speechLang === 'bn-BD' ? '🎙️ শুনছি... কথা বলুন...' : '🎙️ Listening... Speak now...')
+                          : 'এখানে লিখুন...'
+                      }
+                      className={`w-full text-xs bg-neutral-50 border rounded-xl p-2.5 pr-16 outline-none transition-all resize-none text-neutral-800 ${
+                        isListening && activeVoiceTarget === 'wa'
+                          ? 'border-red-400 bg-red-50/50 ring-1 ring-red-400 placeholder:text-red-500 font-medium'
+                          : 'border-neutral-200 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500'
+                      }`}
                     />
-                    <button
-                      type="submit"
-                      title="Send to WhatsApp"
-                      className="absolute bottom-2 right-2 w-7 h-7 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-xs"
-                    >
-                      <Send size={12} />
-                    </button>
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                      {!!SpeechRecognitionClass && (
+                        <button
+                          type="button"
+                          onClick={() => (isListening && activeVoiceTarget === 'wa' ? stopListening() : startListening('wa'))}
+                          title={isListening && activeVoiceTarget === 'wa' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে লিখুন'}
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                            isListening && activeVoiceTarget === 'wa'
+                              ? 'bg-red-500 text-white animate-pulse shadow-xs'
+                              : 'bg-neutral-100 hover:bg-emerald-50 text-neutral-600 hover:text-emerald-700 border border-neutral-200/80'
+                          }`}
+                        >
+                          {isListening && activeVoiceTarget === 'wa' ? <MicOff size={12} /> : <Mic size={12} />}
+                        </button>
+                      )}
+                      <button
+                        type="submit"
+                        title="Send to WhatsApp"
+                        className="w-7 h-7 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                      >
+                        <Send size={12} />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-[9px] text-neutral-400 text-center">
                     বাটন এ চাপলে সরাসরি হোয়াটসঅ্যাপ অ্যাপ খুলবে।
@@ -352,9 +456,46 @@ export default function WhatsAppSupportWidget() {
                     type="text"
                     value={aiInput}
                     onChange={(e) => setAiInput(e.target.value)}
-                    placeholder="এখানে প্রশ্নটি লিখুন..."
-                    className="flex-1 text-[11px] bg-neutral-100 border border-neutral-200 px-2.5 py-1.5 rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 text-neutral-800"
+                    placeholder={
+                      isListening && activeVoiceTarget === 'ai'
+                        ? (speechLang === 'bn-BD' ? '🎙️ শুনছি... বলুন...' : '🎙️ Listening... Speak...')
+                        : 'এখানে প্রশ্নটি লিখুন...'
+                    }
+                    className={`flex-1 text-[11px] bg-neutral-100 border px-2.5 py-1.5 rounded-lg outline-none transition-all text-neutral-800 ${
+                      isListening && activeVoiceTarget === 'ai'
+                        ? 'border-red-400 bg-red-50/50 ring-1 ring-red-400 placeholder:text-red-500 font-medium'
+                        : 'border-neutral-200 focus:ring-1 focus:ring-emerald-500'
+                    }`}
                   />
+
+                  {/* Language Switcher Button */}
+                  {!!SpeechRecognitionClass && (
+                    <button
+                      type="button"
+                      onClick={() => setSpeechLang(prev => prev === 'bn-BD' ? 'en-US' : 'bn-BD')}
+                      title={speechLang === 'bn-BD' ? 'বাংলা ভয়েস (Click for English)' : 'English Voice (Click for বাংলা)'}
+                      className="px-1.5 py-1 text-[8.5px] font-bold text-neutral-600 hover:text-emerald-800 bg-neutral-100 hover:bg-emerald-50 rounded border border-neutral-200 shrink-0 transition-colors"
+                    >
+                      {speechLang === 'bn-BD' ? 'বাংলা' : 'ENG'}
+                    </button>
+                  )}
+
+                  {/* Mic Button */}
+                  {!!SpeechRecognitionClass && (
+                    <button
+                      type="button"
+                      onClick={() => (isListening && activeVoiceTarget === 'ai' ? stopListening() : startListening('ai'))}
+                      title={isListening && activeVoiceTarget === 'ai' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে প্রশ্ন করুন'}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                        isListening && activeVoiceTarget === 'ai'
+                          ? 'bg-red-500 text-white animate-pulse shadow-xs'
+                          : 'bg-neutral-100 hover:bg-emerald-50 text-neutral-600 hover:text-emerald-700 border border-neutral-200'
+                      }`}
+                    >
+                      {isListening && activeVoiceTarget === 'ai' ? <MicOff size={12} /> : <Mic size={12} />}
+                    </button>
+                  )}
+
                   <button
                     type="submit"
                     disabled={!aiInput.trim() || aiLoading}
