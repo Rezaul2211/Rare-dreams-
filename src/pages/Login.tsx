@@ -94,28 +94,6 @@ export default function Login() {
     }
   };
 
-  const handleQuickAdminLogin = async () => {
-    setError('');
-    setLoading(true);
-    const adminUser = {
-      uid: 'usr_admin_rezaul_karim',
-      email: 'xmrezaul.karim998@gmail.com',
-      displayName: 'Rezaul Karim (Admin)',
-      role: 'admin',
-      createdAt: new Date()
-    };
-    
-    try {
-      await setDoc(doc(db, 'users', adminUser.uid), adminUser, { merge: true });
-    } catch (e) {
-      console.error(e);
-    }
-    
-    useAuthStore.getState().setUser(adminUser as any);
-    setLoading(false);
-    navigate('/admin');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -541,23 +519,6 @@ export default function Login() {
               >
                 {isLogin ? 'Create Account' : 'Sign In'}
                 <span aria-hidden="true">→</span>
-              </button>
-            </div>
-
-            {/* Admin Access Notice */}
-            <div className="mt-8 bg-neutral-50 p-4 rounded-2xl border border-neutral-200 flex flex-col gap-3">
-              <div className="flex gap-3 items-start">
-                <ShieldCheck className="text-black shrink-0 mt-0.5" size={18} />
-                <div className="text-[11px] text-neutral-600 leading-relaxed">
-                  <strong>Admin Access:</strong> Sign in with your admin email (<code className="font-mono text-neutral-900 font-semibold">xmrezaul.karim998@gmail.com</code>).
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickAdminLogin}
-                className="w-full bg-black text-white text-xs font-bold py-3 px-4 rounded-xl hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
-              >
-                <ShieldCheck size={16} /> Instant Admin Dashboard Access
               </button>
             </div>
           </>
