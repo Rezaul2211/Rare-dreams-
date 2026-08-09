@@ -4,11 +4,13 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { ShieldCheck, ChevronLeft, Copy, Check, Smartphone, Loader2, ArrowRight, X, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function Checkout() {
   const { items, getSubtotal, clearCart } = useCartStore();
   const { user } = useAuthStore();
+  const { config } = useStoreConfigStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isConnectingGateway, setIsConnectingGateway] = useState(false);
@@ -29,8 +31,9 @@ export default function Checkout() {
     transactionId: '',
   });
 
-  const BKASH_NUMBER = '01954710343';
-  const NAGAD_NUMBER = '01342563522';
+  const BKASH_NUMBER = config.bkashNumber || '01954710343';
+  const NAGAD_NUMBER = config.nagadNumber || '01342563522';
+
 
   const subtotal = getSubtotal();
   const shipping = subtotal > 2000 ? 0 : 60;

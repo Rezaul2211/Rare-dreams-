@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle, Phone, MessageCircle, Share2, CreditCard, ShieldCheck, FileText } from 'lucide-react';
+import { useStoreConfigStore, DEFAULT_STORE_CONFIG } from '../../store/useStoreConfigStore';
+import { StoreConfig } from '../../types';
 
 export interface BannerSlide {
   id: number;
@@ -67,9 +69,12 @@ export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
 export default function AdminSettings() {
   const [banners, setBanners] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
   const [categories, setCategories] = useState<CategoryImageSetting[]>(DEFAULT_CATEGORIES);
+  const [storeForm, setStoreForm] = useState<StoreConfig>(DEFAULT_STORE_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const { config, updateConfig } = useStoreConfigStore();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -94,6 +99,12 @@ export default function AdminSettings() {
     fetchSettings();
   }, []);
 
+  useEffect(() => {
+    if (config) {
+      setStoreForm(config);
+    }
+  }, [config]);
+
   const handleBannerChange = (index: number, field: keyof BannerSlide, value: string) => {
     const updated = [...banners];
     updated[index] = { ...updated[index], [field]: value };
@@ -104,6 +115,10 @@ export default function AdminSettings() {
     const updated = [...categories];
     updated[index] = { ...updated[index], [field]: value };
     setCategories(updated);
+  };
+
+  const handleStoreFormChange = (field: keyof StoreConfig, value: string) => {
+    setStoreForm(prev => ({ ...prev, [field]: value }));
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'banner' | 'category', index: number) => {
@@ -131,6 +146,7 @@ export default function AdminSettings() {
     setSaving(true);
     setSavedSuccess(false);
     try {
+      // 1. Save Homepage Banners
       const docRef = doc(db, 'settings', 'homepage');
       await setDoc(docRef, {
         banners,
@@ -138,15 +154,19 @@ export default function AdminSettings() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
+      // 2. Save Store Config (Social links, WhatsApp, Payment numbers, Licenses)
+      await updateConfig(storeForm);
+
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (error) {
-      console.error("Error saving homepage settings:", error);
+      console.error("Error saving settings:", error);
       alert("Failed to save settings. Please try again.");
     } finally {
       setSaving(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -350,6 +370,212 @@ export default function AdminSettings() {
           ))}
         </div>
       </div>
+
+      {/* SECTION 3: STORE CONTACT, WHATSAPP & SOCIAL MEDIA LINKS */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+        <div className="border-b border-neutral-100 pb-4">
+          <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+            <Share2 size={20} className="text-emerald-600" />
+            <span>Social Links, WhatsApp & Merchant Payment Info</span>
+          </h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            Update your business numbers, social media links & license details. Changes update on the website immediately!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          {/* Group A: Support & Helpline */}
+          <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/80 space-y-4">
+            <h3 className="text-xs font-black uppercase text-emerald-900 tracking-wider flex items-center gap-2">
+              <MessageCircle size={16} className="text-emerald-600" />
+              <span>WhatsApp & Support Phone</span>
+            </h3>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                WhatsApp Business Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.whatsappNumber}
+                onChange={(e) => handleStoreFormChange('whatsappNumber', e.target.value)}
+                placeholder="+8801712345678"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Helpline Phone Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.helplineNumber}
+                onChange={(e) => handleStoreFormChange('helplineNumber', e.target.value)}
+                placeholder="+880 1712-345678"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Support Email Address
+              </label>
+              <input
+                type="email"
+                value={storeForm.supportEmail}
+                onChange={(e) => handleStoreFormChange('supportEmail', e.target.value)}
+                placeholder="support@raredreams.com.bd"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+
+          {/* Group B: Payment Numbers */}
+          <div className="bg-pink-50/40 p-5 rounded-2xl border border-pink-100/80 space-y-4">
+            <h3 className="text-xs font-black uppercase text-pink-950 tracking-wider flex items-center gap-2">
+              <CreditCard size={16} className="text-pink-600" />
+              <span>Mobile Banking Merchant Numbers</span>
+            </h3>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                bKash Merchant / Personal Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.bkashNumber}
+                onChange={(e) => handleStoreFormChange('bkashNumber', e.target.value)}
+                placeholder="01712345678"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Nagad Merchant Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.nagadNumber}
+                onChange={(e) => handleStoreFormChange('nagadNumber', e.target.value)}
+                placeholder="01812345678"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Rocket Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.rocketNumber}
+                onChange={(e) => handleStoreFormChange('rocketNumber', e.target.value)}
+                placeholder="01912345678"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+          </div>
+
+          {/* Group C: Social Media URLs */}
+          <div className="bg-blue-50/40 p-5 rounded-2xl border border-blue-100/80 space-y-4">
+            <h3 className="text-xs font-black uppercase text-blue-950 tracking-wider flex items-center gap-2">
+              <Share2 size={16} className="text-blue-600" />
+              <span>Social Media Page Links</span>
+            </h3>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Facebook Page URL
+              </label>
+              <input
+                type="url"
+                value={storeForm.facebookUrl}
+                onChange={(e) => handleStoreFormChange('facebookUrl', e.target.value)}
+                placeholder="https://facebook.com/raredreamsbd"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Instagram Profile URL
+              </label>
+              <input
+                type="url"
+                value={storeForm.instagramUrl}
+                onChange={(e) => handleStoreFormChange('instagramUrl', e.target.value)}
+                placeholder="https://instagram.com/raredreamsbd"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                YouTube Channel URL
+              </label>
+              <input
+                type="url"
+                value={storeForm.youtubeUrl}
+                onChange={(e) => handleStoreFormChange('youtubeUrl', e.target.value)}
+                placeholder="https://youtube.com/@raredreamsbd"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Group D: Business License & Address */}
+          <div className="bg-amber-50/40 p-5 rounded-2xl border border-amber-100/80 space-y-4">
+            <h3 className="text-xs font-black uppercase text-amber-950 tracking-wider flex items-center gap-2">
+              <ShieldCheck size={16} className="text-amber-600" />
+              <span>Trade License & Office Info</span>
+            </h3>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Trade License Number
+              </label>
+              <input
+                type="text"
+                value={storeForm.tradeLicenseNo}
+                onChange={(e) => handleStoreFormChange('tradeLicenseNo', e.target.value)}
+                placeholder="TRAD/DNCC/012984/2026"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                E-TIN Registration No
+              </label>
+              <input
+                type="text"
+                value={storeForm.tinNo}
+                onChange={(e) => handleStoreFormChange('tinNo', e.target.value)}
+                placeholder="849201948123"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-600 mb-1">
+                Store Office / Showroom Address
+              </label>
+              <input
+                type="text"
+                value={storeForm.address}
+                onChange={(e) => handleStoreFormChange('address', e.target.value)}
+                placeholder="Jamuna Future Park, Level 4, Dhaka"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
 
       {/* Save Floating Button Mobile */}
       <div className="fixed bottom-4 right-4 z-40 sm:hidden">

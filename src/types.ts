@@ -74,3 +74,21 @@ export interface Order {
   status: 'Pending' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   createdAt: any;
 }
+
+export interface StoreConfig {
+  facebookUrl: string;
+  instagramUrl: string;
+  whatsappNumber: string;
+  youtubeUrl: string;
+  tiktokUrl: string;
+  helplineNumber: string;
+  supportEmail: string;
+  tradeLicenseNo: string;
+  tinNo: string;
+  dbidNo: string;
+  address: string;
+  bkashNumber: string;
+  nagadNumber: string;
+  rocketNumber: string;
+}
+

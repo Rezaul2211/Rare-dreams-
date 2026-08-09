@@ -7,6 +7,9 @@ import { useAuthStore } from '../store/useAuthStore';
 import { auth } from '../lib/firebase';
 import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
 import { HeaderSearch } from './HeaderSearch';
+import Footer from './Footer';
+import WhatsAppSupportWidget from './WhatsAppSupportWidget';
+
 
 function LayoutInner() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -244,75 +247,14 @@ function LayoutInner() {
         </AnimatePresence>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-neutral-200/80 pt-16 pb-8 md:pb-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-            <div className="md:col-span-4">
-              <Link to="/" className="inline-block mb-6">
-                <h3 className="text-2xl font-black tracking-tight text-neutral-900">Rare Dreams</h3>
-              </Link>
-              <p className="text-neutral-500 text-sm leading-relaxed mb-6 pr-4">
-                Premium fashion for the modern individual. Elevate your everyday style with our carefully curated collections.
-              </p>
-              <div className="flex space-x-4">
-                {['Facebook', 'Instagram', 'Twitter'].map((social) => (
-                  <a key={social} href="#" className="w-10 h-10 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-black hover:text-white transition-colors">
-                    <span className="text-xs font-medium">{social[0]}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-            
-            <div className="md:col-span-2">
-              <h4 className="text-sm font-bold text-neutral-900 mb-6">Shop</h4>
-              <ul className="space-y-4">
-                <li><Link to="/category/Boys Wear" className="text-neutral-500 hover:text-black text-sm transition-colors">Boys Wear</Link></li>
-                <li><Link to="/category/Girls Wear" className="text-neutral-500 hover:text-black text-sm transition-colors">Girls Wear</Link></li>
-                <li><Link to="/category/Baby Essentials" className="text-neutral-500 hover:text-black text-sm transition-colors">Baby Essentials</Link></li>
-                <li><Link to="/category/Footwear" className="text-neutral-500 hover:text-black text-sm transition-colors">Footwear</Link></li>
-              </ul>
-            </div>
-            
-            <div className="md:col-span-2">
-              <h4 className="text-sm font-bold text-neutral-900 mb-6">Support</h4>
-              <ul className="space-y-4">
-                <li><Link to="#" className="text-neutral-500 hover:text-black text-sm transition-colors">Contact Us</Link></li>
-                <li><Link to="#" className="text-neutral-500 hover:text-black text-sm transition-colors">FAQs</Link></li>
-                <li><Link to="#" className="text-neutral-500 hover:text-black text-sm transition-colors">Shipping & Returns</Link></li>
-                <li><Link to="#" className="text-neutral-500 hover:text-black text-sm transition-colors">Size Guide</Link></li>
-              </ul>
-            </div>
-            
-            <div className="md:col-span-4">
-              <h4 className="text-sm font-bold text-neutral-900 mb-6">Stay in the loop</h4>
-              <p className="text-neutral-500 text-sm mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
-              <form className="flex flex-col sm:flex-row gap-3" onSubmit={(e) => e.preventDefault()}>
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="bg-neutral-100 text-neutral-900 px-4 py-3 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-black/5"
-                />
-                <button type="submit" className="bg-black text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-neutral-800 transition-colors whitespace-nowrap shadow-sm">
-                  Subscribe
-                </button>
-              </form>
-            </div>
-          </div>
-          
-          <div className="border-t border-neutral-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-neutral-400 text-sm">
-              &copy; {new Date().getFullYear()} Rare Dreams. All rights reserved.
-            </p>
-            <div className="flex space-x-6">
-              <Link to="#" className="text-neutral-400 hover:text-black text-sm transition-colors">Privacy Policy</Link>
-              <Link to="#" className="text-neutral-400 hover:text-black text-sm transition-colors">Terms of Service</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Redesigned Premium Footer */}
+      <Footer />
+
+      {/* Floating WhatsApp & AI Support Widget */}
+      <WhatsAppSupportWidget />
 
       {/* Mobile Bottom Navigation */}
+
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 flex justify-around items-center h-16 z-50 px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         <Link to="/" onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Home size={20} className={location.pathname === '/' ? 'fill-black' : ''} />
