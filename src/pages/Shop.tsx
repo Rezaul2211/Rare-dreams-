@@ -152,7 +152,7 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 w-full">
         {/* Category Navigation Pills Bar */}
         <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-white p-2 md:p-3 rounded-2xl border border-neutral-200/80 shadow-xs mb-8 gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
             {[
               { label: 'All Products', path: '/shop', cat: undefined },
               { label: 'Boys Wear', path: '/category/Boys Wear', cat: 'Boys Wear' },
@@ -167,7 +167,7 @@ export default function Shop() {
                 <Link
                   key={tab.label}
                   to={tab.path}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center space-x-1.5 shrink-0 ${
                     isActive 
                       ? 'bg-black text-white shadow-sm' 
                       : 'text-neutral-600 hover:bg-neutral-100'
@@ -180,7 +180,7 @@ export default function Shop() {
           </div>
 
           {/* Sort Selector */}
-          <div className="flex items-center justify-between md:justify-end gap-3 px-2 border-t md:border-t-0 pt-2 md:pt-0 border-neutral-100">
+          <div className="flex items-center justify-between md:justify-end gap-3 px-2 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-100">
             <span className="text-xs text-neutral-500 font-semibold uppercase tracking-wider whitespace-nowrap">
               {sortedProducts.length} Items
             </span>

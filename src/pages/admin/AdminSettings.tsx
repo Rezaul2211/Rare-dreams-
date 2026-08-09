@@ -1,0 +1,367 @@
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle } from 'lucide-react';
+
+export interface BannerSlide {
+  id: number;
+  image: string;
+  title: string;
+  subtitle: string;
+  link: string;
+}
+
+export interface CategoryImageSetting {
+  title: string;
+  link: string;
+  image: string;
+}
+
+export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
+  {
+    id: 1,
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
+    title: 'New Season Collection',
+    subtitle: 'Discover the latest trends in premium fashion for the modern era.',
+    link: '/shop'
+  },
+  {
+    id: 2,
+    image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop',
+    title: 'Winter Essentials',
+    subtitle: 'Stay warm without compromising on style. Explore our new arrivals.',
+    link: '/shop'
+  },
+  {
+    id: 3,
+    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2070&auto=format&fit=crop',
+    title: 'Exclusive Accessories',
+    subtitle: 'Elevate your look with our handpicked accessories.',
+    link: '/category/Accessories'
+  }
+];
+
+export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
+  {
+    title: 'Boys Wear',
+    link: '/category/Boys Wear',
+    image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    title: 'Girls Wear',
+    link: '/category/Girls Wear',
+    image: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    title: 'Baby Essentials',
+    link: '/category/Baby Essentials',
+    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    title: 'Footwear',
+    link: '/category/Footwear',
+    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
+  }
+];
+
+export default function AdminSettings() {
+  const [banners, setBanners] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
+  const [categories, setCategories] = useState<CategoryImageSetting[]>(DEFAULT_CATEGORIES);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const docRef = doc(db, 'settings', 'homepage');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.banners && Array.isArray(data.banners)) {
+            setBanners(data.banners);
+          }
+          if (data.categories && Array.isArray(data.categories)) {
+            setCategories(data.categories);
+          }
+        }
+      } catch {
+        // Fallback to defaults
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleBannerChange = (index: number, field: keyof BannerSlide, value: string) => {
+    const updated = [...banners];
+    updated[index] = { ...updated[index], [field]: value };
+    setBanners(updated);
+  };
+
+  const handleCategoryChange = (index: number, field: keyof CategoryImageSetting, value: string) => {
+    const updated = [...categories];
+    updated[index] = { ...updated[index], [field]: value };
+    setCategories(updated);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'banner' | 'category', index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit. Please select a smaller image.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Url = reader.result as string;
+      if (type === 'banner') {
+        handleBannerChange(index, 'image', base64Url);
+      } else {
+        handleCategoryChange(index, 'image', base64Url);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSavedSuccess(false);
+    try {
+      const docRef = doc(db, 'settings', 'homepage');
+      await setDoc(docRef, {
+        banners,
+        categories,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving homepage settings:", error);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20 text-neutral-500">
+        <Loader2 className="animate-spin mr-2" size={24} /> Loading settings...
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+            <Sparkles size={14} />
+            <span>Homepage Customization</span>
+          </div>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900">
+            Banner & Category Images
+          </h1>
+          <p className="text-xs text-neutral-500 mt-1">
+            Upload images from your phone or enter image URLs to update hero slides & category tiles.
+          </p>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer shadow-md disabled:opacity-50"
+        >
+          {saving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : savedSuccess ? (
+            <>
+              <Check size={16} className="text-emerald-400" />
+              <span>Saved Successfully!</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Save Changes</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* SECTION 1: HERO BANNERS (3 SLIDES) */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+        <div className="border-b border-neutral-100 pb-4">
+          <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+            <Image size={20} className="text-neutral-700" />
+            <span>Home Hero Banner Slides (3 Slides)</span>
+          </h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            These slides auto-rotate and support touch swipe gestures on mobile devices.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {banners.map((banner, index) => (
+            <div key={banner.id} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
+                  Slide #{index + 1}
+                </span>
+                <span className="text-[10px] font-bold bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded uppercase">
+                  Hero Image
+                </span>
+              </div>
+
+              {/* Image Preview Box */}
+              <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-neutral-200 border border-neutral-300">
+                <img 
+                  src={banner.image || 'https://via.placeholder.com/600x300'} 
+                  alt={banner.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* File Upload Button */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Upload New Image from Device
+                </label>
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'banner', index)}
+                  className="block w-full text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-neutral-800 cursor-pointer"
+                />
+              </div>
+
+              {/* Image URL Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Or Image Web URL
+                </label>
+                <input
+                  type="url"
+                  value={banner.image}
+                  onChange={(e) => handleBannerChange(index, 'image', e.target.value)}
+                  placeholder="https://..."
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-mono font-medium outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              {/* Title Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Banner Title
+                </label>
+                <input
+                  type="text"
+                  value={banner.title}
+                  onChange={(e) => handleBannerChange(index, 'title', e.target.value)}
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              {/* Subtitle Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Subtitle
+                </label>
+                <textarea
+                  rows={2}
+                  value={banner.subtitle}
+                  onChange={(e) => handleBannerChange(index, 'subtitle', e.target.value)}
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs text-neutral-700 outline-none focus:ring-2 focus:ring-black resize-none"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SECTION 2: CATEGORY TILES (4 TILES) */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+        <div className="border-b border-neutral-100 pb-4">
+          <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+            <Sparkles size={20} className="text-neutral-700" />
+            <span>Featured Category Grid Images (4 Categories)</span>
+          </h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            Update category images shown in the 2x2 grid on the home page.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {categories.map((cat, index) => (
+            <div key={cat.title} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-neutral-900">
+                  {cat.title}
+                </span>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase">
+                  Category #{index + 1}
+                </span>
+              </div>
+
+              {/* Image Preview Box */}
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-neutral-200 border border-neutral-300">
+                <img 
+                  src={cat.image || 'https://via.placeholder.com/400x300'} 
+                  alt={cat.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* File Upload Button */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Upload Image from Device
+                </label>
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'category', index)}
+                  className="block w-full text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-neutral-800 cursor-pointer"
+                />
+              </div>
+
+              {/* Image URL Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Or Image Web URL
+                </label>
+                <input
+                  type="url"
+                  value={cat.image}
+                  onChange={(e) => handleCategoryChange(index, 'image', e.target.value)}
+                  placeholder="https://..."
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-mono font-medium outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Save Floating Button Mobile */}
+      <div className="fixed bottom-4 right-4 z-40 sm:hidden">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-black text-white px-6 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all shadow-2xl flex items-center space-x-2"
+        >
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          <span>Save All Settings</span>
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Package, ShoppingCart, LayoutDashboard, LogOut, Store, Menu, X, ShieldCheck, ArrowLeft, Users } from 'lucide-react';
+import { Package, ShoppingCart, LayoutDashboard, LogOut, Store, Menu, X, ShieldCheck, ArrowLeft, Users, Image } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 
 export default function AdminLayout() {
@@ -26,6 +26,7 @@ export default function AdminLayout() {
     { name: 'Products', path: '/admin/products', icon: Package },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Customers', path: '/admin/customers', icon: Users },
+    { name: 'Banners & Styling', path: '/admin/settings', icon: Image },
   ];
 
   return (

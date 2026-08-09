@@ -5,13 +5,13 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
   h1, h2, h3, .font-display {
-    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   }
 }
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Syne', sans-serif;
+  --font-display: 'Outfit', sans-serif;
   --animate-shimmer: shimmer 2s infinite linear;
   @keyframes shimmer {
     0% {
@@ -21,6 +21,15 @@
       background-position: 1000px 0;
     }
   }
+}
+
+/* Hide scrollbar for Chrome, Safari, Opera, Firefox, Edge */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 .shimmer-bg {
