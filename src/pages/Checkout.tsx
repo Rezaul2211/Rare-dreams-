@@ -15,6 +15,7 @@ export default function Checkout() {
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [copiedNumber, setCopiedNumber] = useState(false);
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -35,8 +36,25 @@ export default function Checkout() {
   const shipping = subtotal > 2000 ? 0 : 60;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isOrderPlaced && !loading) {
     return <Navigate to="/cart" replace />;
+  }
+
+  if (isOrderPlaced) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4 flex-grow flex flex-col items-center justify-center">
+        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner animate-pulse">
+          <CheckCircle2 size={36} />
+        </div>
+        <h2 className="text-xl md:text-2xl font-black uppercase text-neutral-900 tracking-tight">
+          অর্ডারটি সফলভাবে জমা নেওয়া হচ্ছে...
+        </h2>
+        <p className="text-xs text-neutral-500">
+          Order placed successfully! Redirecting to order confirmation page...
+        </p>
+        <Loader2 className="w-6 h-6 text-neutral-800 animate-spin mx-auto mt-2" />
+      </div>
+    );
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -100,12 +118,14 @@ export default function Checkout() {
         createdAt: serverTimestamp(),
       };
 
+      setIsOrderPlaced(true);
       await setDoc(orderRef, orderData);
       clearCart();
       setShowGatewayModal(false);
-      navigate(`/order-success/${orderId}`);
+      navigate(`/order-success/${orderId}`, { replace: true });
     } catch (error) {
       console.error("Error placing order", error);
+      setIsOrderPlaced(false);
       alert("Failed to place order. Please try again.");
     } finally {
       setLoading(false);

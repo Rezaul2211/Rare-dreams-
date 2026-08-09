@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
-import { ChevronRight, Heart, Share2, Info, Star, MessageCircle, Zap, ShieldCheck, Truck, HeadphonesIcon, RotateCcw } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
+import { ProductCard } from '../components/ProductCard';
+import { ProductSkeleton } from '../components/ProductSkeleton';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -22,18 +24,25 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'contact'>('description');
   
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+  const [loadingRecommended, setLoadingRecommended] = useState(true);
+
   const { animateAddToCart } = useFlyToCart();
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
+      setLoading(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       try {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const data = docSnap.data() as Product;
+          const data = { id: docSnap.id, ...docSnap.data() } as Product;
           setProduct(data);
+          setSelectedImage(0);
+          setQuantity(1);
           if (data.sizeOptions?.length) setSelectedSize(data.sizeOptions[0]);
           if (data.colorOptions?.length) setSelectedColor(data.colorOptions[0]);
         }
@@ -45,6 +54,41 @@ export default function ProductDetail() {
     };
     fetchProduct();
   }, [id]);
+
+  // Fetch Recommended Products algorithmically by Category
+  useEffect(() => {
+    const fetchRecommended = async () => {
+      if (!product) return;
+      try {
+        setLoadingRecommended(true);
+        const q = query(
+          collection(db, 'products'),
+          where('status', '==', 'published')
+        );
+        const querySnapshot = await getDocs(q);
+        const all: Product[] = [];
+        querySnapshot.forEach((doc) => {
+          if (doc.id !== product.id) {
+            all.push({ id: doc.id, ...doc.data() } as Product);
+          }
+        });
+
+        // Same category priority
+        const sameCat = all.filter(p => p.category?.toLowerCase() === product.category?.toLowerCase());
+        const otherCat = all.filter(p => p.category?.toLowerCase() !== product.category?.toLowerCase());
+
+        // Algorithmic merge: show same category first, fill up to 4 items with other products
+        const combined = [...sameCat, ...otherCat].slice(0, 4);
+        setRecommendedProducts(combined);
+      } catch (err) {
+        console.error("Error loading recommended products", err);
+      } finally {
+        setLoadingRecommended(false);
+      }
+    };
+
+    fetchRecommended();
+  }, [product]);
 
   const handleAddToCart = (e?: React.MouseEvent<HTMLElement>) => {
     if (!product) return;
@@ -356,39 +400,40 @@ export default function ProductDetail() {
               )}
             </div>
           </div>
-
-          {/* Trust Badges */}
-          <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-6 space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-neutral-800 text-white flex items-center justify-center shrink-0">
-                <Truck size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-neutral-900">Standard Delivery</h4>
-                <p className="text-sm text-neutral-500">Fast and reliable shipping across Bangladesh</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                <HeadphonesIcon size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-neutral-900">24/7 Customer Support</h4>
-                <p className="text-sm text-neutral-500">Contact us anytime for any queries.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0">
-                <RotateCcw size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-neutral-900">Easy Return Policy</h4>
-                <p className="text-sm text-neutral-500">Return system available if you face any issues with the product.</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Recommended Products: You May Also Like */}
+      <section className="mt-16 pt-12 border-t border-neutral-200/80">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-2">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
+              You May Also Like
+            </h2>
+            <p className="text-xs text-neutral-500 mt-1">
+              Handpicked items from our <span className="font-bold text-neutral-800">{product.category}</span> collection
+            </p>
+          </div>
+        </div>
+
+        {loadingRecommended ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {[...Array(4)].map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </div>
+        ) : recommendedProducts.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {recommendedProducts.map((rec, index) => (
+              <ProductCard key={rec.id} product={rec} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-neutral-50 rounded-2xl p-8 text-center border border-neutral-200/60">
+            <p className="text-xs font-bold text-neutral-500">No other products in this category yet.</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
