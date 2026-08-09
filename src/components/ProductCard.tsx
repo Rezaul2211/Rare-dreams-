@@ -12,7 +12,7 @@ interface ProductCardProps {
   index?: number;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
+export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, index = 0 }) => {
   const { animateAddToCart } = useFlyToCart();
   const { isWishlisted, toggleWishlist } = useWishlistStore();
   const [added, setAdded] = React.useState(false);
@@ -144,5 +144,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
       </div>
     </motion.div>
   );
-};
+});
 

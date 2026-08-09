@@ -70,12 +70,14 @@ export default function Shop() {
   }, [category, searchQuery]);
 
   // Sort products based on selection
-  const sortedProducts = [...products].sort((a, b) => {
-    if (sortBy === 'price-low') return a.price - b.price;
-    if (sortBy === 'price-high') return b.price - a.price;
-    if (sortBy === 'discount') return (b.discount || 0) - (a.discount || 0);
-    return 0; // featured
-  });
+  const sortedProducts = React.useMemo(() => {
+    return [...products].sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'discount') return (b.discount || 0) - (a.discount || 0);
+      return 0; // featured
+    });
+  }, [products, sortBy]);
 
   // Category Banner Data
   const getCategoryDetails = () => {
@@ -153,6 +155,7 @@ export default function Shop() {
         <img 
           src={categoryDetails.image} 
           alt={categoryDetails.title}
+          loading="lazy"
           className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 transition-transform duration-1000"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-black/30" />

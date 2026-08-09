@@ -74,7 +74,7 @@ export default function Checkout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim() || !formData.address.trim() || !formData.city.trim()) {
+    if (!formData.firstName.trim() || !formData.phone.trim() || !formData.address.trim() || !formData.city.trim()) {
       alert('Please fill in all required contact and address fields.');
       return;
     }
@@ -104,7 +104,7 @@ export default function Checkout() {
       const orderData = {
         id: orderId,
         userId: user?.uid || 'guest',
-        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerName: formData.lastName ? `${formData.firstName} ${formData.lastName}` : formData.firstName,
         phone: formData.phone,
         address: formData.address,
         city: formData.city,
@@ -357,12 +357,11 @@ export default function Checkout() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Last Name</label>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Last Name (Optional)</label>
                   <input 
                     type="text" 
                     name="lastName" 
                     placeholder="e.g. Rahman" 
-                    required 
                     value={formData.lastName} 
                     onChange={handleChange} 
                     className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
@@ -417,12 +416,11 @@ export default function Checkout() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Postal Code</label>
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Postal Code (Optional)</label>
                     <input 
                       type="text" 
                       name="postalCode" 
                       placeholder="1212" 
-                      required 
                       value={formData.postalCode} 
                       onChange={handleChange} 
                       className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 

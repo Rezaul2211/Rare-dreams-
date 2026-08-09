@@ -91,19 +91,24 @@ export default function Home() {
   }, []);
 
   // Filter products by category for section rows
-  const getProductsByCategory = (catTitle: string) => {
-    const target = catTitle.toLowerCase().trim();
-    return allProducts.filter(p => {
-      if (!p.category) return false;
-      const c = p.category.toLowerCase().trim();
-      if (c === target) return true;
-      if (target.includes('boy') && (c.includes('boy') || c.includes('kids'))) return true;
-      if (target.includes('girl') && (c.includes('girl') || c.includes('kids'))) return true;
-      if (target.includes('baby') && (c.includes('baby') || c.includes('kids'))) return true;
-      if ((target.includes('footwear') || target.includes('shoe')) && (c.includes('footwear') || c.includes('shoe') || c.includes('sneaker'))) return true;
-      return c.includes(target) || target.includes(c);
+  const productsByCategory = React.useMemo(() => {
+    const map = new Map<string, Product[]>();
+    categoriesList.forEach(cat => {
+      const target = cat.title.toLowerCase().trim();
+      const catProducts = allProducts.filter(p => {
+        if (!p.category) return false;
+        const c = p.category.toLowerCase().trim();
+        if (c === target) return true;
+        if (target.includes('boy') && (c.includes('boy') || c.includes('kids'))) return true;
+        if (target.includes('girl') && (c.includes('girl') || c.includes('kids'))) return true;
+        if (target.includes('baby') && (c.includes('baby') || c.includes('kids'))) return true;
+        if ((target.includes('footwear') || target.includes('shoe')) && (c.includes('footwear') || c.includes('shoe') || c.includes('sneaker'))) return true;
+        return c.includes(target) || target.includes(c);
+      });
+      map.set(cat.title, catProducts);
     });
-  };
+    return map;
+  }, [allProducts, categoriesList]);
 
   return (
     <div className="flex flex-col w-full">
@@ -146,6 +151,7 @@ export default function Home() {
                       <img 
                         src={heroSlides[currentSlide]?.image} 
                         alt={heroSlides[currentSlide]?.title}
+                        loading="lazy"
                         className="w-full h-full object-cover pointer-events-none"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-5 sm:p-8 md:p-12">
@@ -230,6 +236,7 @@ export default function Home() {
                       <img 
                         src={cat.image} 
                         alt={cat.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                       />
 
@@ -254,7 +261,7 @@ export default function Home() {
       {/* PRODUCTS BY CATEGORY SECTIONS (Replacing old "View All" single list) */}
       <div className="space-y-8 pb-12 bg-[#FAFAFA] pt-8">
         {categoriesList.map((cat) => {
-          const catProducts = getProductsByCategory(cat.title);
+          const catProducts = productsByCategory.get(cat.title) || [];
           if (!loading && catProducts.length === 0) return null; // Skip empty categories
 
           return (

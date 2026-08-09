@@ -17,15 +17,15 @@ export const Logo: React.FC<LogoProps> = ({
   const isDark = variant === 'dark';
 
   const circleSize = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10 sm:w-11 sm:h-11',
-    lg: 'w-12 h-12 sm:w-14 sm:h-14',
+    sm: 'w-10 h-10',
+    md: 'w-12 h-12 sm:w-14 sm:h-14',
+    lg: 'w-16 h-16 sm:w-20 sm:h-20',
   }[size];
 
   const titleSize = {
-    sm: 'text-lg font-black tracking-tight',
-    md: 'text-xl sm:text-2xl font-black tracking-tight',
-    lg: 'text-3xl sm:text-4xl font-black tracking-tight',
+    sm: 'text-xl font-bold tracking-tight',
+    md: 'text-2xl sm:text-3xl font-bold tracking-tight',
+    lg: 'text-4xl sm:text-5xl font-bold tracking-tight',
   }[size];
 
   const subtitleSize = {
@@ -51,12 +51,15 @@ export const Logo: React.FC<LogoProps> = ({
       {/* Prominent Website Name Text */}
       {showText && (
         <div className="flex flex-col text-left justify-center leading-none">
-          <span className={`uppercase transition-colors ${titleSize} ${
-            isDark ? 'text-white' : 'text-neutral-950'
-          }`}>
-            RARE DREAMS
+          <span 
+            className={`italic transition-colors ${titleSize} ${
+              isDark ? 'text-white' : 'text-neutral-950'
+            }`}
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Rare Dreams
           </span>
-          <span className={`uppercase mt-0.5 text-neutral-500 transition-colors ${subtitleSize}`}>
+          <span className={`uppercase mt-1 text-neutral-500 transition-colors ${subtitleSize}`}>
             LUXURY FASHION
           </span>
         </div>
