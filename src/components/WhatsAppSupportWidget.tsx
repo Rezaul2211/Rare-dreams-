@@ -68,6 +68,7 @@ export default function WhatsAppSupportWidget() {
 
   const startListening = (targetMode: 'ai' | 'wa' = 'ai') => {
     setVoiceError(null);
+    setActiveVoiceTarget(targetMode);
 
     if (!SpeechRecognitionClass) {
       setVoiceError("আপনার ব্রাউজারে ভয়েস ইনপুট সাপোর্ট নেই। Google Chrome ব্রাউজার ব্যবহার করুন।");
@@ -86,7 +87,6 @@ export default function WhatsAppSupportWidget() {
 
       recognition.onstart = () => {
         setIsListening(true);
-        setActiveVoiceTarget(targetMode);
         setVoiceError(null);
       };
 
@@ -105,12 +105,13 @@ export default function WhatsAppSupportWidget() {
       recognition.onerror = (event: any) => {
         console.warn('Speech recognition error:', event.error);
         setIsListening(false);
-        setActiveVoiceTarget(null);
 
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-          setVoiceError("মাইক্রোফোন পারমিশন এলাউ করা হয়নি।");
+          setVoiceError("মাইক্রোফোন পারমিশন এলাউ করা হয়নি। ব্রাউজার এড্রেস বারের লক (🔒) আইকনে ট্যাপ করে পারমিশন এলাউ করুন।");
         } else if (event.error === 'no-speech') {
-          setVoiceError("কোনো শব্দ পাওয়া যায়নি। আবার বলুন।");
+          setVoiceError("কোনো কথা শোনা যায়নি। আবার চেষ্টা করুন।");
+        } else if (event.error === 'network') {
+          setVoiceError("ইন্টারনেট কানেকশন চেক করুন।");
         } else if (event.error !== 'aborted') {
           setVoiceError(`ভয়েস ইনপুট এরর: ${event.error}`);
         }
@@ -118,7 +119,6 @@ export default function WhatsAppSupportWidget() {
 
       recognition.onend = () => {
         setIsListening(false);
-        setActiveVoiceTarget(null);
       };
 
       recognitionRef.current = recognition;
@@ -126,8 +126,7 @@ export default function WhatsAppSupportWidget() {
     } catch (err: any) {
       console.error('Speech recognition exception:', err);
       setIsListening(false);
-      setActiveVoiceTarget(null);
-      setVoiceError("ভয়েস ইনপুট চালু করতে সমস্যা হয়েছে।");
+      setVoiceError("ভয়েস ইনপুট চালু করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
     }
   };
 
@@ -335,13 +334,13 @@ export default function WhatsAppSupportWidget() {
                   </div>
 
                   {/* Voice Error Notice for WhatsApp Mode */}
-                  {voiceError && activeVoiceTarget === 'wa' && (
-                    <div className="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-900 text-[9px] rounded-lg flex items-center justify-between">
-                      <span className="truncate pr-1">⚠️ {voiceError}</span>
+                  {voiceError && (activeVoiceTarget === 'wa' || !activeVoiceTarget) && (
+                    <div className="px-2 py-1.5 bg-amber-50 border border-amber-200 text-amber-900 text-[9.5px] rounded-lg flex items-center justify-between gap-1 shadow-xs">
+                      <span className="pr-1">⚠️ {voiceError}</span>
                       <button
                         type="button"
                         onClick={() => setVoiceError(null)}
-                        className="font-bold underline text-[8.5px] shrink-0"
+                        className="font-bold underline text-[8.5px] shrink-0 text-amber-800"
                       >
                         ঠিক আছে
                       </button>
@@ -479,13 +478,13 @@ export default function WhatsAppSupportWidget() {
                 </div>
 
                 {/* Voice Error Notice for AI Mode */}
-                {voiceError && activeVoiceTarget === 'ai' && (
-                  <div className="px-2.5 py-1 bg-amber-50 border-t border-amber-200 text-amber-900 text-[9px] flex items-center justify-between">
-                    <span className="truncate pr-1">⚠️ {voiceError}</span>
+                {voiceError && (activeVoiceTarget === 'ai' || !activeVoiceTarget) && (
+                  <div className="px-2.5 py-1.5 bg-amber-50 border-t border-amber-200 text-amber-900 text-[9.5px] flex items-center justify-between gap-1">
+                    <span className="pr-1">⚠️ {voiceError}</span>
                     <button
                       type="button"
                       onClick={() => setVoiceError(null)}
-                      className="font-bold underline text-[8.5px] shrink-0"
+                      className="font-bold underline text-[8.5px] shrink-0 text-amber-800"
                     >
                       ঠিক আছে
                     </button>
@@ -527,7 +526,7 @@ export default function WhatsAppSupportWidget() {
                     title={isListening && activeVoiceTarget === 'ai' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে প্রশ্ন করুন'}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                       isListening && activeVoiceTarget === 'ai'
-                        ? 'bg-red-500 text-white ring-4 ring-red-400/60 shadow-[0_0_12px_#ef4444] animate-pulse'
+                        ? 'bg-red-500 text-white animate-pulse shadow-xs'
                         : 'bg-neutral-100 hover:bg-emerald-50 text-neutral-600 hover:text-emerald-700 border border-neutral-200'
                     }`}
                   >
