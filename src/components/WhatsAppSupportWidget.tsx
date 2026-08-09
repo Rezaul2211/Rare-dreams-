@@ -9,7 +9,6 @@ import {
   ExternalLink, 
   Bot, 
   User, 
-  CheckCheck, 
   Headphones, 
   ShieldCheck,
   ChevronRight,
@@ -54,49 +53,49 @@ export default function WhatsAppSupportWidget() {
     }
   }, [isOpen, mode, chatMessages]);
 
-  // Format clean whatsapp phone number (e.g., remove spaces and symbols)
+  // Clean whatsapp phone number
   const getCleanWaNumber = () => {
     const raw = config.whatsappNumber || '+8801712345678';
     return raw.replace(/[^0-9]/g, '');
   };
 
   const handleOpenWhatsApp = (customText?: string) => {
-    const textToSend = customText || waMessage || 'Hi Rare Dreams, I need help with an order/product.';
+    const textToSend = customText || waMessage || 'হ্যালো রেয়ার ড্রিমস! আপনাদের কালেকশন ও অর্ডার সংক্রান্ত সাহায্য প্রয়োজন।';
     const encoded = encodeURIComponent(textToSend);
     const waUrl = `https://wa.me/${getCleanWaNumber()}?text=${encoded}`;
     window.open(waUrl, '_blank');
   };
 
-  const handleSendAiMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!aiInput.trim() || aiLoading) return;
+  const handleSendAiMessage = async (e?: React.FormEvent, directText?: string) => {
+    if (e) e.preventDefault();
+    const query = (directText || aiInput).trim();
+    if (!query || aiLoading) return;
 
-    const userText = aiInput.trim();
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const userMsg: ChatMsg = {
       id: 'usr-' + Date.now(),
       sender: 'user',
-      text: userText,
+      text: query,
       timestamp: now
     };
 
     setChatMessages(prev => [...prev, userMsg]);
-    setAiInput('');
+    if (!directText) setAiInput('');
     setAiLoading(true);
 
     try {
       const res = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText })
+        body: JSON.stringify({ message: query })
       });
       const data = await res.json();
 
       const aiMsg: ChatMsg = {
         id: 'ai-' + Date.now(),
         sender: 'ai',
-        text: data.reply || "আমাদের টিমের সাথে কথা বলতে নিচের 'হোয়াটসঅ্যাপে পাঠান' বাটনটি চাপুন।",
+        text: data.reply || "আমাদের টিমের সাথে কথা বলতে সরাসরি হোয়াটসঅ্যাপ বাটনে চাপুন।",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, aiMsg]);
@@ -117,205 +116,202 @@ export default function WhatsAppSupportWidget() {
   const QUICK_TEMPLATES = [
     "ক্যাশ অন ডেলিভারি কি এভেলেবল আছে?",
     "ডেলিভারি চার্জ কত টাকা?",
-    "সাইজ কনফিউশনে সঠিক সাইজ লাগবে",
+    "বাচ্চার সঠিক সাইজ কিভাবে নির্বাচন করবো?",
     "পণ্য ৭ দিনের মধ্যে পরিবর্তন করার নিয়ম কি?"
   ];
 
   return (
     <>
-      {/* FLOATING ACTION BUTTON */}
+      {/* FLOATING ACTION BUTTON - SLEEK, COMPACT, PREMIUM NO-PING */}
       <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative group bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 sm:p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center border-2 border-white/80"
-          aria-label="Contact WhatsApp Support or AI Assistant"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white w-12 h-12 sm:w-13 sm:h-13 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center justify-center border border-emerald-400/30"
+          aria-label="Toggle Customer Support Chat"
         >
-          {/* Subtle glowing ring pulse */}
-          <span className="absolute -inset-1 rounded-full bg-emerald-500/40 animate-ping opacity-75"></span>
-
-          <div className="relative flex items-center space-x-2">
-            {isOpen ? (
-              <X size={24} className="transition-transform duration-200 rotate-90" />
-            ) : (
-              <>
-                <MessageCircle size={26} className="fill-white text-emerald-600" />
-                <span className="hidden sm:inline-block text-xs font-black tracking-wide pr-1 uppercase">
-                  Support & AI
-                </span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-600 animate-pulse"></span>
-              </>
-            )}
-          </div>
+          {isOpen ? (
+            <X size={22} className="text-white" />
+          ) : (
+            <div className="relative flex items-center justify-center">
+              <MessageCircle size={24} className="fill-white text-emerald-600" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-300 border-2 border-emerald-700"></span>
+            </div>
+          )}
         </button>
       </div>
 
-      {/* POPUP CHAT WINDOW MODAL */}
+      {/* POPUP CHAT WINDOW MODAL - CLEAN, LIGHTWEIGHT & PREMIUM */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-36 md:bottom-24 right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[380px] bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[560px] font-sans"
+            exit={{ opacity: 0, scale: 0.95, y: 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="fixed bottom-34 md:bottom-22 right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[370px] bg-white rounded-2xl shadow-xl border border-neutral-200/90 overflow-hidden flex flex-col max-h-[520px] font-sans"
           >
             {/* WIDGET HEADER */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 space-y-3 relative">
+            <div className="bg-neutral-900 text-white p-3.5 space-y-2.5 relative">
               <button
                 onClick={() => setIsOpen(false)}
-                className="absolute top-3.5 right-3.5 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+                className="absolute top-3 right-3 text-neutral-400 hover:text-white p-1 rounded-lg transition-colors"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
 
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
                   {mode === 'whatsapp' ? (
-                    <MessageCircle size={22} className="fill-white" />
+                    <MessageCircle size={18} className="fill-emerald-400" />
                   ) : (
-                    <Sparkles size={22} className="text-amber-300" />
+                    <Sparkles size={18} className="text-amber-400" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-black tracking-tight flex items-center gap-1.5">
-                    <span>Rare Dreams Customer Care</span>
-                    <ShieldCheck size={14} className="text-emerald-300" />
+                  <h3 className="text-xs font-bold tracking-wide flex items-center gap-1 text-white">
+                    <span>Rare Dreams Support</span>
+                    <ShieldCheck size={13} className="text-emerald-400" />
                   </h3>
-                  <p className="text-[11px] text-emerald-100 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                    <span>Online 24/7 • Fast Response</span>
+                  <p className="text-[10px] text-neutral-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>Online • Instant Care</span>
                   </p>
                 </div>
               </div>
 
-              {/* MODE SWITCHER TABS (MODEL SWITCHER STYLE) */}
-              <div className="bg-black/20 p-1 rounded-2xl flex items-center gap-1 text-xs font-bold border border-white/10">
+              {/* MODE TABS */}
+              <div className="bg-neutral-800 p-0.5 rounded-xl flex items-center text-[11px] font-medium border border-neutral-700">
                 <button
                   onClick={() => setMode('whatsapp')}
-                  className={`flex-1 py-1.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
+                  className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all ${
                     mode === 'whatsapp'
-                      ? 'bg-white text-emerald-800 shadow-md scale-[1.02]'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  <MessageCircle size={14} />
-                  <span>WhatsApp Chat</span>
+                  <MessageCircle size={13} />
+                  <span>WhatsApp</span>
                 </button>
 
                 <button
                   onClick={() => setMode('ai')}
-                  className={`flex-1 py-1.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 transition-all ${
+                  className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all ${
                     mode === 'ai'
-                      ? 'bg-white text-teal-900 shadow-md scale-[1.02]'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  <Sparkles size={14} className="text-amber-500" />
+                  <Sparkles size={13} className="text-amber-300" />
                   <span>AI Assistant</span>
                 </button>
               </div>
             </div>
 
-            {/* BODY MODE 1: WHATSAPP DIRECT */}
+            {/* MODE 1: WHATSAPP DIRECT */}
             {mode === 'whatsapp' && (
-              <div className="p-4 space-y-4 overflow-y-auto max-h-[400px] bg-neutral-50/50">
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex items-start space-x-2.5">
-                  <Headphones size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-                  <div className="text-xs text-emerald-950">
-                    <p className="font-bold">সরাসরি হোয়াটসঅ্যাপে মেসেজ করুন</p>
-                    <p className="text-[11px] text-emerald-700 leading-relaxed mt-0.5">
-                      আমাদের হেল্পলাইন নাম্বার: <span className="font-bold font-mono">{config.whatsappNumber}</span>
+              <div className="p-3.5 space-y-3.5 overflow-y-auto max-h-[380px] bg-white">
+                <div className="bg-emerald-50/80 border border-emerald-100 rounded-xl p-2.5 flex items-start space-x-2">
+                  <Headphones size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-emerald-950">
+                    <p className="font-bold">সরাসরি হোয়াটসঅ্যাপ সাহায্য</p>
+                    <p className="text-[10px] text-emerald-700 leading-tight mt-0.5">
+                      হেল্পলাইন: <span className="font-bold font-mono">{config.whatsappNumber}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Quick Templates */}
+                {/* Quick Templates: Clicking populates text into the box FIRST */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
-                    দ্রুত প্রশ্ন সিলেক্ট করুন:
+                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                    প্রশ্ন নির্বাচন করুন (টেক্সট বক্সে জমা হবে):
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="grid grid-cols-1 gap-1">
                     {QUICK_TEMPLATES.map((tmpl, idx) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => {
                           setWaMessage(tmpl);
-                          handleOpenWhatsApp(tmpl);
                         }}
-                        className="text-[11px] font-medium bg-white hover:bg-emerald-50 hover:text-emerald-800 border border-neutral-200 text-neutral-700 px-2.5 py-1.5 rounded-xl transition-all text-left flex items-center gap-1 group shadow-2xs"
+                        className={`text-[11px] font-medium border px-2.5 py-1.5 rounded-xl transition-all text-left flex items-center justify-between group ${
+                          waMessage === tmpl
+                            ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                            : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 text-neutral-700'
+                        }`}
                       >
                         <span>{tmpl}</span>
-                        <ChevronRight size={12} className="text-neutral-400 group-hover:text-emerald-600" />
+                        <ChevronRight size={12} className="text-neutral-400 group-hover:text-emerald-600 shrink-0" />
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Custom Message Input Area */}
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
-                    বা আপনার প্রশ্ন লিখুন:
+                {/* Textarea */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                    আপনার প্রশ্নটি লিখুন / এডিট করুন:
                   </label>
                   <textarea
                     rows={3}
                     value={waMessage}
                     onChange={(e) => setWaMessage(e.target.value)}
-                    placeholder="যেমন: সাইজ ১০ বছর বাচ্চার জন্য কনফিডেন্টলি কি নেব? অথবা ছবি পাঠাতে চাই..."
-                    className="w-full text-xs bg-white border border-neutral-200 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all resize-none"
+                    placeholder="এখানে আপনার প্রশ্ন লিখুন বা উপরের অপশন সিলেক্ট করুন..."
+                    className="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none text-neutral-800"
                   />
                 </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-2 pt-1">
+                <div className="space-y-1.5 pt-1">
                   <button
+                    type="button"
                     onClick={() => handleOpenWhatsApp()}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-2xl transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                   >
-                    <MessageCircle size={16} className="fill-white" />
+                    <MessageCircle size={15} className="fill-white" />
                     <span>WhatsApp-এ মেসেজ পাঠান</span>
-                    <ExternalLink size={14} />
+                    <ExternalLink size={13} />
                   </button>
 
                   <a
                     href={`tel:${config.whatsappNumber}`}
-                    className="w-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs py-2.5 rounded-2xl transition-all flex items-center justify-center space-x-2 text-center"
+                    className="w-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 text-center"
                   >
-                    <Phone size={14} />
+                    <Phone size={13} />
                     <span>কল করুন: {config.helplineNumber || config.whatsappNumber}</span>
                   </a>
                 </div>
               </div>
             )}
 
-            {/* BODY MODE 2: AI ASSISTANT CHAT */}
+            {/* MODE 2: AI ASSISTANT CHAT */}
             {mode === 'ai' && (
-              <div className="flex flex-col h-[380px] bg-neutral-50">
+              <div className="flex flex-col h-[360px] bg-neutral-50">
                 {/* Chat Messages */}
-                <div className="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
+                <div className="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs">
                   {chatMessages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex items-start gap-2 ${
+                      className={`flex items-start gap-1.5 ${
                         msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
                       }`}
                     >
                       <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold ${
-                          msg.sender === 'user' ? 'bg-neutral-900' : 'bg-teal-600'
+                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold ${
+                          msg.sender === 'user' ? 'bg-neutral-900' : 'bg-emerald-600'
                         }`}
                       >
-                        {msg.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
+                        {msg.sender === 'user' ? <User size={12} /> : <Bot size={12} />}
                       </div>
 
                       <div
-                        className={`max-w-[80%] rounded-2xl p-3 shadow-2xs space-y-1 ${
+                        className={`max-w-[82%] rounded-xl p-2.5 space-y-0.5 ${
                           msg.sender === 'user'
-                            ? 'bg-neutral-900 text-white rounded-tr-xs'
-                            : 'bg-white text-neutral-800 border border-neutral-200/80 rounded-tl-xs'
+                            ? 'bg-neutral-900 text-white'
+                            : 'bg-white text-neutral-800 border border-neutral-200'
                         }`}
                       >
-                        <p className="leading-relaxed whitespace-pre-line">{msg.text}</p>
-                        <p className={`text-[9px] text-right ${msg.sender === 'user' ? 'text-neutral-400' : 'text-neutral-400'}`}>
+                        <p className="leading-relaxed whitespace-pre-line text-[11px]">{msg.text}</p>
+                        <p className={`text-[8px] text-right ${msg.sender === 'user' ? 'text-neutral-400' : 'text-neutral-400'}`}>
                           {msg.timestamp}
                         </p>
                       </div>
@@ -323,48 +319,64 @@ export default function WhatsAppSupportWidget() {
                   ))}
 
                   {aiLoading && (
-                    <div className="flex items-center space-x-2 text-neutral-400 text-xs italic p-2">
-                      <Sparkles size={14} className="animate-spin text-teal-600" />
-                      <span>Rare Dreams AI চিন্তা করছে...</span>
+                    <div className="flex items-center space-x-1.5 text-neutral-500 text-[11px] p-1">
+                      <Sparkles size={13} className="animate-spin text-emerald-600" />
+                      <span>এআই উত্তর তৈরি করছে...</span>
                     </div>
                   )}
 
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Transfer to WhatsApp link inside AI mode */}
-                <div className="px-3 py-1 bg-amber-50 border-t border-amber-100 flex items-center justify-between text-[11px] font-bold text-amber-900">
+                {/* AI Quick Prompt Chips */}
+                <div className="px-2.5 py-1.5 bg-white border-t border-neutral-200/80 flex items-center gap-1 overflow-x-auto scrollbar-none">
+                  {["ডেলিভারি চার্জ?", "সাইজ গাইড", "রিটার্ন পলিসি"].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSendAiMessage(undefined, chip)}
+                      className="text-[10px] whitespace-nowrap bg-neutral-100 hover:bg-emerald-50 hover:text-emerald-800 text-neutral-700 px-2 py-1 rounded-lg border border-neutral-200/60 transition-colors"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Switch to WhatsApp link */}
+                <div className="px-3 py-1 bg-amber-50 border-t border-amber-100 flex items-center justify-between text-[10px] font-medium text-amber-900">
                   <span className="flex items-center gap-1">
-                    <HelpCircle size={12} className="text-amber-600" />
-                    ম্যাসেজে সমস্যার সমাধান না হলে?
+                    <HelpCircle size={11} className="text-amber-600 shrink-0" />
+                    সহায়তা প্রয়োজন?
                   </span>
                   <button
+                    type="button"
                     onClick={() => {
                       const lastUserMsg = [...chatMessages].reverse().find(m => m.sender === 'user')?.text || '';
-                      handleOpenWhatsApp(lastUserMsg);
+                      setWaMessage(lastUserMsg);
+                      setMode('whatsapp');
                     }}
-                    className="text-emerald-700 hover:underline flex items-center gap-0.5 text-[11px]"
+                    className="text-emerald-700 font-bold hover:underline flex items-center gap-0.5"
                   >
-                    <span>হোয়াটসঅ্যাপে হিউম্যান এজেন্টে সুইচ করুন</span>
-                    <ExternalLink size={10} />
+                    <span>হোয়াটসঅ্যাপে যান</span>
+                    <ExternalLink size={9} />
                   </button>
                 </div>
 
-                {/* AI Chat Input */}
-                <form onSubmit={handleSendAiMessage} className="p-2.5 bg-white border-t border-neutral-200 flex items-center gap-2">
+                {/* AI Chat Input Form */}
+                <form onSubmit={handleSendAiMessage} className="p-2 bg-white border-t border-neutral-200 flex items-center gap-1.5">
                   <input
                     type="text"
                     value={aiInput}
                     onChange={(e) => setAiInput(e.target.value)}
-                    placeholder="পোশাকের সাইজ বা ডেলিভারি নিয়ে লিখুন..."
-                    className="flex-1 text-xs bg-neutral-100 border border-neutral-200 px-3 py-2 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+                    placeholder="প্রশ্নটি লিখুন..."
+                    className="flex-1 text-xs bg-neutral-100 border border-neutral-200 px-2.5 py-2 rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-neutral-800"
                   />
                   <button
                     type="submit"
                     disabled={!aiInput.trim() || aiLoading}
-                    className="w-9 h-9 bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                    className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl flex items-center justify-center shrink-0 transition-colors"
                   >
-                    <Send size={15} />
+                    <Send size={14} />
                   </button>
                 </form>
               </div>
