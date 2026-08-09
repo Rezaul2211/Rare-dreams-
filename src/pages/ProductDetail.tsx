@@ -177,7 +177,12 @@ export default function ProductDetail() {
             </button>
 
             {/* Discount Badge on Product Detail Image */}
-            {discountPct && discountPct > 0 ? (
+            {product.isFlashSale ? (
+              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
+                <span>⚡</span>
+                <span>FLASH SALE</span>
+              </div>
+            ) : discountPct && discountPct > 0 ? (
               <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-amber-600 text-white text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-md border border-white/20">
                 {discountPct}% OFF
               </div>
@@ -228,7 +233,11 @@ export default function ProductDetail() {
               {product.comparePrice && product.comparePrice > product.price && (
                 <span className="text-lg text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
               )}
-              {discountPct && discountPct > 0 ? (
+              {product.isFlashSale ? (
+                <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                  ⚡ Flash Sale
+                </span>
+              ) : discountPct && discountPct > 0 ? (
                 <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
                   Save {discountPct}%
                 </span>

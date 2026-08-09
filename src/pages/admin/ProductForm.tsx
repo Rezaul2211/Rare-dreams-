@@ -410,6 +410,29 @@ export default function ProductForm() {
                 </div>
               </div>
 
+              {/* Flash Sale Toggle */}
+              <div>
+                <label className="flex items-center space-x-3 cursor-pointer p-3 border border-neutral-200 rounded-xl hover:bg-neutral-50 transition-colors">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      name="isFlashSale"
+                      checked={formData.isFlashSale || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isFlashSale: e.target.checked }))}
+                      className="sr-only"
+                    />
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${formData.isFlashSale ? 'bg-red-600' : 'bg-neutral-300'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.isFlashSale ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-neutral-900 flex items-center gap-1">
+                      <span>⚡ Flash Sale Badge</span>
+                    </span>
+                    <span className="text-[10px] text-neutral-500">Enable this to show a prominent flash sale tag on this product</span>
+                  </div>
+                </label>
+              </div>
+
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Stock Quantity</label>
                 <input

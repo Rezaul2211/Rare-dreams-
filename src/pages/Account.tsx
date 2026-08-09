@@ -108,7 +108,7 @@ export default function Account() {
 
   // Chat State
   const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'support'; text: string; time: string }>>([
-    { sender: 'support', text: 'Hello! Welcome to Redreams Support. How can we assist you today?', time: 'Just now' }
+    { sender: 'support', text: 'Hello! Welcome to Rare Dreams Support. How can we assist you today?', time: 'Just now' }
   ]);
   const [chatInput, setChatInput] = useState('');
 
@@ -125,16 +125,23 @@ export default function Account() {
     setProfilePhone(user.phoneNumber || '');
     setProfilePhoto(user.photoURL || AVATAR_PRESETS[0]);
 
+    // Safety timeout to prevent infinite loading
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 4000);
+
     const fetchData = async () => {
       try {
         // Fetch Orders
-        const qOrders = query(
-          collection(db, 'orders'),
-          where('userId', '==', user.uid)
-        );
-        const ordersSnapshot = await getDocs(qOrders);
-        const ordersData = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-        setOrders(ordersData);
+        if (user.uid) {
+          const qOrders = query(
+            collection(db, 'orders'),
+            where('userId', '==', user.uid)
+          );
+          const ordersSnapshot = await getDocs(qOrders);
+          const ordersData = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+          setOrders(ordersData);
+        }
 
         // Fetch Wishlist Items
         const qWishlist = query(
@@ -146,11 +153,14 @@ export default function Account() {
       } catch (error) {
         console.error("Error fetching account data:", error);
       } finally {
+        clearTimeout(safetyTimer);
         setLoading(false);
       }
     };
 
     fetchData();
+    
+    return () => clearTimeout(safetyTimer);
   }, [user, navigate]);
 
   const handleLogout = async () => {

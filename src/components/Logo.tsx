@@ -23,24 +23,22 @@ export const Logo: React.FC<LogoProps> = ({
   }[size];
 
   const titleSize = {
-    sm: 'text-base font-black tracking-tight',
-    md: 'text-lg sm:text-xl font-black tracking-tight',
-    lg: 'text-2xl sm:text-3xl font-black tracking-tight',
+    sm: 'text-lg font-black tracking-tight',
+    md: 'text-xl sm:text-2xl font-black tracking-tight',
+    lg: 'text-3xl sm:text-4xl font-black tracking-tight',
   }[size];
 
   const subtitleSize = {
-    sm: 'text-[8px] tracking-[0.2em]',
-    md: 'text-[9px] sm:text-[10px] tracking-[0.24em]',
-    lg: 'text-[10px] sm:text-[11px] tracking-[0.26em]',
+    sm: 'text-[9px] tracking-[0.2em] font-bold',
+    md: 'text-[10px] sm:text-[11px] tracking-[0.24em] font-bold',
+    lg: 'text-[11px] sm:text-[12px] tracking-[0.26em] font-bold',
   }[size];
 
   return (
     <div className={`inline-flex items-center gap-2.5 sm:gap-3 select-none group ${className}`}>
       {/* Circular Round Emblem */}
-      <div className={`relative shrink-0 rounded-full p-[2px] bg-gradient-to-tr from-blue-700 via-sky-400 to-indigo-600 shadow-xs transition-transform duration-300 group-hover:scale-105 ${circleSize}`}>
-        <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center p-0.5 border border-white/80 ${
-          isDark ? 'bg-neutral-900' : 'bg-white'
-        }`}>
+      <div className={`relative shrink-0 rounded-full shadow-sm transition-transform duration-300 group-hover:scale-105 ${circleSize}`}>
+        <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white`}>
           <img
             src={logoImg}
             alt="Rare Dreams Logo"
@@ -53,12 +51,12 @@ export const Logo: React.FC<LogoProps> = ({
       {/* Prominent Website Name Text */}
       {showText && (
         <div className="flex flex-col text-left justify-center leading-none">
-          <span className={`font-serif uppercase transition-colors ${titleSize} ${
+          <span className={`uppercase transition-colors ${titleSize} ${
             isDark ? 'text-white' : 'text-neutral-950'
           }`}>
             RARE DREAMS
           </span>
-          <span className={`font-bold uppercase mt-0.5 text-neutral-500 transition-colors ${subtitleSize}`}>
+          <span className={`uppercase mt-0.5 text-neutral-500 transition-colors ${subtitleSize}`}>
             LUXURY FASHION
           </span>
         </div>

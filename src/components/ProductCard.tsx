@@ -87,6 +87,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
           <div className="absolute top-3 left-3 bg-neutral-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm">
             Sold Out
           </div>
+        ) : product.isFlashSale ? (
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
+            <span>⚡</span>
+            <span>FLASH SALE</span>
+          </div>
         ) : discountPct && discountPct > 0 ? (
           <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md border border-white/20">
             {discountPct}% OFF

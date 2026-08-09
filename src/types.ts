@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   comparePrice?: number;
   discount?: number;
+  isFlashSale?: boolean;
   stockQuantity: number;
   sizeOptions?: string[];
   colorOptions?: string[];
