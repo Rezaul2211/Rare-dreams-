@@ -6,9 +6,11 @@ import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { auth } from '../lib/firebase';
 import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
+import { HeaderSearch } from './HeaderSearch';
 
 function LayoutInner() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const items = useCartStore((state) => state.items);
   const user = useAuthStore((state) => state.user);
@@ -30,57 +32,70 @@ function LayoutInner() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] font-sans text-neutral-900 pb-16 md:pb-0">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2 rounded-xl hover:bg-neutral-100 transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+          <div className="flex justify-between items-center h-16 gap-4">
+            {/* Mobile Left: Menu Button & Search Toggle */}
+            <div className="flex items-center space-x-1 md:hidden">
+              <button 
+                className="p-2 rounded-xl hover:bg-neutral-100 transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle Navigation Menu"
+              >
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+              <button
+                className="p-2 rounded-xl hover:bg-neutral-100 transition-colors text-neutral-700"
+                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                aria-label="Search"
+              >
+                <Search size={20} />
+              </button>
+            </div>
 
             {/* Logo */}
             <Link 
               to="/" 
               onClick={scrollToTop}
-              className="text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity"
+              className="text-xl sm:text-2xl font-black tracking-tighter uppercase shrink-0 hover:opacity-80 transition-opacity font-display"
             >
               Rare Dreams
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Shop All</Link>
-              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Boys Wear</Link>
-              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Girls Wear</Link>
-              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Baby</Link>
-              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest">Footwear</Link>
+            {/* Desktop Center: Search Bar & Navigation */}
+            <div className="hidden md:flex items-center space-x-6 flex-1 max-w-2xl mx-4">
+              <div className="w-full">
+                <HeaderSearch />
+              </div>
+            </div>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden lg:flex items-center space-x-6 shrink-0">
+              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Shop All</Link>
+              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Boys</Link>
+              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Girls</Link>
+              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Baby</Link>
+              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-wider">Shoes</Link>
             </nav>
 
-            {/* Icons & Admin Shortcut */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Right Icons & User Menu */}
+            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
               {/* Visible Admin Dashboard link button for admins */}
               {user?.role === 'admin' && (
                 <Link 
                   to="/admin" 
-                  className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-sm"
+                  className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-xs"
                 >
                   <ShieldCheck size={14} className="text-amber-400" />
                   <span>Admin Panel</span>
                 </Link>
               )}
 
-              <button className="p-2 hover:bg-neutral-100 rounded-2xl transition-colors hidden sm:block">
-                <Search size={20} />
-              </button>
-
               {/* User Menu Dropdown */}
               <div className="relative hidden sm:block">
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-2 hover:bg-neutral-100 rounded-2xl transition-colors flex items-center"
+                  className="p-2.5 hover:bg-neutral-100 rounded-2xl transition-colors flex items-center"
                   aria-label="User Account Menu"
                 >
                   <User size={20} />
@@ -142,7 +157,7 @@ function LayoutInner() {
                 )}
               </div>
 
-              {/* Desktop Header Cart Icon */}
+              {/* Header Cart Icon */}
               <Link 
                 id="header-cart-icon"
                 to="/cart" 
@@ -161,15 +176,35 @@ function LayoutInner() {
           </div>
         </div>
 
+        {/* Mobile Expandable Search Bar Header Overlay */}
+        <AnimatePresence>
+          {isMobileSearchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 shadow-md overflow-hidden"
+            >
+              <HeaderSearch 
+                isMobileModalOpen={isMobileSearchOpen} 
+                onCloseMobileModal={() => setIsMobileSearchOpen(false)} 
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-neutral-200">
-            <div className="px-4 pt-2 pb-6 space-y-1">
-              <Link to="/shop" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All</Link>
-              <Link to="/category/Boys Wear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Wear</Link>
-              <Link to="/category/Girls Wear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Wear</Link>
-              <Link to="/category/Baby Essentials" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Essentials</Link>
-              <Link to="/category/Footwear" className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear</Link>
+            <div className="px-4 pt-3 pb-6 space-y-2">
+              <div className="pb-2">
+                <HeaderSearch onCloseMobileModal={() => setIsMobileMenuOpen(false)} />
+              </div>
+              <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All Products</Link>
+              <Link to="/category/Boys Wear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Wear</Link>
+              <Link to="/category/Girls Wear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Wear</Link>
+              <Link to="/category/Baby Essentials" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Essentials</Link>
+              <Link to="/category/Footwear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear</Link>
 
               {user?.role === 'admin' && (
                 <Link 
@@ -185,7 +220,7 @@ function LayoutInner() {
                 </Link>
               )}
 
-              <Link to={user ? '/account' : '/login'} className="block px-3 py-3 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to={user ? '/account' : '/login'} className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
                 {user ? 'My Account' : 'Sign In'}
               </Link>
             </div>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
-import { SlidersHorizontal, ArrowUpDown, Sparkles } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpDown, Sparkles, Search, X } from 'lucide-react';
 import { LazyImage } from '../components/LazyImage';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
@@ -11,6 +11,9 @@ import { motion } from 'motion/react';
 
 export default function Shop() {
   const { category } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || searchParams.get('q') || '';
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'discount'>('featured');
@@ -43,6 +46,17 @@ export default function Shop() {
             return c.includes(target) || target.includes(c);
           });
         }
+
+        if (searchQuery.trim()) {
+          const term = searchQuery.toLowerCase().trim();
+          productsData = productsData.filter(p => {
+            const nameMatch = p.name?.toLowerCase().includes(term);
+            const catMatch = p.category?.toLowerCase().includes(term);
+            const subcatMatch = p.subcategory?.toLowerCase().includes(term);
+            const descMatch = p.description?.toLowerCase().includes(term);
+            return nameMatch || catMatch || subcatMatch || descMatch;
+          });
+        }
         
         setProducts(productsData);
       } catch (error) {
@@ -52,7 +66,7 @@ export default function Shop() {
       }
     };
     fetchProducts();
-  }, [category]);
+  }, [category, searchQuery]);
 
   // Sort products based on selection
   const sortedProducts = [...products].sort((a, b) => {
@@ -199,6 +213,38 @@ export default function Shop() {
             </div>
           </div>
         </div>
+
+        {/* Active Search Filter Banner */}
+        {searchQuery && (
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-200/80 p-4 rounded-2xl mb-8">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                <Search size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                  Search results for &ldquo;{searchQuery}&rdquo;
+                </p>
+                <p className="text-[11px] text-amber-700/80">
+                  Found {sortedProducts.length} matching item{sortedProducts.length === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('search');
+                newParams.delete('q');
+                setSearchParams(newParams);
+              }}
+              className="bg-white hover:bg-amber-100 text-amber-900 px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors border border-amber-200 flex items-center space-x-1 cursor-pointer shadow-2xs"
+            >
+              <X size={14} />
+              <span>Clear Search</span>
+            </button>
+          </div>
+        )}
 
         {/* Product Grid */}
         {loading ? (
