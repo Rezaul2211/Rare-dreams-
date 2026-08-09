@@ -258,7 +258,7 @@ export default function Shop() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
-              <ProductSkeleton key={i} />
+              <ProductSkeleton key={i} index={i} />
             ))}
           </div>
         ) : sortedProducts.length > 0 ? (

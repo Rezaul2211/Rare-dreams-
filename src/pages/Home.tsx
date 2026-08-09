@@ -193,28 +193,35 @@ export default function Home() {
 
           {/* 2x2 Grid */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-            {categoriesList.map((cat) => (
-              <Link 
-                key={cat.title} 
-                to={cat.link || `/category/${cat.title}`}
-                className="group relative rounded-2xl md:rounded-3xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] md:aspect-[1/1] block shadow-xs hover:shadow-xl transition-all duration-300 bg-neutral-200"
+            {categoriesList.map((cat, idx) => (
+              <motion.div
+                key={cat.title}
+                initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.65, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
               >
-                <img 
-                  src={cat.image} 
-                  alt={cat.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <Link 
+                  to={cat.link || `/category/${cat.title}`}
+                  className="group relative rounded-2xl md:rounded-3xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] md:aspect-[1/1] block shadow-2xs hover:shadow-xl transition-all duration-500 bg-neutral-200"
+                >
+                  <img 
+                    src={cat.image} 
+                    alt={cat.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  />
 
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                  {/* Subtle gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
 
-                {/* Overlay Title */}
-                <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 text-center z-10 px-2">
-                  <h3 className="text-base sm:text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300 font-display">
-                    {cat.title}
-                  </h3>
-                </div>
-              </Link>
+                  {/* Overlay Title */}
+                  <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 text-center z-10 px-2">
+                    <h3 className="text-base sm:text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-500 font-display">
+                      {cat.title}
+                    </h3>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -248,7 +255,7 @@ export default function Home() {
               {loading ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {[...Array(4)].map((_, i) => (
-                    <ProductSkeleton key={i} />
+                    <ProductSkeleton key={i} index={i} />
                   ))}
                 </div>
               ) : (
@@ -284,7 +291,7 @@ export default function Home() {
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {[...Array(4)].map((_, i) => (
-                <ProductSkeleton key={i} />
+                <ProductSkeleton key={i} index={i} />
               ))}
             </div>
           ) : allProducts.length > 0 ? (

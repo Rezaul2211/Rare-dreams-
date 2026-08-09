@@ -22,7 +22,15 @@ export function LazyImage({ src, alt, className, containerClassName, ...props }:
   }, [src]);
 
   return (
-    <div className={clsx("relative overflow-hidden bg-neutral-100 flex-shrink-0", containerClassName)}>
+    <div className={clsx("relative overflow-hidden bg-neutral-100/90 flex-shrink-0", containerClassName)}>
+      {/* Luxury Soft Shimmer Backdrop for Loading State */}
+      <div 
+        className={clsx(
+          "absolute inset-0 bg-gradient-to-r from-neutral-100 via-neutral-200/50 to-neutral-100 bg-[length:200%_100%] animate-pulse pointer-events-none transition-opacity duration-700 ease-out z-0",
+          isLoaded || hasError ? "opacity-0 pointer-events-none" : "opacity-100"
+        )} 
+      />
+
       <img
         ref={imgRef}
         src={src}
@@ -31,20 +39,19 @@ export function LazyImage({ src, alt, className, containerClassName, ...props }:
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={clsx(
-          "w-full h-full object-cover transition-all duration-700 ease-out",
-          !isLoaded ? "opacity-0 scale-105 blur-xl" : "opacity-100 scale-100 blur-0",
+          "w-full h-full object-cover relative z-10 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu",
+          !isLoaded ? "opacity-0 scale-[1.04] filter blur-md" : "opacity-100 scale-100 filter blur-0",
           className
         )}
         {...props}
       />
-      {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-neutral-200/50 animate-pulse pointer-events-none" />
-      )}
+
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-neutral-400 text-xs pointer-events-none">
-          Image not available
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-neutral-400 text-xs pointer-events-none z-20 font-medium">
+          Image unavailable
         </div>
       )}
     </div>
   );
 }
+

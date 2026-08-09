@@ -428,7 +428,7 @@ export default function ProductDetail() {
         {loadingRecommended ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {[...Array(4)].map((_, i) => (
-              <ProductSkeleton key={i} />
+              <ProductSkeleton key={i} index={i} />
             ))}
           </div>
         ) : recommendedProducts.length > 0 ? (

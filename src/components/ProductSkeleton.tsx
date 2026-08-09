@@ -1,26 +1,40 @@
 import React from 'react';
 
-export function ProductSkeleton() {
+interface ProductSkeletonProps {
+  index?: number;
+  key?: React.Key;
+}
+
+export function ProductSkeleton({ index = 0 }: ProductSkeletonProps) {
   return (
-    <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+    <div 
+      className="flex flex-col bg-white rounded-2xl md:rounded-3xl shadow-2xs border border-neutral-100 overflow-hidden animate-pulse"
+      style={{ animationDelay: `${index * 100}ms`, animationDuration: '2s' }}
+    >
       {/* Image Skeleton */}
-      <div className="relative aspect-[4/5] shimmer-bg animate-shimmer w-full"></div>
+      <div className="relative aspect-[4/5] bg-gradient-to-br from-neutral-100 via-neutral-200/50 to-neutral-100 w-full" />
       
       {/* Content Skeleton */}
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-4 flex flex-col flex-grow space-y-3">
+        {/* Category Tag */}
+        <div className="h-2.5 bg-neutral-200/60 rounded-md w-1/3" />
+        
         {/* Title */}
-        <div className="h-4 shimmer-bg animate-shimmer rounded w-3/4 mb-2"></div>
-        <div className="h-4 shimmer-bg animate-shimmer rounded w-1/2 mb-4"></div>
+        <div className="space-y-1.5">
+          <div className="h-3.5 bg-neutral-200/80 rounded-md w-11/12" />
+          <div className="h-3.5 bg-neutral-200/60 rounded-md w-2/3" />
+        </div>
         
         {/* Price & Action */}
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex flex-col gap-2">
-            <div className="h-5 shimmer-bg animate-shimmer rounded w-16"></div>
-            <div className="h-3 shimmer-bg animate-shimmer rounded w-12"></div>
+        <div className="mt-auto pt-3 border-t border-neutral-100 flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="h-4 bg-neutral-200/80 rounded-md w-16" />
+            <div className="h-3 bg-neutral-200/40 rounded-md w-12" />
           </div>
-          <div className="w-10 h-10 shimmer-bg animate-shimmer rounded-full"></div>
+          <div className="w-9 h-9 bg-neutral-200/70 rounded-2xl shrink-0" />
         </div>
       </div>
     </div>
   );
 }
+

@@ -28,10 +28,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="group flex flex-col bg-white rounded-2xl md:rounded-3xl shadow-xs hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-200/80 relative"
+      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.6, 
+        delay: Math.min(index * 0.06, 0.45), 
+        ease: [0.22, 1, 0.36, 1] 
+      }}
+      className="group flex flex-col bg-white rounded-2xl md:rounded-3xl shadow-2xs hover:shadow-xl transition-all duration-500 ease-out overflow-hidden border border-neutral-200/80 relative"
     >
       {/* Heart Wishlist Overlay */}
       <button 
@@ -48,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) 
           <LazyImage
             src={product.images[0]}
             alt={product.name}
-            className="group-hover:scale-108 transition-transform duration-500"
+            className="group-hover:scale-108 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
             containerClassName="w-full h-full"
           />
         ) : (
