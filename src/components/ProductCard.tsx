@@ -20,7 +20,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
   const favorited = isWishlisted(product.id);
 
   // Calculate discount percentage if not explicitly given
-  let discountPct = product.discount;
+  let discountPct = product.discountPercentage || product.discount;
   if (!discountPct && product.comparePrice && product.comparePrice > product.price) {
     discountPct = Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100);
   }

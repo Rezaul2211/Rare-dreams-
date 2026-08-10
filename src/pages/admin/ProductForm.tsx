@@ -142,16 +142,31 @@ export default function ProductForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    // Calculate explicit discountPercentage
+    let calcDiscountPct = 0;
+    if (formData.discount && Number(formData.discount) > 0) {
+      calcDiscountPct = Number(formData.discount);
+    } else if (formData.comparePrice && formData.price && Number(formData.comparePrice) > Number(formData.price)) {
+      calcDiscountPct = Math.round(((Number(formData.comparePrice) - Number(formData.price)) / Number(formData.comparePrice)) * 100);
+    }
+
+    const payload = {
+      ...formData,
+      discount: formData.discount ? Number(formData.discount) : (calcDiscountPct > 0 ? calcDiscountPct : undefined),
+      discountPercentage: calcDiscountPct > 0 ? calcDiscountPct : undefined,
+    };
+
     try {
       if (isEditing && id) {
         await updateDoc(doc(db, 'products', id), {
-          ...formData,
+          ...payload,
           updatedAt: serverTimestamp()
         });
       } else {
         const newDocRef = doc(collection(db, 'products'));
         await setDoc(newDocRef, {
-          ...formData,
+          ...payload,
           id: newDocRef.id,
           createdAt: serverTimestamp()
         });
