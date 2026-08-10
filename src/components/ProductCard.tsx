@@ -53,51 +53,57 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
       }}
       className="group flex flex-col bg-white rounded-2xl md:rounded-3xl shadow-2xs hover:shadow-xl transition-all duration-500 ease-out overflow-hidden border border-neutral-200/80 relative"
     >
-      {/* Heart Wishlist Overlay */}
-      <button 
-        type="button"
-        onClick={handleWishlistClick}
-        aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full shadow-sm backdrop-blur-md transition-all cursor-pointer ${
-          favorited 
-            ? 'bg-red-50 text-red-500 hover:bg-red-100 scale-110 ring-2 ring-red-200' 
-            : 'bg-white/80 text-neutral-400 hover:text-red-500 hover:bg-white hover:scale-105'
-        }`}
-      >
-        <Heart size={18} strokeWidth={favorited ? 0 : 2} fill={favorited ? "currentColor" : "none"} />
-      </button>
+      {/* Image Thumbnail Link & Overlay Elements */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+        <Link to={`/product/${product.id}`} className="block w-full h-full">
+          {product.images && product.images.length > 0 ? (
+            <LazyImage
+              src={product.images[0]}
+              alt={product.name}
+              className="group-hover:scale-108 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              containerClassName="w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-neutral-400 text-xs font-medium">
+              No Image
+            </div>
+          )}
+        </Link>
 
-      {/* Image Thumbnail Link */}
-      <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden bg-neutral-100">
-        {product.images && product.images.length > 0 ? (
-          <LazyImage
-            src={product.images[0]}
-            alt={product.name}
-            className="group-hover:scale-108 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            containerClassName="w-full h-full"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400 text-xs font-medium">
-            No Image
-          </div>
-        )}
-
-        {/* Badges */}
+        {/* Discount Badge on Top Left */}
         {product.stockQuantity === 0 ? (
-          <div className="absolute top-3 left-3 bg-neutral-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm">
+          <div className="absolute top-3 left-3 z-10 bg-neutral-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
             Sold Out
           </div>
+        ) : discountPct && discountPct > 0 ? (
+          <div className="absolute top-3 left-3 z-10 bg-[#EF4444] text-white text-[11px] sm:text-xs font-black px-2.5 py-1 rounded-full shadow-md tracking-tight flex items-center gap-0.5 border border-white/20">
+            -{discountPct}% OFF
+          </div>
         ) : product.isFlashSale ? (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
+          <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
             <span>⚡</span>
             <span>FLASH SALE</span>
           </div>
-        ) : discountPct && discountPct > 0 ? (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md border border-white/20">
-            {discountPct}% OFF
-          </div>
         ) : null}
-      </Link>
+
+        {/* Heart Wishlist Overlay Button on Top Right */}
+        <button 
+          type="button"
+          onClick={handleWishlistClick}
+          aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
+          className={`absolute top-3 right-3 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-md flex items-center justify-center transition-all cursor-pointer ${
+            favorited 
+              ? 'bg-white text-red-500 scale-105 ring-1 ring-red-100' 
+              : 'bg-white/90 backdrop-blur-xs text-neutral-600 hover:text-red-500 hover:bg-white hover:scale-110'
+          }`}
+        >
+          <Heart 
+            size={18} 
+            strokeWidth={favorited ? 0 : 2} 
+            className={favorited ? "text-red-500 fill-red-500" : "text-neutral-600 hover:text-red-500"} 
+          />
+        </button>
+      </div>
 
       {/* Product Details */}
       <div className="p-4 flex flex-col flex-grow">

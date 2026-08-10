@@ -403,7 +403,7 @@ export default function ProductForm() {
                   
                   {/* Preset Offer Percentage Buttons */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {[10, 15, 20, 25, 30, 50].map((pct) => (
+                    {[10, 15, 20, 24, 25, 28, 30, 40, 50].map((pct) => (
                       <button
                         key={pct}
                         type="button"

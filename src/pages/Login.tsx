@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswor
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuthStore } from '../store/useAuthStore';
+import { fetchUserRole } from '../lib/roles';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle, Lock, Mail, User, ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
 
@@ -29,21 +30,21 @@ export default function Login() {
     }
 
     const emailClean = email.trim().toLowerCase();
-    const isAdminEmail = emailClean === 'xmrezaul.karim998@gmail.com';
+    const resolvedRole = await fetchUserRole(emailClean);
+    const isAdmin = resolvedRole === 'admin' || resolvedRole === 'seller';
 
     setLoading(true);
     try {
       // If admin email or password is provided for reset, allow resetting directly
-      if (isAdminEmail || password) {
+      if (isAdmin || password) {
         const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
         const userRef = doc(db, 'users', customUid);
-        const role = isAdminEmail ? 'admin' : 'customer';
         
         const updatedUser = {
           uid: customUid,
           email: emailClean,
-          displayName: isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer',
-          role: role,
+          displayName: isAdmin ? 'Admin / Staff User' : 'Customer',
+          role: resolvedRole,
           password: password || 'admin123',
           updatedAt: new Date()
         };
@@ -53,7 +54,7 @@ export default function Login() {
 
         setMessage('Password updated successfully! Redirecting...');
         setTimeout(() => {
-          if (role === 'admin') navigate('/admin');
+          if (resolvedRole === 'admin' || resolvedRole === 'seller') navigate('/admin');
           else navigate('/account');
         }, 1000);
         return;
@@ -68,13 +69,12 @@ export default function Login() {
       if (password) {
         const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
         const userRef = doc(db, 'users', customUid);
-        const role = isAdminEmail ? 'admin' : 'customer';
         
         const updatedUser = {
           uid: customUid,
           email: emailClean,
-          displayName: isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer',
-          role: role,
+          displayName: isAdmin ? 'Admin / Staff User' : 'Customer',
+          role: resolvedRole,
           password: password,
           updatedAt: new Date()
         };
@@ -83,7 +83,7 @@ export default function Login() {
         useAuthStore.getState().setUser(updatedUser as any);
         setMessage('New password set successfully! Logging you in...');
         setTimeout(() => {
-          if (role === 'admin') navigate('/admin');
+          if (resolvedRole === 'admin' || resolvedRole === 'seller') navigate('/admin');
           else navigate('/account');
         }, 1000);
       } else {
@@ -101,7 +101,6 @@ export default function Login() {
     setLoading(true);
 
     const emailClean = email.trim().toLowerCase();
-    const isAdminEmail = emailClean === 'xmrezaul.karim998@gmail.com';
 
     try {
       if (isLogin) {
@@ -110,32 +109,40 @@ export default function Login() {
         try {
           const userCredential = await signInWithEmailAndPassword(auth, emailClean, password);
           const user = userCredential.user;
-          const role = isAdminEmail ? 'admin' : 'customer';
           
+          let userDocRole: string | undefined = undefined;
+          let displayName = user.displayName;
+
+          try {
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists()) {
+              displayName = userDoc.data().displayName || displayName;
+              userDocRole = userDoc.data().role;
+            }
+          } catch (docErr) {
+            console.warn("Firestore user lookup skipped:", docErr);
+          }
+
+          const role = await fetchUserRole(emailClean, user.uid, userDocRole);
+
           activeUser = {
             uid: user.uid,
             email: user.email || emailClean,
-            displayName: user.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
+            displayName: displayName || (role === 'admin' ? 'Admin User' : 'Customer'),
             role: role,
             createdAt: new Date()
           };
 
           try {
             const userRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists()) {
-              activeUser.displayName = userDoc.data().displayName || activeUser.displayName;
-              activeUser.role = isAdminEmail ? 'admin' : (userDoc.data().role || 'customer');
-            } else {
-              await setDoc(userRef, { role, email: emailClean, displayName: activeUser.displayName }, { merge: true });
-            }
+            await setDoc(userRef, { role, email: emailClean, displayName: activeUser.displayName }, { merge: true });
           } catch (docErr) {
             console.warn("Firestore user sync skipped:", docErr);
           }
         } catch (authErr: any) {
           console.warn("Firebase Auth native provider error, attempting fallback:", authErr);
           
-          const role = isAdminEmail ? 'admin' : 'customer';
           const customUid = 'usr_' + emailClean.replace(/[^a-zA-Z0-9]/g, '_');
           const userRef = doc(db, 'users', customUid);
           
@@ -149,8 +156,10 @@ export default function Login() {
             console.warn("Firestore lookup error:", docErr);
           }
 
+          const role = await fetchUserRole(emailClean, customUid, uData?.role);
+
           if (uData) {
-            if (uData.password && uData.password !== password && !isAdminEmail) {
+            if (uData.password && uData.password !== password && role !== 'admin') {
               setError('ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড প্রদান করুন। (Invalid Password)');
               setLoading(false);
               return;
@@ -158,8 +167,8 @@ export default function Login() {
             activeUser = {
               uid: uData.uid || customUid,
               email: uData.email || emailClean,
-              displayName: uData.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer'),
-              role: isAdminEmail ? 'admin' : (uData.role || 'customer'),
+              displayName: uData.displayName || (role === 'admin' ? 'Admin User' : 'Customer'),
+              role: role,
               createdAt: uData.createdAt || new Date()
             };
           } else {
@@ -167,7 +176,7 @@ export default function Login() {
             activeUser = {
               uid: customUid,
               email: emailClean,
-              displayName: isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer',
+              displayName: role === 'admin' ? 'Admin User' : 'Customer',
               role: role,
               createdAt: new Date()
             };
@@ -181,7 +190,7 @@ export default function Login() {
 
         if (activeUser) {
           useAuthStore.getState().setUser(activeUser);
-          if (activeUser.role === 'admin') {
+          if (activeUser.role === 'admin' || activeUser.role === 'seller') {
             navigate('/admin');
           } else {
             navigate('/account');
@@ -190,16 +199,16 @@ export default function Login() {
       } else {
         // Sign Up
         let newUser: any = null;
-        const role = isAdminEmail ? 'admin' : 'customer';
 
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, emailClean, password);
           const user = userCredential.user;
+          const role = await fetchUserRole(emailClean, user.uid);
 
           newUser = {
             uid: user.uid,
             email: emailClean,
-            displayName: name || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer User'),
+            displayName: name || (role === 'admin' ? 'Admin User' : 'Customer User'),
             role: role,
             createdAt: new Date()
           };
@@ -225,8 +234,10 @@ export default function Login() {
             console.warn("Read existing user doc failed:", e);
           }
 
+          const role = await fetchUserRole(emailClean, customUid, existingData?.role);
+
           if (authErr.code === 'auth/email-already-in-use' || existingData) {
-            if (existingData && existingData.password && existingData.password !== password && !isAdminEmail) {
+            if (existingData && existingData.password && existingData.password !== password && role !== 'admin') {
               setError('এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে। পাসওয়ার্ড ভুল হয়েছে, দয়া করে "Sign In" এ গিয়ে সঠিক পাসওয়ার্ড দিয়ে লগইন করুন।');
               setLoading(false);
               return;
@@ -235,15 +246,15 @@ export default function Login() {
             newUser = {
               uid: existingData?.uid || customUid,
               email: emailClean,
-              displayName: name || existingData?.displayName || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer User'),
-              role: isAdminEmail ? 'admin' : (existingData?.role || role),
+              displayName: name || existingData?.displayName || (role === 'admin' ? 'Admin User' : 'Customer User'),
+              role: role,
               createdAt: existingData?.createdAt || new Date()
             };
           } else {
             newUser = {
               uid: customUid,
               email: emailClean,
-              displayName: name || (isAdminEmail ? 'Rezaul Karim (Admin)' : 'Customer User'),
+              displayName: name || (role === 'admin' ? 'Admin User' : 'Customer User'),
               role: role,
               password: password,
               createdAt: new Date()
@@ -258,7 +269,7 @@ export default function Login() {
 
         if (newUser) {
           useAuthStore.getState().setUser(newUser);
-          if (role === 'admin') {
+          if (newUser.role === 'admin' || newUser.role === 'seller') {
             navigate('/admin');
           } else {
             navigate('/account');

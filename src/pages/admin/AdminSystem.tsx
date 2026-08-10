@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { assignUserRoleByEmail, revokeUserRoleByEmail } from '../../lib/roles';
 import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2, UserMinus } from 'lucide-react';
 
 export default function AdminSystem() {
@@ -14,38 +15,58 @@ export default function AdminSystem() {
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'users'), where('role', 'in', ['admin', 'seller']));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const users: any[] = [];
-      snapshot.forEach((doc) => {
-        users.push({ id: doc.id, ...doc.data() });
+    // Listen to users with admin/seller role
+    const qUsers = query(collection(db, 'users'), where('role', 'in', ['admin', 'seller']));
+    const qAuthRoles = collection(db, 'authorized_roles');
+
+    let userStaff: any[] = [];
+    let authStaff: any[] = [];
+
+    const mergeAndSetStaff = () => {
+      const map = new Map<string, any>();
+      authStaff.forEach(u => {
+        if (u.role === 'admin' || u.role === 'seller') {
+          map.set(u.email.toLowerCase(), u);
+        }
       });
-      setStaffUsers(users);
-    }, (error) => {
-      console.error("Error fetching staff:", error);
+      userStaff.forEach(u => {
+        if (u.email && (u.role === 'admin' || u.role === 'seller')) {
+          map.set(u.email.toLowerCase(), { ...map.get(u.email.toLowerCase()), ...u });
+        }
+      });
+      setStaffUsers(Array.from(map.values()));
+    };
+
+    const unsubUsers = onSnapshot(qUsers, (snapshot) => {
+      userStaff = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      mergeAndSetStaff();
+    });
+
+    const unsubAuth = onSnapshot(qAuthRoles, (snapshot) => {
+      authStaff = snapshot.docs.map(doc => ({ id: doc.id, email: doc.id, ...doc.data() }));
+      mergeAndSetStaff();
     });
     
-    return () => unsubscribe();
+    return () => {
+      unsubUsers();
+      unsubAuth();
+    };
   }, []);
 
   const handleAssignRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email.trim()) return;
     
     setLoadingRole(true);
     setRoleMessage(null);
     try {
-      const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase().trim()));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        setRoleMessage({ type: 'error', text: 'No user found with this email. They must sign in first.' });
-      } else {
-        const userDoc = querySnapshot.docs[0];
-        await updateDoc(doc(db, 'users', userDoc.id), { role });
-        setRoleMessage({ type: 'success', text: `Successfully updated ${email} to ${role} role.` });
-        setEmail('');
-      }
+      const cleanEmail = email.trim().toLowerCase();
+      await assignUserRoleByEmail(cleanEmail, role as any);
+      setRoleMessage({ 
+        type: 'success', 
+        text: `পারমিশন সফলভাবে দেওয়া হয়েছে! ${cleanEmail} অ্যাকাউন্টটিতে ${role.toUpperCase()} পারমিশন যোগ করা হলো। ইউজার এখন সাইন-ইন করলে সরাসরি অ্যাডমিন প্যানেল পাবে।` 
+      });
+      setEmail('');
     } catch (error: any) {
       console.error(error);
       setRoleMessage({ type: 'error', text: error.message || 'Failed to update role' });
@@ -58,7 +79,7 @@ export default function AdminSystem() {
     if (!window.confirm(`Are you sure you want to revoke admin/seller access for ${userEmail}?`)) return;
     
     try {
-      await updateDoc(doc(db, 'users', userId), { role: 'customer' });
+      await revokeUserRoleByEmail(userEmail);
       setRoleMessage({ type: 'success', text: `Successfully revoked access for ${userEmail}. They are now a standard customer.` });
       setTimeout(() => setRoleMessage(null), 4000);
     } catch (error: any) {

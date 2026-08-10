@@ -167,24 +167,28 @@ export default function ProductDetail() {
               type="button"
               onClick={() => product && toggleWishlist(product.id)}
               aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
-              className={`absolute top-4 right-4 z-10 p-3 rounded-full shadow-md backdrop-blur-md transition-all cursor-pointer ${
+              className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all cursor-pointer ${
                 favorited 
-                  ? 'bg-red-50 text-red-500 ring-2 ring-red-200 scale-110' 
-                  : 'bg-white/80 text-neutral-500 hover:text-red-500 hover:bg-white hover:scale-105'
+                  ? 'bg-white text-red-500 scale-110 ring-1 ring-red-100' 
+                  : 'bg-white/90 backdrop-blur-xs text-neutral-600 hover:text-red-500 hover:bg-white hover:scale-110'
               }`}
             >
-              <Heart size={20} strokeWidth={favorited ? 0 : 2} fill={favorited ? "currentColor" : "none"} />
+              <Heart 
+                size={20} 
+                strokeWidth={favorited ? 0 : 2} 
+                className={favorited ? "text-red-500 fill-red-500" : "text-neutral-600 hover:text-red-500"} 
+              />
             </button>
 
             {/* Discount Badge on Product Detail Image */}
-            {product.isFlashSale ? (
-              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
+            {discountPct && discountPct > 0 ? (
+              <div className="absolute top-4 left-4 z-10 bg-[#EF4444] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md border border-white/20 tracking-tight">
+                -{discountPct}% OFF
+              </div>
+            ) : product.isFlashSale ? (
+              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
                 <span>⚡</span>
                 <span>FLASH SALE</span>
-              </div>
-            ) : discountPct && discountPct > 0 ? (
-              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-amber-600 text-white text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-md border border-white/20">
-                {discountPct}% OFF
               </div>
             ) : null}
 

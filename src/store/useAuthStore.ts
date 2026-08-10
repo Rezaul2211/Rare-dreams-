@@ -3,6 +3,7 @@ import { User } from '../types';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { fetchUserRole } from '../lib/roles';
 
 interface AuthState {
   user: User | null;
@@ -72,14 +73,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           const userRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userRef);
           
-          const isAdminEmail = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL;
+          const existingData = userDoc.exists() ? userDoc.data() : null;
+          const role = await fetchUserRole(
+            firebaseUser.email || '', 
+            firebaseUser.uid, 
+            existingData?.role
+          );
 
           if (userDoc.exists()) {
             const data = userDoc.data();
-            const role = (isAdminEmail || data.role === 'admin') ? 'admin' : (data.role || 'customer');
-            
-            if (isAdminEmail && data.role !== 'admin') {
-              setDoc(userRef, { role: 'admin' }, { merge: true }).catch(console.error);
+            if (data.role !== role) {
+              setDoc(userRef, { role }, { merge: true }).catch(console.error);
             }
 
             const activeUser: User = {
@@ -97,7 +101,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             localStorage.setItem('rare_dreams_user', JSON.stringify(activeUser));
             set({ user: activeUser, loading: false });
           } else {
-            const role = isAdminEmail ? 'admin' : 'customer';
             const newUser: User = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
@@ -116,12 +119,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         } catch (error) {
           console.error("Error fetching user role", error);
-          const isAdminEmail = firebaseUser.email?.toLowerCase() === ADMIN_EMAIL;
+          const role = await fetchUserRole(firebaseUser.email || '', firebaseUser.uid);
           const fallbackUser: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             displayName: firebaseUser.displayName || 'User',
-            role: isAdminEmail ? 'admin' : 'customer',
+            role: role,
             createdAt: new Date()
           };
           localStorage.setItem('rare_dreams_user', JSON.stringify(fallbackUser));
