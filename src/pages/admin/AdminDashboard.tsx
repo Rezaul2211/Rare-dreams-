@@ -84,37 +84,7 @@ export default function AdminDashboard() {
         if (ordersData.length > 0) {
           setRecentOrders(ordersData);
         } else {
-          // Default mock matching reference screenshot 2
-          setRecentOrders([
-            {
-              id: 'RD-7845',
-              customerName: 'Nihad Hasan',
-              total: 2450,
-              status: 'Pending',
-              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop'
-            },
-            {
-              id: 'RD-7844',
-              customerName: 'Jannatul Ferdous',
-              total: 1880,
-              status: 'Processing',
-              avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=120&auto=format&fit=crop'
-            },
-            {
-              id: 'RD-7843',
-              customerName: 'Al Amin',
-              total: 3250,
-              status: 'Shipped',
-              avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=120&auto=format&fit=crop'
-            },
-            {
-              id: 'RD-7842',
-              customerName: 'Sadia Islam',
-              total: 2150,
-              status: 'Delivered',
-              avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=120&auto=format&fit=crop'
-            }
-          ]);
+          setRecentOrders([]);
         }
 
         setStats({
@@ -315,17 +285,23 @@ export default function AdminDashboard() {
             {/* SVG Donut Chart */}
             <div className="relative w-28 h-28 sm:w-36 sm:h-36 shrink-0 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                {/* Pending arc (Amber) 25.6% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#F59E0B" strokeWidth="15" strokeDasharray="61 178" strokeDashoffset="0" />
-                {/* Processing arc (Blue) 32.9% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6" strokeWidth="15" strokeDasharray="78 161" strokeDashoffset="-61" />
-                {/* Shipped arc (Green) 26.4% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#10B981" strokeWidth="15" strokeDasharray="63 176" strokeDashoffset="-139" />
-                {/* Delivered arc (Purple) 15.1% */}
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6" strokeWidth="15" strokeDasharray="36 203" strokeDashoffset="-202" />
+                {statusCounts.total === 0 ? (
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="#E5E7EB" strokeWidth="15" />
+                ) : (
+                  <>
+                    {/* Pending arc (Amber) */}
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#F59E0B" strokeWidth="15" strokeDasharray={`${(statusCounts.pending / statusCounts.total) * 238.76} 238.76`} strokeDashoffset="0" />
+                    {/* Processing arc (Blue) */}
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6" strokeWidth="15" strokeDasharray={`${(statusCounts.processing / statusCounts.total) * 238.76} 238.76`} strokeDashoffset={`-${(statusCounts.pending / statusCounts.total) * 238.76}`} />
+                    {/* Shipped arc (Green) */}
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#10B981" strokeWidth="15" strokeDasharray={`${(statusCounts.shipped / statusCounts.total) * 238.76} 238.76`} strokeDashoffset={`-${((statusCounts.pending + statusCounts.processing) / statusCounts.total) * 238.76}`} />
+                    {/* Delivered arc (Purple) */}
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6" strokeWidth="15" strokeDasharray={`${(statusCounts.delivered / statusCounts.total) * 238.76} 238.76`} strokeDashoffset={`-${((statusCounts.pending + statusCounts.processing + statusCounts.shipped) / statusCounts.total) * 238.76}`} />
+                  </>
+                )}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-sm sm:text-base font-bold text-neutral-900 leading-none">1,248</span>
+                <span className="text-sm sm:text-base font-bold text-neutral-900 leading-none">{statusCounts.total.toLocaleString()}</span>
                 <span className="text-[9px] sm:text-[10px] text-neutral-400 uppercase font-semibold mt-0.5">Total</span>
               </div>
             </div>
@@ -337,7 +313,9 @@ export default function AdminDashboard() {
                   <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   <span className="font-medium text-neutral-600">Pending</span>
                 </div>
-                <span className="font-semibold text-neutral-800">320 (25.6%)</span>
+                <span className="font-semibold text-neutral-800">
+                  {statusCounts.pending} ({statusCounts.total > 0 ? ((statusCounts.pending / statusCounts.total) * 100).toFixed(1) : '0'}%)
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -345,7 +323,9 @@ export default function AdminDashboard() {
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                   <span className="font-medium text-neutral-600">Processing</span>
                 </div>
-                <span className="font-semibold text-neutral-800">410 (32.9%)</span>
+                <span className="font-semibold text-neutral-800">
+                  {statusCounts.processing} ({statusCounts.total > 0 ? ((statusCounts.processing / statusCounts.total) * 100).toFixed(1) : '0'}%)
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -353,7 +333,9 @@ export default function AdminDashboard() {
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span className="font-medium text-neutral-600">Shipped</span>
                 </div>
-                <span className="font-semibold text-neutral-800">330 (26.4%)</span>
+                <span className="font-semibold text-neutral-800">
+                  {statusCounts.shipped} ({statusCounts.total > 0 ? ((statusCounts.shipped / statusCounts.total) * 100).toFixed(1) : '0'}%)
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -361,7 +343,9 @@ export default function AdminDashboard() {
                   <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                   <span className="font-medium text-neutral-600">Delivered</span>
                 </div>
-                <span className="font-semibold text-neutral-800">188 (15.1%)</span>
+                <span className="font-semibold text-neutral-800">
+                  {statusCounts.delivered} ({statusCounts.total > 0 ? ((statusCounts.delivered / statusCounts.total) * 100).toFixed(1) : '0'}%)
+                </span>
               </div>
             </div>
           </div>
@@ -447,47 +431,53 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        <div className="space-y-2">
-          {recentOrders.map((ord, idx) => {
-            const statusClass = 
-              ord.status?.toLowerCase() === 'delivered' ? 'bg-[#F3EFFF] text-[#7C3AED]' :
-              ord.status?.toLowerCase() === 'shipped' ? 'bg-[#DCFCE7] text-[#16A34A]' :
-              ord.status?.toLowerCase() === 'processing' ? 'bg-[#E0F2FE] text-[#0284C7]' :
-              'bg-[#FEF3C7] text-[#D97706]';
+        {recentOrders.length > 0 ? (
+          <div className="space-y-2">
+            {recentOrders.map((ord, idx) => {
+              const statusClass = 
+                ord.status?.toLowerCase() === 'delivered' ? 'bg-[#F3EFFF] text-[#7C3AED]' :
+                ord.status?.toLowerCase() === 'shipped' ? 'bg-[#DCFCE7] text-[#16A34A]' :
+                ord.status?.toLowerCase() === 'processing' ? 'bg-[#E0F2FE] text-[#0284C7]' :
+                'bg-[#FEF3C7] text-[#D97706]';
 
-            return (
-              <div 
-                key={ord.id || idx} 
-                className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-neutral-100/80 hover:bg-neutral-50/80 transition-colors"
-              >
-                <div className="flex items-center space-x-2.5 min-w-0">
-                  <img 
-                    src={ord.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop`} 
-                    alt={ord.customerName} 
-                    className="w-9 h-9 rounded-full object-cover shrink-0 border border-neutral-200/60"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-neutral-900 leading-tight">
-                      #{ord.id.slice(0, 8)}
-                    </p>
-                    <p className="text-[11px] text-neutral-500 truncate">
-                      Customer: {ord.customerName || ord.name || 'User'}
-                    </p>
+              return (
+                <div 
+                  key={ord.id || idx} 
+                  className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-neutral-100/80 hover:bg-neutral-50/80 transition-colors"
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <img 
+                      src={ord.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop`} 
+                      alt={ord.customerName || ord.name || 'Customer'} 
+                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-neutral-200/60"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-neutral-900 leading-tight">
+                        #{ord.id?.slice(0, 8) || 'ORDER'}
+                      </p>
+                      <p className="text-[11px] text-neutral-500 truncate">
+                        Customer: {ord.customerName || ord.name || ord.shippingAddress?.fullName || 'User'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 shrink-0">
+                    <span className="text-xs sm:text-sm font-bold text-neutral-900">
+                      ৳ {(ord.totalAmount || ord.total || ord.subtotal || 0).toLocaleString()}
+                    </span>
+                    <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold ${statusClass}`}>
+                      {ord.status || 'Pending'}
+                    </span>
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-3 shrink-0">
-                  <span className="text-xs sm:text-sm font-bold text-neutral-900">
-                    ৳ {(ord.total || ord.subtotal || 2450).toLocaleString()}
-                  </span>
-                  <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold ${statusClass}`}>
-                    {ord.status || 'Pending'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-neutral-400 text-xs font-medium bg-neutral-50 rounded-xl border border-dashed border-neutral-200">
+            No recent orders found in database.
+          </div>
+        )}
       </div>
     </div>
   );

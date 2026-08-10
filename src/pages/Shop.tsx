@@ -180,10 +180,10 @@ export default function Shop() {
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
             {[
               { label: 'All Products', path: '/shop', cat: undefined },
-              { label: 'Boys Wear', path: '/category/Boys Wear', cat: 'Boys Wear' },
-              { label: 'Girls Wear', path: '/category/Girls Wear', cat: 'Girls Wear' },
-              { label: 'Baby Essentials', path: '/category/Baby Essentials', cat: 'Baby Essentials' },
-              { label: 'Footwear', path: '/category/Footwear', cat: 'Footwear' },
+              { label: 'Boys Item', path: '/category/Boys Item', cat: 'Boys Item' },
+              { label: 'Girls Item', path: '/category/Girls Item', cat: 'Girls Item' },
+              { label: 'Baby Item', path: '/category/Baby Item', cat: 'Baby Item' },
+              { label: 'Footwear Item', path: '/category/Footwear Item', cat: 'Footwear Item' },
               { label: "Men's Collection", path: '/category/Men', cat: 'Men' },
               { label: "Women's Collection", path: '/category/Women', cat: 'Women' },
             ].map((tab) => {

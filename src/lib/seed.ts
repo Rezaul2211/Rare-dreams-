@@ -2,11 +2,11 @@ import { collection, getDocs, doc, writeBatch, query, where, limit } from 'fireb
 import { db } from './firebase';
 
 const DUMMY_PRODUCTS = [
-  // Boys Wear
+  // Boys Item
   {
     id: 'prod-boys-1',
     name: 'Corduroy Jacket & Denim Set',
-    category: 'Boys Wear',
+    category: 'Boys Item',
     price: 35,
     comparePrice: 50,
     discount: 30,
@@ -23,7 +23,7 @@ const DUMMY_PRODUCTS = [
   {
     id: 'prod-boys-2',
     name: 'Boys Casual Polo Shirt',
-    category: 'Boys Wear',
+    category: 'Boys Item',
     price: 22,
     comparePrice: 30,
     discount: 26,
@@ -37,11 +37,11 @@ const DUMMY_PRODUCTS = [
     isDummy: true,
     createdAt: new Date(),
   },
-  // Girls Wear
+  // Girls Item
   {
     id: 'prod-girls-1',
     name: 'White Floral Ruffle Dress',
-    category: 'Girls Wear',
+    category: 'Girls Item',
     price: 38,
     comparePrice: 55,
     discount: 30,
@@ -58,7 +58,7 @@ const DUMMY_PRODUCTS = [
   {
     id: 'prod-girls-2',
     name: 'Princess Pleated Skirt Set',
-    category: 'Girls Wear',
+    category: 'Girls Item',
     price: 29,
     comparePrice: 42,
     discount: 31,
@@ -72,11 +72,11 @@ const DUMMY_PRODUCTS = [
     isDummy: true,
     createdAt: new Date(),
   },
-  // Baby Essentials
+  // Baby Item
   {
     id: 'prod-baby-1',
     name: 'Organic Onesie & Grooming Kit',
-    category: 'Baby Essentials',
+    category: 'Baby Item',
     price: 28,
     comparePrice: 40,
     discount: 30,
@@ -93,7 +93,7 @@ const DUMMY_PRODUCTS = [
   {
     id: 'prod-baby-2',
     name: 'Baby Sleeping Blanket Set',
-    category: 'Baby Essentials',
+    category: 'Baby Item',
     price: 24,
     comparePrice: 35,
     discount: 31,
@@ -107,11 +107,11 @@ const DUMMY_PRODUCTS = [
     isDummy: true,
     createdAt: new Date(),
   },
-  // Footwear
+  // Footwear Item
   {
     id: 'prod-footwear-1',
     name: 'Kids Velcro Cushion Sneakers',
-    category: 'Footwear',
+    category: 'Footwear Item',
     price: 32,
     comparePrice: 48,
     discount: 33,
@@ -128,7 +128,7 @@ const DUMMY_PRODUCTS = [
   {
     id: 'prod-footwear-2',
     name: 'Casual Slip-On Loafers',
-    category: 'Footwear',
+    category: 'Footwear Item',
     price: 40,
     comparePrice: 60,
     discount: 33,

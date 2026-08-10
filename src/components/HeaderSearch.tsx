@@ -101,7 +101,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
   }) : [];
 
   // Match predefined categories
-  const categoriesList = ['Boys Wear', 'Girls Wear', 'Baby Essentials', 'Footwear'];
+  const categoriesList = ['Boys Item', 'Girls Item', 'Baby Item', 'Footwear Item'];
   const matchedCategories = term ? categoriesList.filter(c => c.toLowerCase().includes(term)) : [];
 
   return (

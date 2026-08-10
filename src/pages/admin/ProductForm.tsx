@@ -15,7 +15,7 @@ export default function ProductForm() {
   
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
-    category: 'Boys Wear',
+    category: 'Boys Item',
     subcategory: '',
     price: 0,
     comparePrice: 0,
@@ -348,10 +348,10 @@ export default function ProductForm() {
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                 >
-                  <option value="Boys Wear">Boys Wear</option>
-                  <option value="Girls Wear">Girls Wear</option>
-                  <option value="Baby Essentials">Baby Essentials</option>
-                  <option value="Footwear">Footwear</option>
+                  <option value="Boys Item">Boys Item</option>
+                  <option value="Girls Item">Girls Item</option>
+                  <option value="Baby Item">Baby Item</option>
+                  <option value="Footwear Item">Footwear Item</option>
                   <option value="Men">Men</option>
                   <option value="Women">Women</option>
                 </select>

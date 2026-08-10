@@ -33,7 +33,20 @@ export default function Home() {
               setHeroSlides(data.banners);
             }
             if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
-              setCategoriesList(data.categories);
+              const updatedCats = data.categories.map((cat: CategoryImageSetting) => {
+                let title = cat.title;
+                let link = cat.link;
+                if (title === 'Boys Wear') title = 'Boys Item';
+                if (title === 'Girls Wear') title = 'Girls Item';
+                if (title === 'Baby Essentials') title = 'Baby Item';
+                if (title === 'Footwear') title = 'Footwear Item';
+                if (link === '/category/Boys Wear') link = '/category/Boys Item';
+                if (link === '/category/Girls Wear') link = '/category/Girls Item';
+                if (link === '/category/Baby Essentials') link = '/category/Baby Item';
+                if (link === '/category/Footwear') link = '/category/Footwear Item';
+                return { ...cat, title, link };
+              });
+              setCategoriesList(updatedCats);
             }
           }
           setLoadingSettings(false);

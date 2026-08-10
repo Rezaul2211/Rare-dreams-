@@ -173,23 +173,23 @@ export default function Footer() {
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
-                  <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Boys Wear
+                  <Link to="/category/Boys Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
+                    Boys Item
                   </Link>
                 </li>
                 <li>
-                  <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Girls Wear
+                  <Link to="/category/Girls Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
+                    Girls Item
                   </Link>
                 </li>
                 <li>
-                  <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Baby Essentials
+                  <Link to="/category/Baby Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
+                    Baby Item
                   </Link>
                 </li>
                 <li>
-                  <Link to="/category/Footwear" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Shoes & Footwear
+                  <Link to="/category/Footwear Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
+                    Footwear Item
                   </Link>
                 </li>
                 <li>

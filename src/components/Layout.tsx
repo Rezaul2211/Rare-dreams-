@@ -55,10 +55,10 @@ function LayoutInner() {
             {/* CENTER: Desktop Nav Links or Search */}
             <nav className="hidden lg:flex items-center space-x-8">
               <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shop All</Link>
-              <Link to="/category/Boys Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Boys</Link>
-              <Link to="/category/Girls Wear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Girls</Link>
-              <Link to="/category/Baby Essentials" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Baby</Link>
-              <Link to="/category/Footwear" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shoes</Link>
+              <Link to="/category/Boys Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Boys Item</Link>
+              <Link to="/category/Girls Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Girls Item</Link>
+              <Link to="/category/Baby Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Baby Item</Link>
+              <Link to="/category/Footwear Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Footwear Item</Link>
             </nav>
 
             {/* RIGHT: Action Icons (Search, Cart, Menu) - Exact Zopono style */}
@@ -82,7 +82,10 @@ function LayoutInner() {
               {/* Search Toggle Icon (Mobile Only) */}
               <button
                 className="md:hidden p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
-                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                onClick={() => {
+                  setIsMobileSearchOpen(prev => !prev);
+                  setIsMobileMenuOpen(false);
+                }}
                 aria-label="Search"
               >
                 <Search size={22} strokeWidth={1.75} />
@@ -107,8 +110,11 @@ function LayoutInner() {
 
               {/* Hamburger Menu Toggle Button */}
               <button 
-                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                onClick={() => {
+                  setIsMobileMenuOpen(prev => !prev);
+                  setIsMobileSearchOpen(false);
+                }}
                 aria-label="Toggle Navigation Menu"
               >
                 {isMobileMenuOpen ? <X size={24} strokeWidth={1.75} /> : <Menu size={24} strokeWidth={1.75} />}
@@ -138,14 +144,11 @@ function LayoutInner() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-neutral-200">
             <div className="px-4 pt-3 pb-6 space-y-2">
-              <div className="pb-2">
-                <HeaderSearch onCloseMobileModal={() => setIsMobileMenuOpen(false)} />
-              </div>
               <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All Products</Link>
-              <Link to="/category/Boys Wear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Wear</Link>
-              <Link to="/category/Girls Wear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Wear</Link>
-              <Link to="/category/Baby Essentials" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Essentials</Link>
-              <Link to="/category/Footwear" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear</Link>
+              <Link to="/category/Boys Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Item</Link>
+              <Link to="/category/Girls Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Item</Link>
+              <Link to="/category/Baby Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Item</Link>
+              <Link to="/category/Footwear Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear Item</Link>
 
               {user?.role === 'admin' && (
                 <Link 

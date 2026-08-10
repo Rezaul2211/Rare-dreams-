@@ -45,23 +45,23 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
 
 export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
   {
-    title: 'Boys Wear',
-    link: '/category/Boys Wear',
+    title: 'Boys Item',
+    link: '/category/Boys Item',
     image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Girls Wear',
-    link: '/category/Girls Wear',
+    title: 'Girls Item',
+    link: '/category/Girls Item',
     image: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Baby Essentials',
-    link: '/category/Baby Essentials',
+    title: 'Baby Item',
+    link: '/category/Baby Item',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Footwear',
-    link: '/category/Footwear',
+    title: 'Footwear Item',
+    link: '/category/Footwear Item',
     image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
   }
 ];
@@ -87,7 +87,20 @@ export default function AdminSettings() {
             setBanners(data.banners);
           }
           if (data.categories && Array.isArray(data.categories)) {
-            setCategories(data.categories);
+            const updatedCats = data.categories.map((cat: CategoryImageSetting) => {
+              let title = cat.title;
+              let link = cat.link;
+              if (title === 'Boys Wear') title = 'Boys Item';
+              if (title === 'Girls Wear') title = 'Girls Item';
+              if (title === 'Baby Essentials') title = 'Baby Item';
+              if (title === 'Footwear') title = 'Footwear Item';
+              if (link === '/category/Boys Wear') link = '/category/Boys Item';
+              if (link === '/category/Girls Wear') link = '/category/Girls Item';
+              if (link === '/category/Baby Essentials') link = '/category/Baby Item';
+              if (link === '/category/Footwear') link = '/category/Footwear Item';
+              return { ...cat, title, link };
+            });
+            setCategories(updatedCats);
           }
         }
       } catch {
