@@ -23,6 +23,7 @@ import ProductForm from './pages/admin/ProductForm';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminCustomers from './pages/admin/AdminCustomers';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminSystem from './pages/admin/AdminSystem';
 
 import { useAuthStore } from './store/useAuthStore';
 import { seedProductsIfEmpty } from './lib/seed';
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="customers" element={<AdminCustomers />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="system" element={<AdminSystem />} />
         </Route>
       </Routes>
     </BrowserRouter>

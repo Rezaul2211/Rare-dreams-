@@ -148,7 +148,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 right-0 top-full mt-2 bg-white rounded-3xl shadow-2xl border border-neutral-200/90 overflow-hidden z-50 text-left"
+            className="absolute left-0 right-0 md:left-auto md:-right-2 md:w-[400px] top-full mt-2 bg-white rounded-3xl shadow-2xl border border-neutral-200/90 overflow-hidden z-50 text-left"
           >
             {loading ? (
               <div className="p-6 text-center text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center justify-center space-x-2">

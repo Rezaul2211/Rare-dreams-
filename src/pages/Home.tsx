@@ -7,6 +7,7 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
+import HomeSkeleton from '../components/HomeSkeleton';
 import { DEFAULT_HERO_SLIDES, DEFAULT_CATEGORIES, BannerSlide, CategoryImageSetting } from './admin/AdminSettings';
 import SEO from '../components/SEO';
 
@@ -119,9 +120,7 @@ export default function Home() {
       />
 
       {loadingSettings ? (
-        <div className="w-full flex justify-center py-20 bg-white">
-          <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-        </div>
+        <HomeSkeleton />
       ) : (
         <>
           {/* Hero Slider with Touch Swipe & Reduced Gap */}

@@ -14,7 +14,8 @@ import {
   Users, 
   Image, 
   Bell, 
-  Crown 
+  Crown,
+  Settings
 } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 
@@ -49,6 +50,7 @@ export default function AdminLayout() {
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Banners & Styling', path: '/admin/settings', icon: Image },
+    { name: 'System Setup', path: '/admin/system', icon: Settings },
   ];
 
   const cleanAdminName = (user?.displayName || 'Rezaul Karim')

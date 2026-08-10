@@ -1,0 +1,241 @@
+import React, { useState } from 'react';
+import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+
+export default function AdminSystem() {
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('admin');
+  const [loadingRole, setLoadingRole] = useState(false);
+  const [roleMessage, setRoleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const handleAssignRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    
+    setLoadingRole(true);
+    setRoleMessage(null);
+    try {
+      const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase().trim()));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        setRoleMessage({ type: 'error', text: 'No user found with this email. They must sign in first.' });
+      } else {
+        const userDoc = querySnapshot.docs[0];
+        await updateDoc(doc(db, 'users', userDoc.id), { role });
+        setRoleMessage({ type: 'success', text: `Successfully updated ${email} to ${role} role.` });
+        setEmail('');
+      }
+    } catch (error: any) {
+      console.error(error);
+      setRoleMessage({ type: 'error', text: error.message || 'Failed to update role' });
+    } finally {
+      setLoadingRole(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    const confirm = window.confirm(
+      "DANGER: Are you sure you want to permanently delete all order history and sales data? This action cannot be undone."
+    );
+    if (!confirm) return;
+
+    const confirm2 = window.confirm("Final confirmation. Type OK in the console... Just kidding, click OK to proceed.");
+    if (!confirm2) return;
+
+    setLoadingDelete(true);
+    setDeleteMessage(null);
+    try {
+      // Get all orders
+      const ordersSnap = await getDocs(collection(db, 'orders'));
+      
+      // Batch delete in chunks of 500
+      const batches = [];
+      let currentBatch = writeBatch(db);
+      let operationCount = 0;
+
+      ordersSnap.docs.forEach((docSnap) => {
+        currentBatch.delete(docSnap.ref);
+        operationCount++;
+        
+        if (operationCount === 499) {
+          batches.push(currentBatch.commit());
+          currentBatch = writeBatch(db);
+          operationCount = 0;
+        }
+      });
+      
+      if (operationCount > 0) {
+        batches.push(currentBatch.commit());
+      }
+      
+      await Promise.all(batches);
+      
+      setDeleteMessage({ type: 'success', text: `Successfully deleted ${ordersSnap.size} order records. Selling history wiped.` });
+    } catch (error: any) {
+      console.error(error);
+      setDeleteMessage({ type: 'error', text: error.message || 'Failed to clear history' });
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
+        <div>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900">System & Advanced</h1>
+          <p className="text-xs text-neutral-500 mt-1">Manage admin permissions, data wipes, and storage</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Storage Widget */}
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+          <div className="border-b border-neutral-100 pb-4">
+            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+              <Database size={20} className="text-emerald-600" />
+              Storage & Limits
+            </h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-emerald-900 uppercase">Cloud Storage</span>
+                <span className="text-xs font-bold text-emerald-700">120 MB / 5 GB Free</span>
+              </div>
+              <div className="w-full bg-emerald-100 rounded-full h-2 mb-1 overflow-hidden">
+                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '5%' }}></div>
+              </div>
+              <p className="text-[10px] text-emerald-700 font-medium mt-2">
+                Firebase provides 5GB of free storage for images and videos. High limits are available if you upgrade your plan.
+              </p>
+            </div>
+
+            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-blue-900 uppercase">Database Reads</span>
+                <span className="text-xs font-bold text-blue-700">1.2K / 50K Daily Free</span>
+              </div>
+              <div className="w-full bg-blue-100 rounded-full h-2 mb-1 overflow-hidden">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '2%' }}></div>
+              </div>
+              <p className="text-[10px] text-blue-700 font-medium mt-2">
+                Firestore provides 50,000 free document reads per day.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Roles & Permissions */}
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+          <div className="border-b border-neutral-100 pb-4">
+            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+              <ShieldCheck size={20} className="text-blue-600" />
+              Role Assignment
+            </h2>
+            <p className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider font-bold">
+              Grant Admin or Seller Permissions via Email
+            </p>
+          </div>
+          
+          <form onSubmit={handleAssignRole} className="space-y-4">
+            {roleMessage && (
+              <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                roleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {roleMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                {roleMessage.text}
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">User Email Address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail size={16} className="text-neutral-400" />
+                </div>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seller@example.com"
+                  required
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">Assign Role</label>
+              <select 
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="admin">Admin (Full Access)</option>
+                <option value="seller">Seller (Manage Products)</option>
+                <option value="customer">Customer (Standard)</option>
+              </select>
+            </div>
+            
+            <button 
+              type="submit" 
+              disabled={loadingRole || !email}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loadingRole ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+              <span>Update User Role</span>
+            </button>
+          </form>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="lg:col-span-2 bg-red-50/30 p-6 sm:p-8 rounded-3xl border border-red-100 shadow-xs space-y-6">
+          <div className="border-b border-red-100 pb-4">
+            <h2 className="text-lg font-black uppercase text-red-700 tracking-tight flex items-center gap-2">
+              <ShieldAlert size={20} className="text-red-600" />
+              Danger Zone
+            </h2>
+            <p className="text-[10px] text-red-500/80 mt-1 uppercase tracking-wider font-bold">
+              Irreversible Data Operations
+            </p>
+          </div>
+          
+          {deleteMessage && (
+            <div className={`p-4 rounded-xl text-sm font-bold flex items-center gap-2 ${
+              deleteMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'
+            }`}>
+              {deleteMessage.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+              {deleteMessage.text}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between bg-white p-5 rounded-2xl border border-red-100">
+            <div>
+              <h3 className="text-sm font-black text-neutral-900 mb-1">Clear Selling History</h3>
+              <p className="text-xs text-neutral-500 max-w-md">
+                Permanently delete all past orders and transaction records. This is useful when moving from testing/development into a live production environment.
+              </p>
+            </div>
+            <button 
+              onClick={handleClearHistory}
+              disabled={loadingDelete}
+              className="shrink-0 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 font-bold py-3 px-6 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {loadingDelete ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              <span>Wipe Data</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

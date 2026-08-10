@@ -63,6 +63,11 @@ function LayoutInner() {
 
             {/* RIGHT: Action Icons (Search, Cart, Menu) - Exact Zopono style */}
             <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
+              {/* Desktop Global Search Bar */}
+              <div className="hidden md:block w-56 lg:w-64 mr-2">
+                <HeaderSearch />
+              </div>
+
               {/* Visible Admin Dashboard link button for admins */}
               {user?.role === 'admin' && (
                 <Link 
@@ -74,9 +79,9 @@ function LayoutInner() {
                 </Link>
               )}
 
-              {/* Search Toggle Icon */}
+              {/* Search Toggle Icon (Mobile Only) */}
               <button
-                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                className="md:hidden p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
                 aria-label="Search"
               >
