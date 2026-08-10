@@ -1,0 +1,70 @@
+--- src/pages/Checkout.tsx
++++ src/pages/Checkout.tsx
+@@ -2,3 +2,4 @@
+ import { useNavigate, Link, Navigate } from 'react-router-dom';
+ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
++import { bdDistricts } from '../lib/bdData';
+ import { db } from '../lib/firebase';
+@@ -23,2 +24,4 @@
+     address: '',
++    district: 'Dhaka',
++    upazila: '',
+     city: '',
+@@ -32,3 +35,3 @@
+   const subtotal = getSubtotal();
+-  const shipping = subtotal > 2000 ? 0 : 60;
++  const shipping = formData.district === 'Dhaka' ? 60 : 120;
+   const total = subtotal + (subtotal > 0 ? shipping : 0);
+@@ -107,2 +110,4 @@
+         address: formData.address,
++        district: formData.district,
++        upazila: formData.upazila,
+         city: formData.city,
+@@ -403,2 +408,3 @@
+                 <div>
+-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Full Address</label>
++                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Full Address (House, Road, Area)</label>
+                   <input 
+@@ -415,8 +421,27 @@
+                   <div>
+-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">City / District</label>
+-                    <input 
+-                      type="text" 
+-                      name="city" 
+-                      placeholder="e.g. Dhaka" 
+-                      required 
++                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">District</label>
++                    <select
++                      name="district"
++                      required
++                      value={formData.district}
++                      onChange={handleChange}
++                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all appearance-none"
++                    >
++                      {bdDistricts.map(d => (
++                        <option key={d} value={d}>{d}</option>
++                      ))}
++                    </select>
++                  </div>
++                  <div>
++                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Upazila / Area</label>
++                    <input 
++                      type="text" 
++                      name="upazila" 
++                      placeholder="e.g. Mirpur, Gulshan" 
++                      required 
++                      value={formData.upazila} 
++                      onChange={handleChange} 
++                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
++                    />
++                  </div>
++                </div>
++
++                <div className="grid grid-cols-2 gap-4">
++                  <div>
++                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">City</label>
++                    <input 
++                      type="text" 
++                      name="city" 
++                      placeholder="e.g. Dhaka" 
+                       value={formData.city} 

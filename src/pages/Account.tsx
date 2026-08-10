@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthStore } from '../store/useAuthStore';
+import { bdDistricts } from '../lib/bdData';
 import { useCartStore } from '../store/useCartStore';
 import { Order, AddressItem, PaymentMethodItem, Product } from '../types';
 import { 
@@ -82,6 +83,8 @@ export default function Account() {
   const [addrPhone, setAddrPhone] = useState('');
   const [addrStreet, setAddrStreet] = useState('');
   const [addrCity, setAddrCity] = useState('');
+  const [addrDistrict, setAddrDistrict] = useState('Dhaka');
+  const [addrUpazila, setAddrUpazila] = useState('');
   const [addrPostal, setAddrPostal] = useState('');
   const [addrDefault, setAddrDefault] = useState(false);
 
@@ -355,14 +358,6 @@ export default function Account() {
       title: 'Chat with Us',
       subtitle: 'Instant customer support',
       icon: Headphones,
-    },
-    {
-      id: 'admin',
-      title: 'Admin Channel',
-      subtitle: 'Manage store orders & inventory',
-      icon: ShieldCheck,
-      isAdminChannel: true,
-      badgeText: 'Admin Only',
     }
   ];
 
@@ -450,17 +445,31 @@ export default function Account() {
               </span>
             </div>
 
-            <div 
-              onClick={() => setActiveModal('coupons')}
-              className="flex flex-col items-center p-1 rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-1.5">
-                <Gift size={16} />
+            {user?.role === 'admin' || user?.role === 'seller' ? (
+              <div 
+                onClick={() => navigate('/admin')}
+                className="flex flex-col items-center p-1 rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-1.5">
+                  <ShieldCheck size={16} />
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold text-neutral-800 leading-tight">
+                  Admin<br />Panel
+                </span>
               </div>
-              <span className="text-[10px] sm:text-xs font-bold text-neutral-800 leading-tight">
-                Special<br />Offers
-              </span>
-            </div>
+            ) : (
+              <div 
+                onClick={() => setActiveModal('coupons')}
+                className="flex flex-col items-center p-1 rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-1.5">
+                  <Gift size={16} />
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold text-neutral-800 leading-tight">
+                  Special<br />Offers
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -548,26 +557,16 @@ export default function Account() {
               <div
                 key={item.id}
                 onClick={() => {
-                  if (item.isAdminChannel) {
-                    navigate('/admin');
-                  } else {
-                    setActiveModal(item.id);
-                  }
+                  setActiveModal(item.id);
                 }}
-                className={`p-4 flex items-center justify-between transition-colors cursor-pointer group ${
-                  item.isAdminChannel ? 'bg-[#F9F7FF] hover:bg-[#F3EFFF]' : 'hover:bg-neutral-50'
-                }`}
+                className={`p-4 flex items-center justify-between transition-colors cursor-pointer group hover:bg-neutral-50`}
               >
                 <div className="flex items-center space-x-3.5">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                    item.isAdminChannel ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-neutral-100 text-neutral-600`}>
                     <Icon size={18} />
                   </div>
                   <div>
-                    <h4 className={`text-xs sm:text-sm font-bold ${
-                      item.isAdminChannel ? 'text-[#5B4EFF]' : 'text-neutral-900'
-                    }`}>
+                    <h4 className={`text-xs sm:text-sm font-bold text-neutral-900`}>
                       {item.title}
                     </h4>
                     <p className="text-[11px] text-neutral-400 font-medium">{item.subtitle}</p>
@@ -575,12 +574,6 @@ export default function Account() {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  {item.badgeText && (
-                    <span className="inline-flex items-center space-x-1 bg-[#EFE8FF] text-[#5B4EFF] text-[10px] font-bold px-3 py-1 rounded-full">
-                      <span>{item.badgeText}</span>
-                      <Lock size={10} />
-                    </span>
-                  )}
                   <ChevronRight size={16} className="text-neutral-400 group-hover:text-neutral-800 transition-colors" />
                 </div>
               </div>
@@ -774,18 +767,43 @@ export default function Account() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">City / District</label>
+                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">District</label>
+                    <select
+                      required
+                      value={addrDistrict}
+                      onChange={(e) => setAddrDistrict(e.target.value)}
+                      className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2 appearance-none"
+                    >
+                      {bdDistricts.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">Upazila / Area</label>
                     <input 
                       type="text" 
                       required
-                      placeholder="Dhaka, Chittagong, etc."
+                      placeholder="e.g. Mirpur"
+                      value={addrUpazila} 
+                      onChange={(e) => setAddrUpazila(e.target.value)}
+                      className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">City (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Dhaka"
                       value={addrCity} 
                       onChange={(e) => setAddrCity(e.target.value)}
                       className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">Postal Code</label>
+                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">Postal Code (Optional)</label>
                     <input 
                       type="text" 
                       placeholder="1212"

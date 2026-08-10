@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { bdDistricts } from '../lib/bdData';
 import { db } from '../lib/firebase';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -24,6 +25,8 @@ export default function Checkout() {
     lastName: '',
     phone: '',
     address: '',
+    district: 'Dhaka',
+    upazila: '',
     city: '',
     postalCode: '',
     paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
@@ -36,7 +39,7 @@ export default function Checkout() {
 
 
   const subtotal = getSubtotal();
-  const shipping = subtotal > 2000 ? 0 : 60;
+  const shipping = formData.district === 'Dhaka' ? 60 : 120;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
 
   if (items.length === 0 && !isOrderPlaced && !loading) {
@@ -107,6 +110,8 @@ export default function Checkout() {
         customerName: formData.lastName ? `${formData.firstName} ${formData.lastName}` : formData.firstName,
         phone: formData.phone,
         address: formData.address,
+        district: formData.district,
+        upazila: formData.upazila,
         city: formData.city,
         postalCode: formData.postalCode,
         products: items,
@@ -391,7 +396,7 @@ export default function Checkout() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Full Address</label>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Full Address (House, Road, Area)</label>
                   <input 
                     type="text" 
                     name="address" 
@@ -399,20 +404,47 @@ export default function Checkout() {
                     required 
                     value={formData.address} 
                     onChange={handleChange} 
-                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
+                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">City / District</label>
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">District</label>
+                    <select
+                      name="district"
+                      required
+                      value={formData.district}
+                      onChange={handleChange}
+                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all appearance-none"
+                    >
+                      {bdDistricts.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">Upazila / Area</label>
+                    <input 
+                      type="text" 
+                      name="upazila" 
+                      placeholder="e.g. Mirpur, Gulshan" 
+                      required 
+                      value={formData.upazila} 
+                      onChange={handleChange} 
+                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">City (Optional)</label>
                     <input 
                       type="text" 
                       name="city" 
                       placeholder="e.g. Dhaka" 
-                      required 
                       value={formData.city} 
                       onChange={handleChange} 
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
+                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
                     />
                   </div>
                   <div>
@@ -423,7 +455,7 @@ export default function Checkout() {
                       placeholder="1212" 
                       value={formData.postalCode} 
                       onChange={handleChange} 
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
+                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
                     />
                   </div>
                 </div>
@@ -518,7 +550,7 @@ export default function Checkout() {
               <div className="flex justify-between text-neutral-600">
                 <span>Delivery Charge</span>
                 <span className="font-bold text-neutral-900">
-                  {shipping === 0 ? <span className="text-emerald-600 font-bold uppercase text-xs">FREE</span> : `৳ ${shipping.toFixed(0)}`}
+                  {`৳ ${shipping.toFixed(0)}`}
                 </span>
               </div>
             </div>

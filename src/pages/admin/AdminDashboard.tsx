@@ -21,25 +21,54 @@ import {
 export default function AdminDashboard() {
   const { user } = useAuthStore();
   const [stats, setStats] = useState({
-    totalOrders: 1248,
-    totalSales: 89540,
-    totalCustomers: 932,
-    totalProducts: 256,
+    totalOrders: 0,
+    totalSales: 0,
+    totalCustomers: 0,
+    totalProducts: 0,
   });
+
+  const [statusCounts, setStatusCounts] = useState({ pending: 0, processing: 0, shipped: 0, delivered: 0, total: 0 });
+
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch products count
-        let productCount = 256;
+        let productCount = 0;
+        let orderCount = 0;
+        let customerCount = 0;
+        let totalSalesVal = 0;
+
         try {
           const productsSnap = await getDocs(collection(db, 'products'));
-          if (productsSnap.size > 0) {
-            productCount = productsSnap.size;
-          }
+          productCount = productsSnap.size;
         } catch {
-          productCount = 256;
+          productCount = 0;
+        }
+
+        try {
+          const usersSnap = await getDocs(collection(db, 'users'));
+          customerCount = usersSnap.size;
+        } catch {
+          customerCount = 0;
+        }
+        
+        let pCount = 0, prCount = 0, sCount = 0, dCount = 0;
+        try {
+          const ordersSnap = await getDocs(collection(db, 'orders'));
+          orderCount = ordersSnap.size;
+          ordersSnap.forEach((doc) => {
+            const data = doc.data();
+            totalSalesVal += (data.totalAmount || data.total || 0);
+            const status = (data.status || 'pending').toLowerCase();
+            if (status === 'pending') pCount++;
+            else if (status === 'processing') prCount++;
+            else if (status === 'shipped') sCount++;
+            else if (status === 'delivered') dCount++;
+          });
+          setStatusCounts({ pending: pCount, processing: prCount, shipped: sCount, delivered: dCount, total: orderCount });
+        } catch {
+          orderCount = 0;
         }
 
         // Fetch recent orders
@@ -88,10 +117,12 @@ export default function AdminDashboard() {
           ]);
         }
 
-        setStats(prev => ({
-          ...prev,
+        setStats({
+          totalOrders: orderCount,
+          totalSales: totalSalesVal,
+          totalCustomers: customerCount,
           totalProducts: productCount
-        }));
+        });
       } catch (err) {
         console.error("Dashboard fetch error", err);
       }
@@ -134,6 +165,67 @@ export default function AdminDashboard() {
               <BarChart3 size={28} className="text-amber-300" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* QUICK ACTIONS */}
+      <div className="space-y-2.5">
+        <h3 className="text-xs sm:text-sm font-bold text-neutral-800">Quick Actions</h3>
+        <div className="grid grid-cols-5 gap-2 sm:gap-3 text-center">
+          {/* Add Product */}
+          <Link
+            to="/admin/products/new"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-purple-200 transition-all flex flex-col items-center justify-center"
+          >
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#F3EFFF] text-[#7C3AED] flex items-center justify-center mb-1.5">
+              <Plus size={18} className="sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Add Product</span>
+          </Link>
+
+          {/* Orders */}
+          <Link
+            to="/admin/orders"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-emerald-200 transition-all flex flex-col items-center justify-center"
+          >
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center mb-1.5">
+              <ClipboardList size={18} className="sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Orders</span>
+          </Link>
+
+          {/* Customers */}
+          <Link
+            to="/admin/customers"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-amber-200 transition-all flex flex-col items-center justify-center"
+          >
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center mb-1.5">
+              <Users size={18} className="sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Customers</span>
+          </Link>
+
+          {/* Reports */}
+          <Link
+            to="/admin/settings"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-sky-200 transition-all flex flex-col items-center justify-center"
+          >
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-1.5">
+              <BarChart3 size={18} className="sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Reports</span>
+          </Link>
+
+          {/* System */}
+          <Link
+            to="/admin/system"
+            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-rose-200 transition-all flex flex-col items-center justify-center"
+          >
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center mb-1.5">
+              <Ticket size={18} className="sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">System</span>
+          </Link>
         </div>
       </div>
 
@@ -395,67 +487,6 @@ export default function AdminDashboard() {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* 5. QUICK ACTIONS (Matching Reference Screenshot 2 - 5 Column Grid) */}
-      <div className="space-y-2.5">
-        <h3 className="text-xs sm:text-sm font-bold text-neutral-800">Quick Actions</h3>
-        <div className="grid grid-cols-5 gap-2 sm:gap-3 text-center">
-          {/* Add Product */}
-          <Link
-            to="/admin/products/new"
-            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-purple-200 transition-all flex flex-col items-center justify-center"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#F3EFFF] text-[#7C3AED] flex items-center justify-center mb-1.5">
-              <Plus size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Add Product</span>
-          </Link>
-
-          {/* Orders */}
-          <Link
-            to="/admin/orders"
-            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-emerald-200 transition-all flex flex-col items-center justify-center"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center mb-1.5">
-              <ClipboardList size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Orders</span>
-          </Link>
-
-          {/* Customers */}
-          <Link
-            to="/admin/customers"
-            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-amber-200 transition-all flex flex-col items-center justify-center"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center mb-1.5">
-              <Users size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Customers</span>
-          </Link>
-
-          {/* Reports */}
-          <Link
-            to="/admin/settings"
-            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-sky-200 transition-all flex flex-col items-center justify-center"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-1.5">
-              <BarChart3 size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Reports</span>
-          </Link>
-
-          {/* Coupons */}
-          <Link
-            to="/admin/settings"
-            className="bg-white p-2.5 sm:p-3.5 rounded-2xl border border-neutral-100 shadow-2xs hover:border-rose-200 transition-all flex flex-col items-center justify-center"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center mb-1.5">
-              <Ticket size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-neutral-700 truncate w-full">Coupons</span>
-          </Link>
         </div>
       </div>
     </div>

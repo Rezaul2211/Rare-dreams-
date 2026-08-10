@@ -9,8 +9,8 @@ export default function Cart() {
   const navigate = useNavigate();
 
   const subtotal = getSubtotal();
-  const shipping = subtotal > 2000 ? 0 : 60; // 60 Taka delivery fee in Bangladesh or Free over 2000 ৳
-  const total = subtotal + (subtotal > 0 ? shipping : 0);
+  const shipping = 0; // Shipping calculated at checkout
+  const total = subtotal;
 
   if (items.length === 0) {
     return (
@@ -131,9 +131,7 @@ export default function Cart() {
               </div>
               <div className="flex justify-between items-center text-neutral-600">
                 <span>Estimated Shipping</span>
-                <span className="font-bold text-neutral-900">
-                  {shipping === 0 ? <span className="text-emerald-600 font-bold uppercase text-xs">FREE</span> : `৳ ${shipping.toFixed(2)}`}
-                </span>
+                <span className="font-bold text-neutral-900 text-xs">Calculated at checkout</span>
               </div>
             </div>
             

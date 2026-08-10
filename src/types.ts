@@ -31,7 +31,9 @@ export interface AddressItem {
   name: string;
   phone: string;
   address: string;
-  city: string;
+  city: string; // Used for upazila/area
+  district?: string;
+  upazila?: string;
   postalCode: string;
   isDefault?: boolean;
 }
@@ -50,7 +52,7 @@ export interface User {
   displayName: string;
   phoneNumber?: string;
   photoURL?: string;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'seller';
   addresses?: AddressItem[];
   paymentMethods?: PaymentMethodItem[];
   createdAt: any;

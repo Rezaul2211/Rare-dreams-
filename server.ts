@@ -121,8 +121,8 @@ WEBSITE & STORE KNOWLEDGE BASE:
    - Footwear: Genuine leather shoes, Formal loafers, Party sandals, Casual sneakers for boys and girls.
 
 3. SHIPPING & DELIVERY POLICY:
-   - Inside Dhaka: 1 - 2 business days. Delivery fee ৳60. FREE SHIPPING on orders over ৳2,000!
-   - Outside Dhaka: 2 - 4 business days. Delivery fee ৳120. FREE SHIPPING on orders over ৳2,000!
+   - Inside Dhaka: 1 - 2 business days. Delivery fee ৳60.
+   - Outside Dhaka: 2 - 4 business days. Delivery fee ৳120.
    - Cash on Delivery (COD): Available all over Bangladesh.
 
 4. RETURN & REPLACEMENT POLICY:

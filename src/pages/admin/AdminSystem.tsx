@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2, UserMinus } from 'lucide-react';
 
 export default function AdminSystem() {
   const [email, setEmail] = useState('');
@@ -11,6 +11,22 @@ export default function AdminSystem() {
   
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [staffUsers, setStaffUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'users'), where('role', 'in', ['admin', 'seller']));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const users: any[] = [];
+      snapshot.forEach((doc) => {
+        users.push({ id: doc.id, ...doc.data() });
+      });
+      setStaffUsers(users);
+    }, (error) => {
+      console.error("Error fetching staff:", error);
+    });
+    
+    return () => unsubscribe();
+  }, []);
 
   const handleAssignRole = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +51,19 @@ export default function AdminSystem() {
       setRoleMessage({ type: 'error', text: error.message || 'Failed to update role' });
     } finally {
       setLoadingRole(false);
+    }
+  };
+
+  const handleRevokeAccess = async (userId: string, userEmail: string) => {
+    if (!window.confirm(`Are you sure you want to revoke admin/seller access for ${userEmail}?`)) return;
+    
+    try {
+      await updateDoc(doc(db, 'users', userId), { role: 'customer' });
+      setRoleMessage({ type: 'success', text: `Successfully revoked access for ${userEmail}. They are now a standard customer.` });
+      setTimeout(() => setRoleMessage(null), 4000);
+    } catch (error: any) {
+      console.error(error);
+      alert('Failed to revoke access: ' + error.message);
     }
   };
 
@@ -194,6 +223,25 @@ export default function AdminSystem() {
               <span>Update User Role</span>
             </button>
           </form>
+
+          {staffUsers.length > 0 && (
+            <div className="pt-4 border-t border-neutral-100">
+              <h3 className="text-[10px] font-bold uppercase text-neutral-500 mb-3">Current Staff Members</h3>
+              <div className="space-y-2">
+                {staffUsers.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
+                    <div className="truncate pr-2">
+                      <p className="text-xs font-bold text-neutral-900 truncate">{u.email}</p>
+                      <p className="text-[10px] text-neutral-500 uppercase font-bold">{u.role}</p>
+                    </div>
+                    <button type="button" onClick={() => handleRevokeAccess(u.id, u.email)} className="shrink-0 p-2 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors" title="Revoke Access">
+                      <UserMinus size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Danger Zone */}

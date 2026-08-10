@@ -46,8 +46,9 @@ export default function AdminLayout() {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Products', path: '/admin/products', icon: Package },
-    { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Add Product', path: '/admin/products/new', icon: Package },
+    { name: 'Order History', path: '/admin/orders', icon: ShoppingCart },
+    { name: 'Products List', path: '/admin/products', icon: Package },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Banners & Styling', path: '/admin/settings', icon: Image },
     { name: 'System Setup', path: '/admin/system', icon: Settings },
@@ -161,23 +162,13 @@ export default function AdminLayout() {
           })}
 
           <div className="pt-6">
-            <p className="px-4 text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">Quick Navigation</p>
-            <Link
-              to="/account"
-              onClick={() => setIsMobileOpen(false)}
-              className="flex items-center space-x-3 px-4 py-3 rounded-2xl text-neutral-800 hover:bg-neutral-100 text-xs font-bold transition-colors border border-neutral-200/80 mb-2"
-            >
-              <ShieldCheck size={18} className="text-purple-600" />
-              <span>User Profile View</span>
-            </Link>
-
             <Link
               to="/"
               onClick={() => setIsMobileOpen(false)}
-              className="flex items-center space-x-3 px-4 py-3 rounded-2xl text-neutral-800 hover:bg-neutral-100 text-xs font-bold transition-colors border border-neutral-200/80"
+              className="flex items-center space-x-3 px-4 py-3 rounded-2xl bg-amber-50 text-amber-900 hover:bg-amber-100 text-xs font-bold transition-colors border border-amber-200/80 mx-2"
             >
-              <Store size={18} className="text-amber-500" />
-              <span>Back to Main Store</span>
+              <Store size={18} className="text-amber-600" />
+              <span>Go to Main Store</span>
             </Link>
           </div>
         </nav>
