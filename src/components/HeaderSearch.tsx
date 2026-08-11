@@ -4,6 +4,7 @@ import { Search, X, ArrowRight, ShoppingBag, Sparkles, Loader2, Tag } from 'luci
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
+import { useCategoryStore } from '../store/useCategoryStore';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderSearchProps {
@@ -100,8 +101,8 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
     return nameMatch || catMatch || subcatMatch || descMatch;
   }) : [];
 
-  // Match predefined categories
-  const categoriesList = ['Boys Item', 'Girls Item', 'Baby Item', 'Footwear Item'];
+  const { categories } = useCategoryStore();
+  const categoriesList = categories.map(c => c.title);
   const matchedCategories = term ? categoriesList.filter(c => c.toLowerCase().includes(term)) : [];
 
   return (

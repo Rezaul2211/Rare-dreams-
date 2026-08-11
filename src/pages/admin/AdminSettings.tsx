@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle, Phone, MessageCircle, Share2, CreditCard, ShieldCheck, FileText } from 'lucide-react';
+import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle, Phone, MessageCircle, Share2, CreditCard, ShieldCheck, FileText, Plus, Trash2 } from 'lucide-react';
 import { useStoreConfigStore, DEFAULT_STORE_CONFIG } from '../../store/useStoreConfigStore';
+import { useCategoryStore, CategoryItem } from '../../store/useCategoryStore';
 import { StoreConfig } from '../../types';
 
 export interface BannerSlide {
@@ -45,30 +46,31 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
 
 export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
   {
-    title: 'Boys Item',
-    link: '/category/Boys Item',
-    image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'
+    title: 'Foot wear',
+    link: '/category/Foot wear',
+    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Girls Item',
-    link: '/category/Girls Item',
-    image: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?q=80&w=800&auto=format&fit=crop'
+    title: "Men's items",
+    link: "/category/Men's items",
+    image: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Baby Item',
-    link: '/category/Baby Item',
+    title: 'Baby items',
+    link: '/category/Baby items',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Footwear Item',
-    link: '/category/Footwear Item',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
+    title: "Women's items",
+    link: "/category/Women's items",
+    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
 export default function AdminSettings() {
   const [banners, setBanners] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
-  const [categories, setCategories] = useState<CategoryImageSetting[]>(DEFAULT_CATEGORIES);
+  const { categories: storeCategories, saveCategories, fetchCategories } = useCategoryStore();
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [storeForm, setStoreForm] = useState<StoreConfig>(DEFAULT_STORE_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,6 +79,7 @@ export default function AdminSettings() {
   const { config, updateConfig } = useStoreConfigStore();
 
   useEffect(() => {
+    fetchCategories();
     const fetchSettings = async () => {
       try {
         const docRef = doc(db, 'settings', 'homepage');
@@ -85,22 +88,6 @@ export default function AdminSettings() {
           const data = docSnap.data();
           if (data.banners && Array.isArray(data.banners)) {
             setBanners(data.banners);
-          }
-          if (data.categories && Array.isArray(data.categories)) {
-            const updatedCats = data.categories.map((cat: CategoryImageSetting) => {
-              let title = cat.title;
-              let link = cat.link;
-              if (title === 'Boys Wear') title = 'Boys Item';
-              if (title === 'Girls Wear') title = 'Girls Item';
-              if (title === 'Baby Essentials') title = 'Baby Item';
-              if (title === 'Footwear') title = 'Footwear Item';
-              if (link === '/category/Boys Wear') link = '/category/Boys Item';
-              if (link === '/category/Girls Wear') link = '/category/Girls Item';
-              if (link === '/category/Baby Essentials') link = '/category/Baby Item';
-              if (link === '/category/Footwear') link = '/category/Footwear Item';
-              return { ...cat, title, link };
-            });
-            setCategories(updatedCats);
           }
         }
       } catch {
@@ -111,6 +98,12 @@ export default function AdminSettings() {
     };
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (storeCategories) {
+      setCategories(storeCategories);
+    }
+  }, [storeCategories]);
 
   useEffect(() => {
     if (config) {
@@ -124,10 +117,34 @@ export default function AdminSettings() {
     setBanners(updated);
   };
 
-  const handleCategoryChange = (index: number, field: keyof CategoryImageSetting, value: string) => {
+  const handleCategoryChange = (index: number, field: keyof CategoryItem, value: string) => {
     const updated = [...categories];
-    updated[index] = { ...updated[index], [field]: value };
+    const updatedCat = { ...updated[index], [field]: value };
+    if (field === 'title' && !updatedCat.link) {
+      updatedCat.link = `/category/${value}`;
+    }
+    updated[index] = updatedCat;
     setCategories(updated);
+  };
+
+  const handleAddCategory = () => {
+    const newCat: CategoryItem = {
+      id: crypto.randomUUID(),
+      title: 'New Category',
+      link: '/category/New Category',
+      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop'
+    };
+    setCategories(prev => [...prev, newCat]);
+  };
+
+  const handleDeleteCategory = (index: number) => {
+    if (categories.length <= 1) {
+      alert("At least one category must remain.");
+      return;
+    }
+    if (confirm(`Are you sure you want to delete category "${categories[index].title}"?`)) {
+      setCategories(prev => prev.filter((_, i) => i !== index));
+    }
   };
 
   const handleStoreFormChange = (field: keyof StoreConfig, value: string) => {
@@ -188,7 +205,7 @@ export default function AdminSettings() {
     setSaving(true);
     setSavedSuccess(false);
     try {
-      // 1. Save Homepage Banners
+      // 1. Save Homepage Banners & Categories
       const docRef = doc(db, 'settings', 'homepage');
       await setDoc(docRef, {
         banners,
@@ -196,7 +213,10 @@ export default function AdminSettings() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      // 2. Save Store Config (Social links, WhatsApp, Payment numbers, Licenses)
+      // 2. Save Category Store
+      await saveCategories(categories);
+
+      // 3. Save Store Config (Social links, WhatsApp, Payment numbers, Licenses)
       await updateConfig(storeForm);
 
       setSavedSuccess(true);
@@ -349,28 +369,61 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* SECTION 2: CATEGORY TILES (4 TILES) */}
+      {/* SECTION 2: CATEGORY TILES & MANAGER */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
-        <div className="border-b border-neutral-100 pb-4">
-          <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
-            <Sparkles size={20} className="text-neutral-700" />
-            <span>Featured Category Grid Images (4 Categories)</span>
-          </h2>
-          <p className="text-xs text-neutral-500 mt-1">
-            Update category images shown in the 2x2 grid on the home page.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-100 pb-4 gap-4">
+          <div>
+            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+              <Sparkles size={20} className="text-neutral-700" />
+              <span>Manage Categories ({categories.length} Total)</span>
+            </h2>
+            <p className="text-xs text-neutral-500 mt-1">
+              Add new categories, edit category names, change images, or delete unwanted categories. Changes update live across the website!
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddCategory}
+            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer shrink-0 shadow-xs"
+          >
+            <Plus size={16} />
+            <span>Add Category</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((cat, index) => (
-            <div key={cat.title} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-4">
+            <div key={cat.id || index} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-4 relative group">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-neutral-900">
+                <span className="text-xs font-black uppercase tracking-wider text-neutral-900 truncate max-w-[150px]">
                   {cat.title}
                 </span>
-                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase">
-                  Category #{index + 1}
-                </span>
+                <div className="flex items-center space-x-1">
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase">
+                    #{index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(index)}
+                    className="p-1 text-neutral-400 hover:text-red-600 transition-colors rounded hover:bg-red-50 cursor-pointer ml-1"
+                    title="Delete Category"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Category Name Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Category Name
+                </label>
+                <input
+                  type="text"
+                  value={cat.title}
+                  onChange={(e) => handleCategoryChange(index, 'title', e.target.value)}
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                />
               </div>
 
               {/* Image Preview Box */}
@@ -402,7 +455,7 @@ export default function AdminSettings() {
                 </label>
                 <input
                   type="url"
-                  value={cat.image}
+                  value={cat.image || ''}
                   onChange={(e) => handleCategoryChange(index, 'image', e.target.value)}
                   placeholder="https://..."
                   className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-mono font-medium outline-none focus:ring-2 focus:ring-black"

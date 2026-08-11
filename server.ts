@@ -48,9 +48,136 @@ function getStripe(): Stripe {
   return stripeClient;
 }
 
-// API Routes
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+// 1. AI Product Description Generator API Route (Admin Tool)
+app.post("/api/ai-generate-description", async (req, res) => {
+  try {
+    const { name, category, subcategory, price, material } = req.body;
+    const prompt = `Write a compelling, luxury, SEO-optimized Bengali product description for an e-commerce clothing item with these details:
+Product Name: ${name || 'Luxury Fashion Item'}
+Category: ${category || 'Clothing'}
+Subcategory: ${subcategory || ''}
+Price: ৳${price || 0}
+Material: ${material || 'Premium Fabric'}
+
+Requirements:
+- Written in stylish, attractive, and persuasive Bengali (বাংলা).
+- Highlights premium quality, comfortable fit, fabric feel, and elegance for kids/family.
+- Includes 3-4 bullet points for key features (যেমন: ১০০% প্রিমিয়াম ফেব্রিক, আরামদায়ক সেলাই, আকর্ষণীয় আউটলুক, যেসকল অনুষ্ঠানে পরানো যাবে).
+- Keep it under 250 words. Do NOT include markdown code blocks around text.`;
+
+    const ai = getAI();
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+        if (response?.text) {
+          return res.json({ description: response.text.trim() });
+        }
+      } catch (err: any) {
+        console.warn("Gemini description error:", err?.message);
+      }
+    }
+
+    // Smart Fallback Description if Gemini API is offline
+    const fallbackDesc = `রেয়ার ড্রিমস (Rare Dreams)-এর এই প্রিমিয়াম ${name || 'আকর্ষণীয় ড্রেসটি'} অত্যন্ত নিখুঁত সেলাই ও ১০০% আরামদায়ক ফেব্রিকে তৈরি। বাচ্চার সংবেদনশীল ত্বকের কথা মাথায় রেখে এটি অত্যন্ত নরম ও টেকসই করা হয়েছে।\n\n✨ মূল বৈশিষ্ট্যসমূহ:\n- প্রিমিয়াম কোয়ালিটির দীর্ঘস্থায়ী ফেব্রিক\n- রাজকীয় লুক ও আকর্ষণীয় কালার ফিনিশিং\n- পার্টি, ঈদ বা যেকোনো বিশেষ অনুষ্ঠানে পরার জন্য সেরা পছন্দ\n- স্কিন ফ্রেন্ডলি ও দীর্ঘক্ষণ পরে থাকার জন্য পারফেক্ট কমফোর্ট`;
+    res.json({ description: fallbackDesc });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to generate description" });
+  }
+});
+
+// 2. AI Size Helper / Recommender API Route
+app.post("/api/ai-recommend-size", async (req, res) => {
+  try {
+    const { productName, category, availableSizes, age, height, weight, fitPreference } = req.body;
+    const prompt = `Act as an expert kids sizing consultant for the luxury fashion brand "Rare Dreams".
+Product Name: ${productName || 'Outfit'}
+Category: ${category || 'Kids Item'}
+Available Sizes in Stock: ${Array.isArray(availableSizes) ? availableSizes.join(', ') : availableSizes || 'S, M, L, XL'}
+Customer Input:
+- Age: ${age || 'Not specified'}
+- Height: ${height || 'Not specified'}
+- Weight: ${weight || 'Not specified'}
+- Fit Preference: ${fitPreference || 'Regular'}
+
+Instructions:
+1. Determine the best size from the Available Sizes list.
+2. Provide a clear, friendly, reassuring explanation in polite Bengali (বাংলা) explaining why this size is recommended (taking into consideration that children grow fast).
+3. Return JSON format strictly: {"recommendedSize": "SIZE_NAME", "explanation": "BENGALI_EXPLANATION"}`;
+
+    const ai = getAI();
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+        if (response?.text) {
+          const cleanText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+          try {
+            const parsed = JSON.parse(cleanText);
+            return res.json(parsed);
+          } catch {
+            return res.json({
+              recommendedSize: availableSizes?.[0] || 'M',
+              explanation: response.text.trim()
+            });
+          }
+        }
+      } catch (err: any) {
+        console.warn("Gemini size recommender error:", err?.message);
+      }
+    }
+
+    // Fallback recommendation
+    const defaultSize = availableSizes?.[0] || '24';
+    const fallbackExp = `বাচ্চার বয়স (${age || 'নির্দিষ্ট'}) ও ওজন বিবেচনা করে, শিশু দ্রুত বড় হয় বিধায় দীর্ঘমেয়াদী ব্যবহারের জন্য এবং আরামদায়ক ফিটিংসের জন্য '${defaultSize}' সাইজটি বেছে নেওয়ার পরামর্শ দেওয়া হচ্ছে।`;
+    res.json({ recommendedSize: defaultSize, explanation: fallbackExp });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Size recommendation failed" });
+  }
+});
+
+// 3. AI Auto-Tag & Subcategory Assistant API Route (Admin Tool)
+app.post("/api/ai-tag-product", async (req, res) => {
+  try {
+    const { name, category } = req.body;
+    const prompt = `Analyze this apparel product for e-commerce tagging:
+Title: ${name}
+Category: ${category}
+
+Suggest:
+1. Best subcategory name in Bengali/English (e.g., Party Gown, Panjabi & Pajama Set, Leather Loafers, Casual T-Shirt)
+2. 3-5 tags/keywords as comma-separated values (e.g. Party Wear, Cotton, Festival, Premium, Summer Collection)
+
+Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2", "TAG3"]}`;
+
+    const ai = getAI();
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
+        });
+        if (response?.text) {
+          const cleanText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanText);
+          return res.json(parsed);
+        }
+      } catch (err: any) {
+        console.warn("Gemini auto-tag error:", err?.message);
+      }
+    }
+
+    res.json({
+      subcategory: category === 'Foot wear' ? 'Shoes & Loafers' : 'Exclusive Collection',
+      tags: ['Party Wear', 'Premium Quality', 'Rare Dreams Special', 'New Arrival']
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post("/api/create-checkout-session", async (req, res) => {

@@ -7,6 +7,7 @@ import { SlidersHorizontal, ArrowUpDown, Sparkles, Search, X } from 'lucide-reac
 import { LazyImage } from '../components/LazyImage';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
+import { useCategoryStore } from '../store/useCategoryStore';
 import { motion } from 'motion/react';
 import SEO from '../components/SEO';
 
@@ -14,6 +15,7 @@ export default function Shop() {
   const { category } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || searchParams.get('q') || '';
+  const { categories } = useCategoryStore();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,27 +180,31 @@ export default function Shop() {
         {/* Category Navigation Pills Bar */}
         <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-white p-2 md:p-3 rounded-2xl border border-neutral-200/80 shadow-xs mb-8 gap-4">
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-            {[
-              { label: 'All Products', path: '/shop', cat: undefined },
-              { label: 'Boys Item', path: '/category/Boys Item', cat: 'Boys Item' },
-              { label: 'Girls Item', path: '/category/Girls Item', cat: 'Girls Item' },
-              { label: 'Baby Item', path: '/category/Baby Item', cat: 'Baby Item' },
-              { label: 'Footwear Item', path: '/category/Footwear Item', cat: 'Footwear Item' },
-              { label: "Men's Collection", path: '/category/Men', cat: 'Men' },
-              { label: "Women's Collection", path: '/category/Women', cat: 'Women' },
-            ].map((tab) => {
-              const isActive = (category === tab.cat) || (!category && !tab.cat);
+            <Link
+              to="/shop"
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center space-x-1.5 shrink-0 ${
+                !category 
+                  ? 'bg-black text-white shadow-sm' 
+                  : 'text-neutral-600 hover:bg-neutral-100'
+              }`}
+            >
+              <span>All Products</span>
+            </Link>
+            {categories.map((cat, idx) => {
+              const catTitle = cat.title;
+              const catPath = cat.link || `/category/${encodeURIComponent(catTitle)}`;
+              const isActive = category?.toLowerCase() === catTitle.toLowerCase();
               return (
                 <Link
-                  key={tab.label}
-                  to={tab.path}
+                  key={cat.id || idx}
+                  to={catPath}
                   className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center space-x-1.5 shrink-0 ${
                     isActive 
                       ? 'bg-black text-white shadow-sm' 
                       : 'text-neutral-600 hover:bg-neutral-100'
                   }`}
                 >
-                  <span>{tab.label}</span>
+                  <span>{catTitle}</span>
                 </Link>
               );
             })}

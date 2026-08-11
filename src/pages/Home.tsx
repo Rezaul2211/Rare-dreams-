@@ -8,13 +8,14 @@ import { Product } from '../types';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
 import HomeSkeleton from '../components/HomeSkeleton';
-import { DEFAULT_HERO_SLIDES, DEFAULT_CATEGORIES, BannerSlide, CategoryImageSetting } from './admin/AdminSettings';
+import { DEFAULT_HERO_SLIDES, BannerSlide } from './admin/AdminSettings';
+import { useCategoryStore } from '../store/useCategoryStore';
 import SEO from '../components/SEO';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroSlides, setHeroSlides] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
-  const [categoriesList, setCategoriesList] = useState<CategoryImageSetting[]>(DEFAULT_CATEGORIES);
+  const { categories: storeCategories } = useCategoryStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSettings, setLoadingSettings] = useState(true);
@@ -32,27 +33,10 @@ export default function Home() {
             if (data.banners && Array.isArray(data.banners) && data.banners.length > 0) {
               setHeroSlides(data.banners);
             }
-            if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
-              const updatedCats = data.categories.map((cat: CategoryImageSetting) => {
-                let title = cat.title;
-                let link = cat.link;
-                if (title === 'Boys Wear') title = 'Boys Item';
-                if (title === 'Girls Wear') title = 'Girls Item';
-                if (title === 'Baby Essentials') title = 'Baby Item';
-                if (title === 'Footwear') title = 'Footwear Item';
-                if (link === '/category/Boys Wear') link = '/category/Boys Item';
-                if (link === '/category/Girls Wear') link = '/category/Girls Item';
-                if (link === '/category/Baby Essentials') link = '/category/Baby Item';
-                if (link === '/category/Footwear') link = '/category/Footwear Item';
-                return { ...cat, title, link };
-              });
-              setCategoriesList(updatedCats);
-            }
           }
           setLoadingSettings(false);
         }
       } catch {
-        // Fallback to default hero slides & categories
         if (isMounted) setLoadingSettings(false);
       }
     };
@@ -107,7 +91,7 @@ export default function Home() {
   // Filter products by category for section rows
   const productsByCategory = React.useMemo(() => {
     const map = new Map<string, Product[]>();
-    categoriesList.forEach(cat => {
+    storeCategories.forEach(cat => {
       const target = cat.title.toLowerCase().trim();
       const catProducts = allProducts.filter(p => {
         if (!p.category) return false;
@@ -122,7 +106,7 @@ export default function Home() {
       map.set(cat.title, catProducts);
     });
     return map;
-  }, [allProducts, categoriesList]);
+  }, [allProducts, storeCategories]);
 
   return (
     <div className="flex flex-col w-full">
@@ -231,22 +215,22 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* 2x2 Grid */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-                {categoriesList.map((cat, idx) => (
+              {/* Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                {storeCategories.map((cat, idx) => (
                   <motion.div
-                    key={cat.title}
+                    key={cat.id || cat.title || idx}
                     initial={{ opacity: 0, y: 20, scale: 0.98 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.65, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <Link 
-                      to={cat.link || `/category/${cat.title}`}
+                      to={cat.link || `/category/${encodeURIComponent(cat.title)}`}
                       className="group relative rounded-2xl md:rounded-3xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] md:aspect-[1/1] block shadow-2xs hover:shadow-xl transition-all duration-500 bg-neutral-200"
                     >
                       <img 
-                        src={cat.image} 
+                        src={cat.image || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop'} 
                         alt={cat.title}
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -272,7 +256,7 @@ export default function Home() {
 
       {/* PRODUCTS BY CATEGORY SECTIONS (Replacing old "View All" single list) */}
       <div className="space-y-8 pb-12 bg-[#FAFAFA] pt-8">
-        {categoriesList.map((cat) => {
+        {storeCategories.map((cat) => {
           const catProducts = productsByCategory.get(cat.title) || [];
           if (!loading && catProducts.length === 0) return null; // Skip empty categories
 

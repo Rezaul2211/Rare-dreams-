@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDashboard, LogOut } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useCategoryStore } from '../store/useCategoryStore';
+import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { auth } from '../lib/firebase';
 import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
 import { HeaderSearch } from './HeaderSearch';
@@ -20,11 +22,19 @@ function LayoutInner() {
   const items = useCartStore((state) => state.items);
   const wishlistIds = useWishlistStore((state) => state.wishlistIds);
   const user = useAuthStore((state) => state.user);
+  const { categories, fetchCategories } = useCategoryStore();
+  const { fetchConfig } = useStoreConfigStore();
+
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlistIds.length;
   const navigate = useNavigate();
   const location = useLocation();
   const { isCartBouncing } = useFlyToCart();
+
+  useEffect(() => {
+    fetchCategories();
+    fetchConfig();
+  }, []);
 
   const handleLogout = () => {
     auth.signOut();
@@ -53,12 +63,18 @@ function LayoutInner() {
             </Link>
 
             {/* CENTER: Desktop Nav Links or Search */}
-            <nav className="hidden lg:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-6">
               <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shop All</Link>
-              <Link to="/category/Boys Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Boys Item</Link>
-              <Link to="/category/Girls Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Girls Item</Link>
-              <Link to="/category/Baby Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Baby Item</Link>
-              <Link to="/category/Footwear Item" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Footwear Item</Link>
+              {categories.map((cat, idx) => (
+                <Link 
+                  key={cat.id || idx} 
+                  to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
+                  onClick={scrollToTop} 
+                  className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800 shrink-0"
+                >
+                  {cat.title}
+                </Link>
+              ))}
             </nav>
 
             {/* RIGHT: Action Icons (Search, Cart, Menu) - Exact Zopono style */}
@@ -145,10 +161,16 @@ function LayoutInner() {
           <div className="md:hidden bg-white border-t border-neutral-200">
             <div className="px-4 pt-3 pb-6 space-y-2">
               <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All Products</Link>
-              <Link to="/category/Boys Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Boys Item</Link>
-              <Link to="/category/Girls Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Girls Item</Link>
-              <Link to="/category/Baby Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Baby Item</Link>
-              <Link to="/category/Footwear Item" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Footwear Item</Link>
+              {categories.map((cat, idx) => (
+                <Link 
+                  key={cat.id || idx} 
+                  to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
+                  className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {cat.title}
+                </Link>
+              ))}
 
               {user?.role === 'admin' && (
                 <Link 

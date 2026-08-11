@@ -5,7 +5,7 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2 } from 'lucide-react';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
@@ -28,6 +28,51 @@ export default function ProductDetail() {
   
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
+
+  // AI Size Recommender Modal State
+  const [isSizeModalOpen, setIsSizeModalOpen] = useState(false);
+  const [childAge, setChildAge] = useState('');
+  const [childHeight, setChildHeight] = useState('');
+  const [childWeight, setChildWeight] = useState('');
+  const [fitPreference, setFitPreference] = useState('Comfortable Regular Fit');
+  const [sizeRecommendation, setSizeRecommendation] = useState<{ size: string; explanation: string } | null>(null);
+  const [sizeLoading, setSizeLoading] = useState(false);
+
+  const handleGetAiSizeRecommendation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!childAge) {
+      alert("Please enter child's age");
+      return;
+    }
+    setSizeLoading(true);
+    try {
+      const res = await fetch("/api/ai-recommend-size", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: product?.name,
+          category: product?.category,
+          availableSizes: product?.sizeOptions || ['S', 'M', 'L'],
+          age: childAge,
+          height: childHeight,
+          weight: childWeight,
+          fitPreference
+        })
+      });
+      const data = await res.json();
+      if (data.recommendedSize) {
+        setSizeRecommendation({
+          size: data.recommendedSize,
+          explanation: data.explanation || "বাচ্চার বয়স অনুযায়ী পারফেক্ট সাইজ।"
+        });
+        setSelectedSize(data.recommendedSize);
+      }
+    } catch (err) {
+      console.error("AI Size Recommender Error:", err);
+    } finally {
+      setSizeLoading(false);
+    }
+  };
 
   const { isWishlisted, toggleWishlist } = useWishlistStore();
   const { animateAddToCart } = useFlyToCart();
@@ -284,7 +329,13 @@ export default function ProductDetail() {
               <div>
                 <div className="flex justify-between items-center mb-2.5">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Size: <span className="text-black">{selectedSize}</span></span>
-                  <button className="text-xs font-medium underline text-neutral-500 hover:text-black cursor-pointer">Size Guide</button>
+                  <button
+                    onClick={() => setIsSizeModalOpen(true)}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Sparkles size={13} className="text-amber-600 animate-pulse" />
+                    <span>AI Size Helper</span>
+                  </button>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {product.sizeOptions.map((size) => (
@@ -491,6 +542,124 @@ export default function ProductDetail() {
           </div>
         )}
       </section>
+
+      {/* AI SIZE RECOMMENDER MODAL */}
+      {isSizeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-neutral-200 relative overflow-hidden">
+            <button
+              onClick={() => setIsSizeModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-black rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-1 rounded-full w-max text-xs font-bold uppercase tracking-wider mb-3">
+              <Sparkles size={14} className="text-amber-600" />
+              <span>AI Smart Size Recommender</span>
+            </div>
+
+            <h3 className="text-xl font-black text-neutral-900 tracking-tight">
+              Find Perfect Size for {product.name}
+            </h3>
+            <p className="text-xs text-neutral-500 mt-1 mb-5">
+              Enter your child's age & measurements. Our AI will calculate the ideal size for max comfort & long-term wear.
+            </p>
+
+            <form onSubmit={handleGetAiSizeRecommendation} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                  Child's Age *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., 2.5 Years, 5 Years, 6 Months"
+                  value={childAge}
+                  onChange={(e) => setChildAge(e.target.value)}
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                    Height (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 95 cm or 3 ft"
+                    value={childHeight}
+                    onChange={(e) => setChildHeight(e.target.value)}
+                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                    Weight (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 14 kg"
+                    value={childWeight}
+                    onChange={(e) => setChildWeight(e.target.value)}
+                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
+                  Fit Preference
+                </label>
+                <select
+                  value={fitPreference}
+                  onChange={(e) => setFitPreference(e.target.value)}
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="Comfortable Regular Fit">Comfortable Regular Fit</option>
+                  <option value="Slightly Loose for Growth">Slightly Loose (Recommended for Growing Kids)</option>
+                  <option value="Snug Tailored Fit">Snug Tailored Fit</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={sizeLoading}
+                className="w-full bg-black text-white py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md disabled:opacity-50 mt-2"
+              >
+                {sizeLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Calculating Size...</span>
+                  </>
+                ) : (
+                  <>
+                    <Ruler size={16} />
+                    <span>Calculate Recommended Size</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* AI Recommendation Output Box */}
+            {sizeRecommendation && (
+              <div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center space-x-2 text-emerald-900 font-extrabold text-sm">
+                  <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                  <span>Recommended Size: <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
+                </div>
+                <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+                  {sizeRecommendation.explanation}
+                </p>
+                <p className="text-[10px] text-emerald-600 font-bold uppercase pt-1">
+                  ✓ Size "{sizeRecommendation.size}" has been automatically selected for you!
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

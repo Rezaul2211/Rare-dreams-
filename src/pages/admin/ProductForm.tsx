@@ -3,19 +3,78 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { doc, setDoc, getDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Product } from '../../types';
-import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon } from 'lucide-react';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon, Sparkles, Loader2, Tag } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const { categories } = useCategoryStore();
   
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
+  const [generatingAiDesc, setGeneratingAiDesc] = useState(false);
+  const [autoTagging, setAutoTagging] = useState(false);
+
+  const handleAiGenerateDesc = async () => {
+    if (!formData.name) {
+      alert("Please enter a Product Name first!");
+      return;
+    }
+    setGeneratingAiDesc(true);
+    try {
+      const res = await fetch("/api/ai-generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          price: formData.price,
+          material: formData.material
+        })
+      });
+      const data = await res.json();
+      if (data.description) {
+        setFormData(prev => ({ ...prev, description: data.description }));
+      }
+    } catch (err) {
+      console.error("AI Description Error:", err);
+    } finally {
+      setGeneratingAiDesc(false);
+    }
+  };
+
+  const handleAiAutoTag = async () => {
+    if (!formData.name) {
+      alert("Please enter a Product Name first!");
+      return;
+    }
+    setAutoTagging(true);
+    try {
+      const res = await fetch("/api/ai-tag-product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category
+        })
+      });
+      const data = await res.json();
+      if (data.subcategory) {
+        setFormData(prev => ({ ...prev, subcategory: data.subcategory }));
+      }
+    } catch (err) {
+      console.error("AI Auto-tag Error:", err);
+    } finally {
+      setAutoTagging(false);
+    }
+  };
   
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
-    category: 'Boys Item',
+    category: 'Foot wear',
     subcategory: '',
     price: 0,
     comparePrice: 0,
@@ -53,10 +112,18 @@ export default function ProductForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
-    }));
+    if (type === 'number') {
+      const parsed = parseFloat(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? 0 : (isNaN(parsed) ? 0 : parsed)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,7 +279,27 @@ export default function ProductForm() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Description</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-neutral-700">Description</label>
+                  <button
+                    type="button"
+                    onClick={handleAiGenerateDesc}
+                    disabled={generatingAiDesc}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {generatingAiDesc ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} className="text-amber-600" />
+                        <span>AI Auto-Generate</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <textarea
                   name="description"
                   required
@@ -359,17 +446,47 @@ export default function ProductForm() {
                 <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Category</label>
                 <select
                   name="category"
-                  value={formData.category}
+                  value={formData.category || (categories[0]?.title || '')}
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                 >
-                  <option value="Boys Item">Boys Item</option>
-                  <option value="Girls Item">Girls Item</option>
-                  <option value="Baby Item">Baby Item</option>
-                  <option value="Footwear Item">Footwear Item</option>
-                  <option value="Men">Men</option>
-                  <option value="Women">Women</option>
+                  {categories.map((c) => (
+                    <option key={c.id || c.title} value={c.title}>
+                      {c.title}
+                    </option>
+                  ))}
+                  {/* Fallback legacy option if current category is not in list */}
+                  {formData.category && !categories.some(c => c.title === formData.category) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
                 </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-neutral-700">Subcategory / Tag</label>
+                  <button
+                    type="button"
+                    onClick={handleAiAutoTag}
+                    disabled={autoTagging}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {autoTagging ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={12} className="text-amber-600" />
+                    )}
+                    <span>AI Auto-Tag</span>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  name="subcategory"
+                  value={formData.subcategory || ''}
+                  onChange={handleChange}
+                  placeholder="e.g. Party Gown, Panjabi Set, Loafers"
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black"
+                />
               </div>
 
               <div>
@@ -380,8 +497,10 @@ export default function ProductForm() {
                   min="0"
                   step="0.01"
                   required
-                  value={formData.price}
+                  placeholder="0.00"
+                  value={formData.price === 0 || formData.price === undefined ? '' : formData.price}
                   onChange={handleChange}
+                  onFocus={(e) => e.target.select()}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none font-bold"
                 />
               </div>
@@ -393,10 +512,11 @@ export default function ProductForm() {
                   name="comparePrice"
                   min="0"
                   step="0.01"
-                  value={formData.comparePrice}
-                  onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
                   placeholder="Regular price before discount"
+                  value={formData.comparePrice === 0 || formData.comparePrice === undefined ? '' : formData.comparePrice}
+                  onChange={handleChange}
+                  onFocus={(e) => e.target.select()}
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
                 />
               </div>
 
@@ -410,8 +530,9 @@ export default function ProductForm() {
                     name="discount"
                     min="0"
                     max="100"
-                    value={formData.discount || ''}
+                    value={formData.discount === 0 || formData.discount === undefined ? '' : formData.discount}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
                     placeholder="e.g. 20 for 20% OFF"
                     className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none font-bold text-red-600 focus:border-red-500"
                   />
@@ -484,9 +605,11 @@ export default function ProductForm() {
                   name="stockQuantity"
                   min="0"
                   required
-                  value={formData.stockQuantity}
+                  placeholder="0"
+                  value={formData.stockQuantity === 0 || formData.stockQuantity === undefined ? '' : formData.stockQuantity}
                   onChange={handleChange}
-                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none"
+                  onFocus={(e) => e.target.select()}
+                  className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none font-bold"
                 />
               </div>
             </div>

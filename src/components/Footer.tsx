@@ -14,11 +14,13 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
+import { useCategoryStore } from '../store/useCategoryStore';
 import PolicyModal from './PolicyModal';
 import Logo from './Logo';
 
 export default function Footer() {
   const { config } = useStoreConfigStore();
+  const { categories } = useCategoryStore();
   const [activePolicyModal, setActivePolicyModal] = useState<'returns' | 'privacy' | 'terms' | 'license' | null>(null);
   const [subscribed, setSubscribed] = useState(false);
   const [emailInput, setEmailInput] = useState('');
@@ -172,26 +174,17 @@ export default function Footer() {
                 Categories
               </h4>
               <ul className="space-y-2.5 text-xs">
-                <li>
-                  <Link to="/category/Boys Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Boys Item
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/category/Girls Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Girls Item
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/category/Baby Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Baby Item
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/category/Footwear Item" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    Footwear Item
-                  </Link>
-                </li>
+                {categories.map((cat, idx) => (
+                  <li key={cat.id || idx}>
+                    <Link 
+                      to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
+                      onClick={scrollToTop} 
+                      className="text-neutral-400 hover:text-white transition-colors"
+                    >
+                      {cat.title}
+                    </Link>
+                  </li>
+                ))}
                 <li>
                   <Link to="/shop" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
                     All Collections

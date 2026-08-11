@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Product } from '../../types';
+import { useCategoryStore } from '../../store/useCategoryStore';
 import { Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -10,6 +11,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const { categories } = useCategoryStore();
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -98,12 +100,9 @@ export default function AdminProducts() {
             className="w-full md:w-auto bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm font-medium outline-none focus:border-black"
           >
             <option value="All">All Categories</option>
-            <option value="Boys Item">Boys Item</option>
-            <option value="Girls Item">Girls Item</option>
-            <option value="Baby Item">Baby Item</option>
-            <option value="Footwear Item">Footwear Item</option>
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
+            {categories.map((c) => (
+              <option key={c.id || c.title} value={c.title}>{c.title}</option>
+            ))}
           </select>
         </div>
       </div>
