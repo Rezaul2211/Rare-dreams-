@@ -14,11 +14,59 @@ app.use(express.json());
 let aiClient: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI | null {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
+  if (!key || key.trim() === '' || key === "MY_GEMINI_API_KEY" || key.startsWith("MY_")) return null;
   if (!aiClient) {
-    aiClient = new GoogleGenAI({ apiKey: key });
+    aiClient = new GoogleGenAI({ apiKey: key.trim() });
   }
   return aiClient;
+}
+
+// Reusable Groq LLM Helper (User requested Groq API as primary AI model)
+async function callGroq(prompt: string, systemPrompt?: string, jsonMode?: boolean): Promise<string | null> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey || groqApiKey.trim() === '' || groqApiKey.startsWith('MY_')) {
+    return null;
+  }
+
+  const messages: any[] = [];
+  if (systemPrompt) {
+    messages.push({ role: "system", content: systemPrompt });
+  }
+  messages.push({ role: "user", content: prompt });
+
+  const body: any = {
+    model: "llama-3.3-70b-versatile",
+    messages,
+    temperature: 0.7,
+    max_tokens: 1024
+  };
+
+  if (jsonMode) {
+    body.response_format = { type: "json_object" };
+  }
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${groqApiKey.trim()}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) return content.trim();
+    } else {
+      const errText = await res.text();
+      console.warn("Groq API warning status:", res.status, errText);
+    }
+  } catch (err) {
+    console.warn("Groq API request error:", err);
+  }
+  return null;
 }
 
 // Initialize Firebase Admin (Only if not already initialized)
@@ -65,22 +113,29 @@ Requirements:
 - Includes 3-4 bullet points for key features (যেমন: ১০০% প্রিমিয়াম ফেব্রিক, আরামদায়ক সেলাই, আকর্ষণীয় আউটলুক, যেসকল অনুষ্ঠানে পরানো যাবে).
 - Keep it under 250 words. Do NOT include markdown code blocks around text.`;
 
+    // 1. Primary: Groq LLM API
+    const groqDesc = await callGroq(prompt);
+    if (groqDesc) {
+      return res.json({ description: groqDesc });
+    }
+
+    // 2. Secondary: Gemini API
     const ai = getAI();
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
           return res.json({ description: response.text.trim() });
         }
       } catch (err: any) {
-        console.warn("Gemini description error:", err?.message);
+        console.warn("Gemini description fallback active:", err?.message || err);
       }
     }
 
-    // Smart Fallback Description if Gemini API is offline
+    // 3. Fallback Description
     const fallbackDesc = `রেয়ার ড্রিমস (Rare Dreams)-এর এই প্রিমিয়াম ${name || 'আকর্ষণীয় ড্রেসটি'} অত্যন্ত নিখুঁত সেলাই ও ১০০% আরামদায়ক ফেব্রিকে তৈরি। বাচ্চার সংবেদনশীল ত্বকের কথা মাথায় রেখে এটি অত্যন্ত নরম ও টেকসই করা হয়েছে।\n\n✨ মূল বৈশিষ্ট্যসমূহ:\n- প্রিমিয়াম কোয়ালিটির দীর্ঘস্থায়ী ফেব্রিক\n- রাজকীয় লুক ও আকর্ষণীয় কালার ফিনিশিং\n- পার্টি, ঈদ বা যেকোনো বিশেষ অনুষ্ঠানে পরার জন্য সেরা পছন্দ\n- স্কিন ফ্রেন্ডলি ও দীর্ঘক্ষণ পরে থাকার জন্য পারফেক্ট কমফোর্ট`;
     res.json({ description: fallbackDesc });
   } catch (error: any) {
@@ -107,11 +162,27 @@ Instructions:
 2. Provide a clear, friendly, reassuring explanation in polite Bengali (বাংলা) explaining why this size is recommended (taking into consideration that children grow fast).
 3. Return JSON format strictly: {"recommendedSize": "SIZE_NAME", "explanation": "BENGALI_EXPLANATION"}`;
 
+    // 1. Primary: Groq LLM API
+    const groqRes = await callGroq(prompt, undefined, true);
+    if (groqRes) {
+      const cleanText = groqRes.replace(/```json/g, '').replace(/```/g, '').trim();
+      try {
+        const parsed = JSON.parse(cleanText);
+        return res.json(parsed);
+      } catch {
+        return res.json({
+          recommendedSize: availableSizes?.[0] || 'M',
+          explanation: groqRes
+        });
+      }
+    }
+
+    // 2. Secondary: Gemini API
     const ai = getAI();
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -127,11 +198,11 @@ Instructions:
           }
         }
       } catch (err: any) {
-        console.warn("Gemini size recommender error:", err?.message);
+        console.warn("Gemini size recommender fallback active:", err?.message || err);
       }
     }
 
-    // Fallback recommendation
+    // 3. Fallback recommendation
     const defaultSize = availableSizes?.[0] || '24';
     const fallbackExp = `বাচ্চার বয়স (${age || 'নির্দিষ্ট'}) ও ওজন বিবেচনা করে, শিশু দ্রুত বড় হয় বিধায় দীর্ঘমেয়াদী ব্যবহারের জন্য এবং আরামদায়ক ফিটিংসের জন্য '${defaultSize}' সাইজটি বেছে নেওয়ার পরামর্শ দেওয়া হচ্ছে।`;
     res.json({ recommendedSize: defaultSize, explanation: fallbackExp });
@@ -154,11 +225,24 @@ Suggest:
 
 Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2", "TAG3"]}`;
 
+    // 1. Primary: Groq LLM API
+    const groqRes = await callGroq(prompt, undefined, true);
+    if (groqRes) {
+      const cleanText = groqRes.replace(/```json/g, '').replace(/```/g, '').trim();
+      try {
+        const parsed = JSON.parse(cleanText);
+        return res.json(parsed);
+      } catch {
+        // fallback
+      }
+    }
+
+    // 2. Secondary: Gemini API
     const ai = getAI();
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -167,7 +251,7 @@ Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2
           return res.json(parsed);
         }
       } catch (err: any) {
-        console.warn("Gemini auto-tag error:", err?.message);
+        console.warn("Gemini auto-tag fallback active:", err?.message || err);
       }
     }
 
@@ -294,48 +378,19 @@ RESPONSE FORMAT:
     return `রেয়ার ড্রিমসে (Rare Dreams) আপনার প্রশ্নটির জন্য ধন্যবাদ! 🌸\n\nআমাদের কাছে ১-১৪ বছরের বাচ্চার জন্য রাজকীয় পার্টি ওয়্যার, ক্যাজুয়াল ড্রেস, পাঞ্জাবি ও জুতা রয়েছে। ঢাকা সিটিতে ১-২ দিন ও ঢাকার বাইরে ২-৪ দিনে ক্যাশ অন ডেলিভারি পাবেন (২০০০ টাকার অর্ডারে ডেলিভারি ফ্রী)। আপনার নির্দিষ্ট কোনো সাহায্য লাগলে বিস্তারিত লিখুন!`;
   };
 
-  // 1. Try Groq API if GROQ_API_KEY is available
-  const groqApiKey = process.env.GROQ_API_KEY;
-  if (groqApiKey && groqApiKey.trim() !== "") {
-    try {
-      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${groqApiKey.trim()}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: message || "Hello" }
-          ],
-          temperature: 0.7,
-          max_tokens: 1024
-        })
-      });
-
-      if (groqRes.ok) {
-        const groqData = await groqRes.json();
-        const replyText = groqData.choices?.[0]?.message?.content;
-        if (replyText) {
-          return res.json({ reply: replyText });
-        }
-      } else {
-        console.warn("Groq API response error status:", groqRes.status);
-      }
-    } catch (groqErr) {
-      console.warn("Groq API fetch failed:", groqErr);
-    }
+  // 1. Primary: Groq API
+  const groqReply = await callGroq(message || "Hello", systemPrompt);
+  if (groqReply) {
+    return res.json({ reply: groqReply });
   }
 
-  // 2. Try Gemini API
+  // 2. Secondary: Gemini API
   try {
     const ai = getAI();
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [
             {
               role: "user",
