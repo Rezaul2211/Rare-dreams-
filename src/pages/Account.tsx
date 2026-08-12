@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { useAuthStore } from '../store/useAuthStore';
 import { bdDistricts } from '../lib/bdData';
 import { useCartStore } from '../store/useCartStore';
+import { useLanguageStore } from '../store/useLanguageStore';
 import { Order, AddressItem, PaymentMethodItem, Product } from '../types';
 import { 
   User as UserIcon, 
@@ -38,7 +39,8 @@ import {
   Phone,
   Mail,
   Home as HomeIcon,
-  ShoppingBasket
+  ShoppingBasket,
+  Globe
 } from 'lucide-react';
 
 interface ReviewItem {
@@ -65,6 +67,7 @@ const INITIAL_COUPONS = [
 export default function Account() {
   const { user, logout, updateUserProfile } = useAuthStore();
   const { addItem } = useCartStore();
+  const { language, setLanguage } = useLanguageStore();
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -470,6 +473,46 @@ export default function Account() {
                 </span>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* 1.5 LANGUAGE SWITCHER CARD INSIDE ACCOUNT */}
+        <div className="bg-white rounded-3xl p-5 border border-neutral-200/80 shadow-2xs flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <Globe size={20} />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 font-display">
+                {language === 'bn' ? 'ভাষা নির্বাচন (Language)' : 'Language Preference'}
+              </h3>
+              <p className="text-[11px] text-neutral-400 font-medium">
+                {language === 'bn' ? 'বর্তমান ভাষা: বাংলা' : 'Current Language: English'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center bg-neutral-100 p-1 rounded-2xl border border-neutral-200/80 shrink-0">
+            <button
+              onClick={() => setLanguage('bn')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                language === 'bn' 
+                  ? 'bg-black text-white shadow-xs' 
+                  : 'text-neutral-600 hover:text-black'
+              }`}
+            >
+              বাংলা
+            </button>
+            <button
+              onClick={() => setLanguage('en')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                language === 'en' 
+                  ? 'bg-black text-white shadow-xs' 
+                  : 'text-neutral-600 hover:text-black'
+              }`}
+            >
+              English
+            </button>
           </div>
         </div>
 

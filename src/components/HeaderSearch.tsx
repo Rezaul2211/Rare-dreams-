@@ -5,6 +5,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCategoryStore } from '../store/useCategoryStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderSearchProps {
@@ -22,6 +23,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { language, t } = useLanguageStore();
 
   // Lazy load products for search autocomplete when user starts typing or opens search
   const fetchProductsForSearch = async () => {
@@ -119,7 +121,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
           value={searchQuery}
           onChange={handleInputChange}
           onFocus={handleFocus}
-          placeholder="Search products, categories..."
+          placeholder={t('nav.search_placeholder')}
           className="w-full bg-neutral-100 hover:bg-neutral-100/80 focus:bg-white text-neutral-900 text-xs font-medium pl-10 pr-9 py-2.5 rounded-2xl border border-transparent focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-black/5 transition-all shadow-2xs"
         />
 
@@ -154,7 +156,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
             {loading ? (
               <div className="p-6 text-center text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center justify-center space-x-2">
                 <Loader2 size={16} className="animate-spin text-neutral-700" />
-                <span>Searching Products...</span>
+                <span>{t('common.loading')}</span>
               </div>
             ) : (
               <div className="max-h-[75vh] overflow-y-auto divide-y divide-neutral-100 no-scrollbar">
@@ -162,7 +164,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                 {matchedCategories.length > 0 && (
                   <div className="p-3 bg-neutral-50/80">
                     <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-2 px-1">
-                      Matched Categories
+                      {t('home.explore_categories')}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {matchedCategories.map((cat) => (
@@ -172,7 +174,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                           className="bg-white border border-neutral-200 hover:border-black text-neutral-800 hover:text-black px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center space-x-1 shadow-2xs"
                         >
                           <Tag size={12} className="text-amber-600" />
-                          <span>{cat}</span>
+                          <span>{translateCategory(cat, language)}</span>
                         </button>
                       ))}
                     </div>
@@ -183,11 +185,11 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                 <div className="p-2">
                   <div className="flex items-center justify-between px-2 py-1.5">
                     <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                      Products ({filteredProducts.length})
+                      {t('nav.search_results')} ({filteredProducts.length})
                     </span>
                     {filteredProducts.length > 0 && (
                       <span className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
-                        <Sparkles size={10} /> Instant Results
+                        <Sparkles size={10} /> {language === 'bn' ? 'তাৎক্ষণিক রেজাল্ট' : 'Instant Results'}
                       </span>
                     )}
                   </div>
@@ -222,11 +224,11 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                             </h4>
                             <div className="flex items-center space-x-2 mt-0.5">
                               <span className="text-[10px] font-bold uppercase text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded">
-                                {product.category}
+                                {translateCategory(product.category || '', language)}
                               </span>
                               {product.discount ? (
                                 <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
-                                  {product.discount}% OFF
+                                  {product.discount}% {t('product.discount')}
                                 </span>
                               ) : null}
                             </div>
@@ -248,9 +250,9 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                     </div>
                   ) : (
                     <div className="py-8 text-center px-4">
-                      <p className="text-xs font-bold text-neutral-700">No matching products found</p>
+                      <p className="text-xs font-bold text-neutral-700">{t('nav.no_results')}</p>
                       <p className="text-[11px] text-neutral-400 mt-1">
-                        Try searching with keywords like &ldquo;boys&rdquo;, &ldquo;girls&rdquo;, &ldquo;dress&rdquo;, &ldquo;shirt&rdquo;
+                        {language === 'bn' ? 'পাঞ্জাবি, ফ্রক, বেবি ড্রেস বা ক্যাটাগরি লিখে চেষ্টা করুন' : 'Try searching for dress, party wear or category'}
                       </p>
                     </div>
                   )}
@@ -262,7 +264,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                     onClick={handleSearchSubmit}
                     className="w-full bg-black hover:bg-neutral-800 text-white py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
                   >
-                    <span>View all results for &ldquo;{searchQuery}&rdquo;</span>
+                    <span>{t('nav.view_all_results')} &ldquo;{searchQuery}&rdquo;</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, LayoutDashboard, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, Globe } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCategoryStore } from '../store/useCategoryStore';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import { auth } from '../lib/firebase';
 import { FlyToCartProvider, useFlyToCart } from '../context/FlyToCartContext';
 import { HeaderSearch } from './HeaderSearch';
@@ -24,6 +25,7 @@ function LayoutInner() {
   const user = useAuthStore((state) => state.user);
   const { categories, fetchCategories } = useCategoryStore();
   const { fetchConfig } = useStoreConfigStore();
+  const { language, toggleLanguage, t } = useLanguageStore();
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlistIds.length;
@@ -64,7 +66,9 @@ function LayoutInner() {
 
             {/* CENTER: Desktop Nav Links or Search */}
             <nav className="hidden lg:flex items-center space-x-6">
-              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">Shop All</Link>
+              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">
+                {t('nav.shop_all')}
+              </Link>
               {categories.map((cat, idx) => (
                 <Link 
                   key={cat.id || idx} 
@@ -72,15 +76,15 @@ function LayoutInner() {
                   onClick={scrollToTop} 
                   className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800 shrink-0"
                 >
-                  {cat.title}
+                  {translateCategory(cat.title, language)}
                 </Link>
               ))}
             </nav>
 
-            {/* RIGHT: Action Icons (Search, Cart, Menu) - Exact Zopono style */}
+            {/* RIGHT: Action Icons */}
             <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
               {/* Desktop Global Search Bar */}
-              <div className="hidden md:block w-56 lg:w-64 mr-2">
+              <div className="hidden md:block w-52 lg:w-64 mr-1">
                 <HeaderSearch />
               </div>
 
@@ -91,13 +95,13 @@ function LayoutInner() {
                   className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-xs"
                 >
                   <ShieldCheck size={14} className="text-amber-400" />
-                  <span>Admin</span>
+                  <span>{t('nav.admin')}</span>
                 </Link>
               )}
 
               {/* Search Toggle Icon (Mobile Only) */}
               <button
-                className="md:hidden p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                className="md:hidden p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
                 onClick={() => {
                   setIsMobileSearchOpen(prev => !prev);
                   setIsMobileMenuOpen(false);
@@ -111,14 +115,14 @@ function LayoutInner() {
               <Link 
                 id="header-cart-icon"
                 to="/cart" 
-                className={`p-2.5 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-800 ${
+                className={`p-2 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-800 ${
                   isCartBouncing ? 'scale-125 ring-2 ring-black bg-neutral-100' : ''
                 }`}
                 aria-label="Cart"
               >
                 <ShoppingBag size={22} strokeWidth={1.75} />
                 {itemCount > 0 && (
-                  <span className="absolute top-1 right-0.5 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-bold leading-none text-white bg-neutral-800 rounded-full shadow-sm">
+                  <span className="absolute top-0.5 right-0 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-bold leading-none text-white bg-neutral-800 rounded-full shadow-sm">
                     {itemCount}
                   </span>
                 )}
@@ -126,7 +130,7 @@ function LayoutInner() {
 
               {/* Hamburger Menu Toggle Button */}
               <button 
-                className="p-2.5 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
                 onClick={() => {
                   setIsMobileMenuOpen(prev => !prev);
                   setIsMobileSearchOpen(false);
@@ -160,7 +164,20 @@ function LayoutInner() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-neutral-200">
             <div className="px-4 pt-3 pb-6 space-y-2">
-              <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>Shop All Products</Link>
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-neutral-100">
+                <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Language / ভাষা</span>
+                <button
+                  onClick={toggleLanguage}
+                  className="flex items-center space-x-1.5 px-3 py-1 bg-neutral-100 rounded-full text-xs font-bold text-neutral-800"
+                >
+                  <Globe size={14} className="text-rose-600" />
+                  <span>{language === 'bn' ? 'Switch to English' : 'বাংলায় ভাষা পরিবর্তন'}</span>
+                </button>
+              </div>
+
+              <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
+                {t('nav.shop_all')}
+              </Link>
               {categories.map((cat, idx) => (
                 <Link 
                   key={cat.id || idx} 
@@ -168,7 +185,7 @@ function LayoutInner() {
                   className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" 
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {cat.title}
+                  {translateCategory(cat.title, language)}
                 </Link>
               ))}
 
@@ -180,14 +197,14 @@ function LayoutInner() {
                 >
                   <div className="flex items-center space-x-2">
                     <ShieldCheck size={18} className="text-amber-600" />
-                    <span>Admin Panel</span>
+                    <span>{t('nav.admin')}</span>
                   </div>
                   <span className="text-[10px] bg-amber-600 text-white px-2 py-0.5 rounded-md font-black">ADMIN</span>
                 </Link>
               )}
 
               <Link to={user ? '/account' : '/login'} className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
-                {user ? 'My Account' : 'Sign In'}
+                {user ? t('nav.account') : t('nav.login')}
               </Link>
             </div>
           </div>
@@ -217,15 +234,14 @@ function LayoutInner() {
       <WhatsAppSupportWidget />
 
       {/* Mobile Bottom Navigation */}
-
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 flex justify-around items-center h-16 z-50 px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         <Link to="/" onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Home size={20} className={location.pathname === '/' ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-bold">Home</span>
+          <span className="text-[10px] mt-1 font-bold">{t('nav.home')}</span>
         </Link>
         <Link to="/shop" onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <Grid size={20} className={location.pathname.includes('/shop') || location.pathname.includes('/category') ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-bold">Shop</span>
+          <span className="text-[10px] mt-1 font-bold">{t('nav.shop_all')}</span>
         </Link>
         <Link 
           id="mobile-cart-icon"
@@ -243,11 +259,11 @@ function LayoutInner() {
               </span>
             )}
           </div>
-          <span className="text-[10px] mt-1 font-bold">Cart</span>
+          <span className="text-[10px] mt-1 font-bold">{t('nav.cart')}</span>
         </Link>
         <Link to={user ? '/account' : '/login'} onClick={scrollToTop} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname.includes('/account') || location.pathname.includes('/login') ? 'text-black' : 'text-neutral-400 hover:text-black'}`}>
           <User size={20} className={location.pathname.includes('/account') || location.pathname.includes('/login') ? 'fill-black' : ''} />
-          <span className="text-[10px] mt-1 font-bold">Account</span>
+          <span className="text-[10px] mt-1 font-bold">{user ? t('nav.account') : t('nav.login')}</span>
         </Link>
       </div>
     </div>

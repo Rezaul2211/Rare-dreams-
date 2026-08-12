@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { useCategoryStore } from '../store/useCategoryStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import PolicyModal from './PolicyModal';
 import Logo from './Logo';
 
 export default function Footer() {
   const { config } = useStoreConfigStore();
   const { categories } = useCategoryStore();
+  const { language, t } = useLanguageStore();
   const [activePolicyModal, setActivePolicyModal] = useState<'returns' | 'privacy' | 'terms' | 'license' | null>(null);
   const [subscribed, setSubscribed] = useState(false);
   const [emailInput, setEmailInput] = useState('');
@@ -50,8 +52,8 @@ export default function Footer() {
                 <RefreshCw size={20} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">7 Days Return</h4>
-                <p className="text-[11px] text-neutral-400 mt-0.5">Easy replacement guarantee</p>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{t('home.easy_return_title')}</h4>
+                <p className="text-[11px] text-neutral-400 mt-0.5">{t('home.easy_return_desc')}</p>
               </div>
             </div>
 
@@ -60,8 +62,8 @@ export default function Footer() {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">100% Original</h4>
-                <p className="text-[11px] text-neutral-400 mt-0.5">Premium quality fabrics</p>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{t('home.premium_quality_title')}</h4>
+                <p className="text-[11px] text-neutral-400 mt-0.5">{t('home.premium_quality_desc')}</p>
               </div>
             </div>
 
@@ -70,8 +72,8 @@ export default function Footer() {
                 <Award size={20} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Licensed Brand</h4>
-                <p className="text-[11px] text-neutral-400 mt-0.5">DBID & Govt Registered</p>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{language === 'bn' ? 'অনুমোদিত ব্র্যান্ড' : 'Licensed Brand'}</h4>
+                <p className="text-[11px] text-neutral-400 mt-0.5">{language === 'bn' ? 'সরকারি ট্রেড লাইসেন্স ও DBID রেজিস্টার্ড' : 'DBID & Govt Registered'}</p>
               </div>
             </div>
 
@@ -80,8 +82,8 @@ export default function Footer() {
                 <Phone size={20} />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">24/7 Support</h4>
-                <p className="text-[11px] text-neutral-400 mt-0.5">Instant WhatsApp care</p>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">{t('home.cash_on_delivery_title')}</h4>
+                <p className="text-[11px] text-neutral-400 mt-0.5">{t('home.cash_on_delivery_desc')}</p>
               </div>
             </div>
           </div>
@@ -96,7 +98,7 @@ export default function Footer() {
                   <Logo variant="dark" size="md" showText={true} />
                 </Link>
                 <p className="text-xs text-neutral-400 leading-relaxed mt-2 pr-4">
-                  Elevate your style with Rare Dreams—Bangladesh’s premier destination for high-end luxury fashion, Boys, Girls, and Baby Wear.
+                  {t('footer.company_desc')}
                 </p>
               </div>
 
@@ -106,13 +108,13 @@ export default function Footer() {
                 className="inline-flex items-center space-x-2 bg-neutral-800 hover:bg-neutral-700/80 px-3 py-1.5 rounded-xl border border-neutral-700 text-[11px] text-amber-300 font-mono transition-colors text-left"
               >
                 <Award size={14} className="text-amber-400 shrink-0" />
-                <span>Trade License: <strong className="text-white">{config.tradeLicenseNo || 'TRAD/DNCC/012984/2026'}</strong></span>
+                <span>{t('footer.trade_license')} <strong className="text-white">{config.tradeLicenseNo || 'TRAD/DNCC/012984/2026'}</strong></span>
               </button>
 
               {/* Social Media Links Icons */}
               <div className="space-y-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
-                  Follow Us On Social Media:
+                  {language === 'bn' ? 'সোশ্যাল মিডিয়ায় যুক্ত থাকুন:' : 'Follow Us On Social Media:'}
                 </span>
                 <div className="flex items-center space-x-2.5">
                   {/* Facebook */}
@@ -171,7 +173,7 @@ export default function Footer() {
             {/* COL 2: QUICK SHOP */}
             <div className="md:col-span-2 space-y-4">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider border-b border-neutral-800 pb-2">
-                Categories
+                {t('home.explore_categories')}
               </h4>
               <ul className="space-y-2.5 text-xs">
                 {categories.map((cat, idx) => (
@@ -181,13 +183,13 @@ export default function Footer() {
                       onClick={scrollToTop} 
                       className="text-neutral-400 hover:text-white transition-colors"
                     >
-                      {cat.title}
+                      {translateCategory(cat.title, language)}
                     </Link>
                   </li>
                 ))}
                 <li>
                   <Link to="/shop" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    All Collections
+                    {t('nav.shop_all')}
                   </Link>
                 </li>
               </ul>
@@ -196,7 +198,7 @@ export default function Footer() {
             {/* COL 3: CUSTOMER POLICIES */}
             <div className="md:col-span-3 space-y-4">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider border-b border-neutral-800 pb-2">
-                Customer Care
+                {t('footer.customer_service')}
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
@@ -204,7 +206,7 @@ export default function Footer() {
                     onClick={() => setActivePolicyModal('returns')} 
                     className="text-neutral-400 hover:text-emerald-400 transition-colors text-left flex items-center space-x-1"
                   >
-                    <span>7 Days Return Policy</span>
+                    <span>{t('footer.return_policy')}</span>
                     <ExternalLink size={11} />
                   </button>
                 </li>
@@ -213,7 +215,7 @@ export default function Footer() {
                     onClick={() => setActivePolicyModal('license')} 
                     className="text-neutral-400 hover:text-amber-400 transition-colors text-left flex items-center space-x-1"
                   >
-                    <span>Trade License & Verification</span>
+                    <span>{language === 'bn' ? 'ট্রেড লাইসেন্স ও ভেরিফিকেশন' : 'Trade License & Verification'}</span>
                     <ExternalLink size={11} />
                   </button>
                 </li>
@@ -222,7 +224,7 @@ export default function Footer() {
                     onClick={() => setActivePolicyModal('privacy')} 
                     className="text-neutral-400 hover:text-white transition-colors text-left"
                   >
-                    Privacy Policy
+                    {t('footer.privacy_policy')}
                   </button>
                 </li>
                 <li>
@@ -230,12 +232,12 @@ export default function Footer() {
                     onClick={() => setActivePolicyModal('terms')} 
                     className="text-neutral-400 hover:text-white transition-colors text-left"
                   >
-                    Terms & Conditions
+                    {t('footer.terms_conditions')}
                   </button>
                 </li>
                 <li>
                   <Link to="/account" onClick={scrollToTop} className="text-neutral-400 hover:text-white transition-colors">
-                    My Account Orders
+                    {language === 'bn' ? 'আমার অর্ডারসমূহ' : 'My Account Orders'}
                   </Link>
                 </li>
               </ul>
@@ -244,12 +246,12 @@ export default function Footer() {
             {/* COL 4: STORE HELPLINE & NEWSLETTER */}
             <div className="md:col-span-3 space-y-4">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider border-b border-neutral-800 pb-2">
-                Helpline & Office
+                {t('footer.contact_us')}
               </h4>
               <div className="space-y-2 text-xs text-neutral-400">
                 <p className="flex items-start space-x-2">
                   <MapPin size={16} className="text-[#8B82FF] shrink-0 mt-0.5" />
-                  <span>{config.address || 'Jamuna Future Park, Level 4, Dhaka, Bangladesh'}</span>
+                  <span>{config.address || (language === 'bn' ? 'যমুনা ফিউচার পার্ক, লেভেল ৪, ঢাকা, বাংলাদেশ' : 'Jamuna Future Park, Level 4, Dhaka, Bangladesh')}</span>
                 </p>
                 <p className="flex items-center space-x-2">
                   <Phone size={15} className="text-emerald-400 shrink-0" />
@@ -265,7 +267,7 @@ export default function Footer() {
               <div className="pt-2">
                 <form onSubmit={handleSubscribe} className="space-y-2">
                   <label className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block">
-                    Get Promo Updates
+                    {language === 'bn' ? 'অফার ও নতুন কালেকশনের আপডেট পেতে:' : 'Get Promo Updates'}
                   </label>
                   <div className="flex items-center bg-neutral-800 rounded-xl p-1 border border-neutral-700">
                     <input 
@@ -273,7 +275,7 @@ export default function Footer() {
                       required
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="Your email address" 
+                      placeholder={language === 'bn' ? 'আপনার ইমেইল ঠিকানা' : 'Your email address'} 
                       className="bg-transparent text-xs text-white px-3 py-1.5 w-full outline-none placeholder:text-neutral-500"
                     />
                     <button 
@@ -286,7 +288,7 @@ export default function Footer() {
                   {subscribed && (
                     <p className="text-[11px] text-emerald-400 flex items-center space-x-1">
                       <CheckCircle size={12} />
-                      <span>Thank you for subscribing!</span>
+                      <span>{language === 'bn' ? 'ধন্যবাদ! সাবস্ক্রিপশন সম্পন্ন হয়েছে।' : 'Thank you for subscribing!'}</span>
                     </p>
                   )}
                 </form>
@@ -299,10 +301,10 @@ export default function Footer() {
           <div className="pt-8 border-t border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
             <div className="space-y-1">
               <p className="text-neutral-400 text-xs">
-                &copy; {new Date().getFullYear()} Rare Dreams. All rights reserved.
+                {t('footer.all_rights_reserved')}
               </p>
               <p className="text-[11px] text-neutral-500 font-mono">
-                DBID: {config.dbidNo || 'DBID-2026-884129'} • Trade License: {config.tradeLicenseNo || 'TRAD/DNCC/012984/2026'}
+                DBID: {config.dbidNo || 'DBID-2026-884129'} • {t('footer.trade_license')} {config.tradeLicenseNo || 'TRAD/DNCC/012984/2026'}
               </p>
             </div>
 
@@ -337,3 +339,4 @@ export default function Footer() {
     </>
   );
 }
+

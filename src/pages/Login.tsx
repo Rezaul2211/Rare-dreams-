@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuthStore } from '../store/useAuthStore';
+import { useLanguageStore } from '../store/useLanguageStore';
 import { fetchUserRole } from '../lib/roles';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle, Lock, Mail, User, ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
+  const { language, t } = useLanguageStore();
   const [isLogin, setIsLogin] = useState(true);
   const [isResetMode, setIsResetMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -310,13 +312,13 @@ export default function Login() {
               onClick={() => { setIsResetMode(false); setError(''); setMessage(''); }}
               className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black mb-6 transition-colors"
             >
-              <ArrowLeft size={16} className="mr-1" /> Back to Sign In
+              <ArrowLeft size={16} className="mr-1" /> {language === 'bn' ? 'লগইনে ফিরে যান' : 'Back to Sign In'}
             </button>
 
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold uppercase tracking-tight mb-2">Reset Password</h2>
+              <h2 className="text-2xl font-bold uppercase tracking-tight mb-2">{language === 'bn' ? 'পাসওয়ার্ড রিসেট করুন' : 'Reset Password'}</h2>
               <p className="text-neutral-500 text-xs leading-relaxed">
-                Enter your email address and we will send you a link to reset your password.
+                {language === 'bn' ? 'আপনার ইমেইল দিন এবং আমরা পাসওয়ার্ড রিসেট করার লিঙ্ক পাঠাবো।' : 'Enter your email address and we will send you a link to reset your password.'}
               </p>
             </div>
 
@@ -336,8 +338,8 @@ export default function Login() {
                 <div className="mt-1 pt-2 border-t border-emerald-200/60 text-[11px] text-emerald-900 leading-relaxed">
                   <strong>💡 ইমেইল খুঁজে পাচ্ছেন না?</strong>
                   <ul className="list-disc ml-4 mt-1 space-y-0.5">
-                    <li>আপনার জিমেইলের <strong>Spam / Junk / Promotions</strong> ফোল্ডার চেক করুন। ইমেইলটি <code>noreply@...firebaseapp.com</code> থেকে আসবে।</li>
-                    <li>অথবা পাসওয়ার্ড ভুলে গিয়ে থাকলে <strong>"Create Account"</strong> ট্যাবে গিয়ে আপনার এডমিন ইমেইল (<code className="font-mono">xmrezaul.karim998@gmail.com</code>) দিয়ে নতুন পাসওয়ার্ড সেট করে নিতে পারেন।</li>
+                    <li>আপনার জিমেইলের <strong>Spam / Junk / Promotions</strong> ফোল্ডার চেক করুন।</li>
+                    <li>অথবা পাসওয়ার্ড ভুলে গিয়ে থাকলে নিচে নতুন পাসওয়ার্ড দিয়ে রিসেট করুন।</li>
                   </ul>
                 </div>
               </div>
@@ -346,7 +348,7 @@ export default function Login() {
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  Email Address
+                  {language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -365,7 +367,7 @@ export default function Login() {
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  New Password (Direct Reset)
+                  {language === 'bn' ? 'নতুন পাসওয়ার্ড (সরাসরি রিসেট)' : 'New Password (Direct Reset)'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -376,33 +378,30 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-                    placeholder="Enter new password (optional)"
+                    placeholder={language === 'bn' ? 'নতুন পাসওয়ার্ড লিখুন' : 'Enter new password (optional)'}
                   />
                 </div>
-                <p className="text-[10px] text-neutral-400 mt-1 ml-1">
-                  Enter a new password here to reset instantly on screen without waiting for email.
-                </p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white rounded-xl py-3.5 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70"
+                className="w-full bg-black text-white rounded-xl py-3.5 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70 cursor-pointer"
               >
-                {loading ? 'Processing...' : (password ? 'Reset & Sign In Now' : 'Send Reset Link / Reset On Screen')}
+                {loading ? (language === 'bn' ? 'প্রসেসিং হচ্ছে...' : 'Processing...') : (password ? (language === 'bn' ? 'রিসেট ও সাইন ইন করুন' : 'Reset & Sign In Now') : (language === 'bn' ? 'রিসেট লিংক পাঠান' : 'Send Reset Link'))}
               </button>
             </form>
           </div>
         ) : (
           <>
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold uppercase tracking-tighter mb-3">
-                {isLogin ? 'Welcome Back' : 'Join Us'}
+              <h2 className="text-3xl font-bold uppercase tracking-tighter mb-3 font-display">
+                {isLogin ? (language === 'bn' ? 'পুনরায় স্বাগতম' : 'Welcome Back') : (language === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Join Us')}
               </h2>
               <p className="text-neutral-500 text-sm max-w-[280px] mx-auto leading-relaxed">
                 {isLogin 
-                  ? 'Enter your credentials to access your account and exclusive collections.' 
-                  : 'Create an account to track orders and save your favorite items.'}
+                  ? (language === 'bn' ? 'আপনার অ্যাকাউন্টে লগইন করুন ও কেনাকাটা চালিয়ে যান।' : 'Enter your credentials to access your account.') 
+                  : (language === 'bn' ? 'অর্ডার ট্র্যাক করতে ও ফেভারিট সেভ করতে নতুন অ্যাকাউন্ট খুলুন।' : 'Create an account to track orders and save favorite items.')}
               </p>
             </div>
             
@@ -430,7 +429,7 @@ export default function Login() {
                     className="overflow-hidden"
                   >
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                      Full Name
+                      {language === 'bn' ? 'সম্পূর্ণ নাম' : 'Full Name'}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -442,7 +441,7 @@ export default function Login() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-                        placeholder="Jane Doe"
+                        placeholder={language === 'bn' ? 'আপনার নাম' : 'Jane Doe'}
                       />
                     </div>
                   </motion.div>
@@ -451,7 +450,7 @@ export default function Login() {
               
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  Email Address
+                  {language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -471,7 +470,7 @@ export default function Login() {
               <div>
                 <div className="flex justify-between items-center mb-2 ml-1">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                    Password
+                    {language === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
                   </label>
                   {isLogin && (
                     <button 
@@ -479,7 +478,7 @@ export default function Login() {
                       onClick={() => { setIsResetMode(true); setError(''); setMessage(''); }}
                       className="text-[11px] font-semibold text-neutral-500 hover:text-black transition-colors underline"
                     >
-                      Forgot Password?
+                      {language === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
                     </button>
                   )}
                 </div>
@@ -502,10 +501,10 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full relative overflow-hidden bg-black text-white rounded-xl py-4 text-sm font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70 group"
+                  className="w-full relative overflow-hidden bg-black text-white rounded-xl py-4 text-sm font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70 group cursor-pointer"
                 >
                   <span className={`relative z-10 flex items-center justify-center gap-2 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-                    {isLogin ? 'Sign In' : 'Create Account'}
+                    {isLogin ? (language === 'bn' ? 'সাইন ইন করুন' : 'Sign In') : (language === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account')}
                   </span>
                   {loading && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -518,7 +517,9 @@ export default function Login() {
 
             <div className="mt-8 pt-8 border-t border-neutral-100 text-center">
               <p className="text-sm text-neutral-500 mb-4">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                {isLogin 
+                  ? (language === 'bn' ? 'অ্যাকাউন্ট নেই?' : "Don't have an account?") 
+                  : (language === 'bn' ? 'ইতিপূর্বে অ্যাকাউন্ট রয়েছে?' : "Already have an account?")}
               </p>
               <button
                 onClick={() => {
@@ -526,9 +527,9 @@ export default function Login() {
                   setError('');
                   setMessage('');
                 }}
-                className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 transition-colors inline-flex items-center gap-2"
+                className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 transition-colors inline-flex items-center gap-2 cursor-pointer"
               >
-                {isLogin ? 'Create Account' : 'Sign In'}
+                {isLogin ? (language === 'bn' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'Create Account') : (language === 'bn' ? 'সাইন ইন করুন' : 'Sign In')}
                 <span aria-hidden="true">→</span>
               </button>
             </div>

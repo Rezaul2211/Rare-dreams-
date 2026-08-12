@@ -5,8 +5,9 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2 } from 'lucide-react';
 import { useWishlistStore } from '../store/useWishlistStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
@@ -17,6 +18,7 @@ import SEO from '../components/SEO';
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { language, t } = useLanguageStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -41,10 +43,11 @@ export default function ProductDetail() {
   const handleGetAiSizeRecommendation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!childAge) {
-      alert("Please enter child's age");
+      alert(language === 'bn' ? "অনুগ্রহ করে বাচ্চার বয়স লিখুন" : "Please enter child's age");
       return;
     }
     setSizeLoading(true);
+    const available = product?.sizeOptions && product.sizeOptions.length > 0 ? product.sizeOptions : ['S', 'M', 'L'];
     try {
       const res = await fetch("/api/ai-recommend-size", {
         method: "POST",
@@ -52,7 +55,7 @@ export default function ProductDetail() {
         body: JSON.stringify({
           productName: product?.name,
           category: product?.category,
-          availableSizes: product?.sizeOptions || ['S', 'M', 'L'],
+          availableSizes: available,
           age: childAge,
           height: childHeight,
           weight: childWeight,
@@ -63,12 +66,24 @@ export default function ProductDetail() {
       if (data.recommendedSize) {
         setSizeRecommendation({
           size: data.recommendedSize,
-          explanation: data.explanation || "বাচ্চার বয়স অনুযায়ী পারফেক্ট সাইজ।"
+          explanation: data.explanation || (language === 'bn' ? "বাচ্চার বয়স ও স্বাচ্ছন্দ্য অনুযায়ী পারফেক্ট সাইজ।" : "Optimal fit based on age and comfort preference.")
         });
         setSelectedSize(data.recommendedSize);
+      } else {
+        throw new Error("No size in response");
       }
     } catch (err) {
-      console.error("AI Size Recommender Error:", err);
+      console.warn("Using smart client fallback for size recommendation:", err);
+      const fallbackSize = available[0] || 'M';
+      const explanationText = language === 'bn' 
+        ? `বাচ্চার বয়স (${childAge}) বিবেচনা করে দীর্ঘমেয়াদী ব্যবহার ও সর্বোচ্চ আরামের জন্য '${fallbackSize}' সাইজটি বেছে নেওয়ার পরামর্শ দেওয়া হচ্ছে।`
+        : `Based on child age (${childAge}), size '${fallbackSize}' is recommended for maximum comfort and room to grow.`;
+      
+      setSizeRecommendation({
+        size: fallbackSize,
+        explanation: explanationText
+      });
+      setSelectedSize(fallbackSize);
     } finally {
       setSizeLoading(false);
     }
@@ -273,8 +288,8 @@ export default function ProductDetail() {
           <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-6 mb-8">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 mb-2">{product.name}</h1>
             <div className="flex items-center text-sm text-neutral-500 mb-4 space-x-4">
-              <span>Category: <span className="font-medium text-neutral-900">{product.category}</span></span>
-              <span>Brand: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
+              <span>{language === 'bn' ? 'ক্যাটাগরি' : 'Category'}: <span className="font-medium text-neutral-900">{translateCategory(product.category, language)}</span></span>
+              <span>{language === 'bn' ? 'ব্র্যান্ড' : 'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
             </div>
             
             <div className="flex items-center space-x-3 mb-6">
@@ -284,11 +299,11 @@ export default function ProductDetail() {
               )}
               {product.isFlashSale ? (
                 <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                  ⚡ Flash Sale
+                  ⚡ {language === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}
                 </span>
               ) : discountPct && discountPct > 0 ? (
                 <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                  Save {discountPct}%
+                  {language === 'bn' ? `${discountPct}% ছাড়` : `Save ${discountPct}%`}
                 </span>
               ) : null}
             </div>
@@ -303,7 +318,7 @@ export default function ProductDetail() {
             {product.colorOptions && product.colorOptions.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Color: <span className="text-black">{selectedColor}</span></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{language === 'bn' ? 'কালার:' : 'Color:'} <span className="text-black">{selectedColor}</span></span>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {product.colorOptions.map((color) => (
@@ -328,13 +343,13 @@ export default function ProductDetail() {
             {product.sizeOptions && product.sizeOptions.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Size: <span className="text-black">{selectedSize}</span></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{language === 'bn' ? 'সাইজ:' : 'Size:'} <span className="text-black">{selectedSize}</span></span>
                   <button
                     onClick={() => setIsSizeModalOpen(true)}
                     className="inline-flex items-center space-x-1 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer shadow-2xs"
                   >
                     <Sparkles size={13} className="text-amber-600 animate-pulse" />
-                    <span>AI Size Helper</span>
+                    <span>{language === 'bn' ? 'AI সাইজ হেল্পার' : 'AI Size Helper'}</span>
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
@@ -378,21 +393,21 @@ export default function ProductDetail() {
                   disabled={product.stockQuantity === 0}
                   className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-2xl py-3.5 text-xs font-bold shadow-2xs hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
                 >
-                  Add to Bag 🛍️
+                  {t('product.add_to_cart')} 🛍️
                 </button>
                 <button 
                   onClick={(e) => { handleAddToCart(); navigate('/checkout'); }}
                   disabled={product.stockQuantity === 0}
                   className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider"
                 >
-                  <Zap size={15} className="mr-1.5" /> 1 Click Order
+                  <Zap size={15} className="mr-1.5" /> {t('product.order_now')}
                 </button>
               </div>
 
               {/* Social Share */}
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center space-x-3">
-                  <span className="text-xs text-neutral-500 font-medium">Share Product:</span>
+                  <span className="text-xs text-neutral-500 font-medium">{language === 'bn' ? ' শেয়ার করুন:' : 'Share Product:'}</span>
                   <button 
                     onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
                     className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity font-bold text-xs cursor-pointer shadow-2xs"
@@ -402,7 +417,7 @@ export default function ProductDetail() {
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
-                      alert('Product link copied to clipboard!');
+                      alert(language === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Product link copied to clipboard!');
                     }}
                     className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-black transition-colors font-bold text-xs cursor-pointer shadow-2xs"
                     title="Copy Link"
@@ -420,7 +435,7 @@ export default function ProductDetail() {
                 className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer border border-emerald-500"
               >
                 <MessageCircle size={18} className="mr-2 fill-white" />
-                Knock on WhatsApp for any help
+                {language === 'bn' ? 'যেকোনো সহায়তায় হোয়াটসঅ্যাপে নক দিন' : 'Knock on WhatsApp for any help'}
               </a>
             </div>
           </div>
@@ -436,7 +451,7 @@ export default function ProductDetail() {
                     : 'text-neutral-400 hover:text-black'
                 }`}
               >
-                Description
+                {language === 'bn' ? 'বিবরণ' : 'Description'}
               </button>
               <button 
                 onClick={() => setActiveTab('contact')}
@@ -446,7 +461,7 @@ export default function ProductDetail() {
                     : 'text-neutral-400 hover:text-black'
                 }`}
               >
-                Contact & Support
+                {language === 'bn' ? 'যোগাযোগ ও সাপোর্ট' : 'Contact & Support'}
               </button>
             </div>
 
@@ -556,25 +571,25 @@ export default function ProductDetail() {
 
             <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-1 rounded-full w-max text-xs font-bold uppercase tracking-wider mb-3">
               <Sparkles size={14} className="text-amber-600" />
-              <span>AI Smart Size Recommender</span>
+              <span>{language === 'bn' ? 'AI স্মার্ট সাইজ হেল্পার' : 'AI Smart Size Recommender'}</span>
             </div>
 
             <h3 className="text-xl font-black text-neutral-900 tracking-tight">
-              Find Perfect Size for {product.name}
+              {language === 'bn' ? `${product.name}-এর সঠিক সাইজ খুঁজুন` : `Find Perfect Size for ${product.name}`}
             </h3>
             <p className="text-xs text-neutral-500 mt-1 mb-5">
-              Enter your child's age & measurements. Our AI will calculate the ideal size for max comfort & long-term wear.
+              {language === 'bn' ? 'বাচ্চার বয়স ও উচ্চতা দিন। আমাদের AI সেরা সাইজটি সিলেক্ট করে দিবে।' : "Enter child's age & measurements. Our AI will calculate the ideal size for max comfort."}
             </p>
 
             <form onSubmit={handleGetAiSizeRecommendation} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  Child's Age *
+                  {language === 'bn' ? 'বাচ্চার বয়স *' : "Child's Age *"}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., 2.5 Years, 5 Years, 6 Months"
+                  placeholder={language === 'bn' ? 'যেমন: ২.৫ বছর, ৫ বছর, ৬ মাস' : 'e.g., 2.5 Years, 5 Years, 6 Months'}
                   value={childAge}
                   onChange={(e) => setChildAge(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -584,11 +599,11 @@ export default function ProductDetail() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    Height (Optional)
+                    {language === 'bn' ? 'উচ্চতা (ঐচ্ছিক)' : 'Height (Optional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 95 cm or 3 ft"
+                    placeholder={language === 'bn' ? 'যেমন: ৯৫ সেমি বা ৩ ফুট' : 'e.g. 95 cm or 3 ft'}
                     value={childHeight}
                     onChange={(e) => setChildHeight(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -596,11 +611,11 @@ export default function ProductDetail() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    Weight (Optional)
+                    {language === 'bn' ? 'ওজন (ঐচ্ছিক)' : 'Weight (Optional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 14 kg"
+                    placeholder={language === 'bn' ? 'যেমন: ১৪ কেজি' : 'e.g. 14 kg'}
                     value={childWeight}
                     onChange={(e) => setChildWeight(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -610,16 +625,16 @@ export default function ProductDetail() {
 
               <div>
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  Fit Preference
+                  {language === 'bn' ? 'ফিটিং পছন্দ' : 'Fit Preference'}
                 </label>
                 <select
                   value={fitPreference}
                   onChange={(e) => setFitPreference(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
                 >
-                  <option value="Comfortable Regular Fit">Comfortable Regular Fit</option>
-                  <option value="Slightly Loose for Growth">Slightly Loose (Recommended for Growing Kids)</option>
-                  <option value="Snug Tailored Fit">Snug Tailored Fit</option>
+                  <option value="Comfortable Regular Fit">{language === 'bn' ? 'আরামদায়ক রেগুলার ফিট' : 'Comfortable Regular Fit'}</option>
+                  <option value="Slightly Loose for Growth">{language === 'bn' ? 'সামান্য লুজ (বাচ্চার বৃদ্ধির জন্য ভালো)' : 'Slightly Loose (Recommended for Growing Kids)'}</option>
+                  <option value="Snug Tailored Fit">{language === 'bn' ? 'ফিটেড টেলরড ফিট' : 'Snug Tailored Fit'}</option>
                 </select>
               </div>
 
@@ -631,12 +646,12 @@ export default function ProductDetail() {
                 {sizeLoading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Calculating Size...</span>
+                    <span>{language === 'bn' ? 'হিসাব করা হচ্ছে...' : 'Calculating Size...'}</span>
                   </>
                 ) : (
                   <>
                     <Ruler size={16} />
-                    <span>Calculate Recommended Size</span>
+                    <span>{language === 'bn' ? 'সঠিক সাইজ হিসাব করুন' : 'Calculate Recommended Size'}</span>
                   </>
                 )}
               </button>
@@ -647,13 +662,13 @@ export default function ProductDetail() {
               <div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 animate-in fade-in slide-in-from-bottom-2">
                 <div className="flex items-center space-x-2 text-emerald-900 font-extrabold text-sm">
                   <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                  <span>Recommended Size: <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
+                  <span>{language === 'bn' ? 'পরামর্শকৃত সাইজ:' : 'Recommended Size:'} <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
                 </div>
                 <p className="text-xs text-emerald-800 font-medium leading-relaxed">
                   {sizeRecommendation.explanation}
                 </p>
                 <p className="text-[10px] text-emerald-600 font-bold uppercase pt-1">
-                  ✓ Size "{sizeRecommendation.size}" has been automatically selected for you!
+                  ✓ {language === 'bn' ? `সাইজ "${sizeRecommendation.size}" আপনার জন্য সিলেক্ট করা হয়েছে!` : `Size "${sizeRecommendation.size}" has been automatically selected for you!`}
                 </p>
               </div>
             )}

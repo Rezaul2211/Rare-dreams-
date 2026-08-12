@@ -67,6 +67,18 @@ export default function ProductForm() {
       }
     } catch (err) {
       console.error("AI Auto-tag Error:", err);
+      // Fallback smart detector
+      const lower = (formData.name || '').toLowerCase();
+      let subcat = "Exclusive Collection";
+      if (lower.includes('panjabi') || lower.includes('পাঞ্জাবি')) subcat = "Panjabi & Pajama Set";
+      else if (lower.includes('kabli') || lower.includes('কাবলি')) subcat = "Kabli Suit";
+      else if (lower.includes('gown') || lower.includes('গাউন')) subcat = "Party Gown";
+      else if (lower.includes('frock') || lower.includes('ফ্রক')) subcat = "Designer Frock";
+      else if (lower.includes('lehenga') || lower.includes('লেহেঙ্গা')) subcat = "Luxury Lehenga";
+      else if (lower.includes('shoe') || lower.includes('loafer') || lower.includes('জুতা') || lower.includes('স্যান্ডেল')) subcat = "Leather Loafers & Shoes";
+      else if (lower.includes('shirt') || lower.includes('শার্ট')) subcat = "Casual & Formal Shirt";
+      else if (lower.includes('pant') || lower.includes('jeans') || lower.includes('প্যান্ট')) subcat = "Jeans & Trousers";
+      setFormData(prev => ({ ...prev, subcategory: subcat }));
     } finally {
       setAutoTagging(false);
     }
@@ -142,8 +154,8 @@ export default function ProductForm() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1200;
-            const MAX_HEIGHT = 1200;
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
             let width = img.width;
             let height = img.height;
 
@@ -164,7 +176,7 @@ export default function ProductForm() {
             const ctx = canvas.getContext('2d');
             ctx?.drawImage(img, 0, 0, width, height);
 
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
             
             setFormData(prev => ({
               ...prev,

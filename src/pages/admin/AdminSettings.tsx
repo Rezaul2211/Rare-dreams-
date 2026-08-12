@@ -120,18 +120,20 @@ export default function AdminSettings() {
   const handleCategoryChange = (index: number, field: keyof CategoryItem, value: string) => {
     const updated = [...categories];
     const updatedCat = { ...updated[index], [field]: value };
-    if (field === 'title' && !updatedCat.link) {
-      updatedCat.link = `/category/${value}`;
+    if (field === 'title') {
+      updatedCat.link = `/category/${encodeURIComponent(value)}`;
     }
     updated[index] = updatedCat;
     setCategories(updated);
   };
 
   const handleAddCategory = () => {
+    const nextNum = categories.length + 1;
+    const title = `New Category ${nextNum}`;
     const newCat: CategoryItem = {
       id: crypto.randomUUID(),
-      title: 'New Category',
-      link: '/category/New Category',
+      title,
+      link: `/category/${encodeURIComponent(title)}`,
       image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop'
     };
     setCategories(prev => [...prev, newCat]);
@@ -165,8 +167,8 @@ export default function AdminSettings() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
         let width = img.width;
         let height = img.height;
 
@@ -187,8 +189,8 @@ export default function AdminSettings() {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Compress image to fit within Firestore limits (JPEG 0.7 usually results in <200kb)
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        // Lightweight compressed image (<60KB)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
 
         if (type === 'banner') {
           handleBannerChange(index, 'image', compressedBase64);

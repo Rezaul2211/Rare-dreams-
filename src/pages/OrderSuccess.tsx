@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useLanguageStore } from '../store/useLanguageStore';
 import { CheckCircle2, ShoppingBag, Phone, MapPin, CreditCard, MessageCircle, ArrowRight, Loader2, PackageCheck } from 'lucide-react';
 
 export default function OrderSuccess() {
+  const { language } = useLanguageStore();
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -41,13 +43,13 @@ export default function OrderSuccess() {
 
         <div>
           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            Order Confirmed & Received
+            {language === 'bn' ? 'অর্ডার কনফার্ম ও রিসিভ হয়েছে' : 'Order Confirmed & Received'}
           </span>
           <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-3 font-display">
-            আপনার অর্ডারটি সফলভাবে জমা হয়েছে!
+            {language === 'bn' ? 'আপনার অর্ডারটি সফলভাবে জমা হয়েছে!' : 'Your Order Has Been Successfully Placed!'}
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto mt-2 leading-relaxed">
-            ধন্যবাদ! আমাদের প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবে এবং পার্সেল ডেলিভারি প্রক্রিয়াজাত করবে।
+            {language === 'bn' ? 'ধন্যবাদ! আমাদের প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবে এবং পার্সেল ডেলিভারি প্রক্রিয়াজাত করবে।' : 'Thank you! Our representative will contact you shortly and dispatch your parcel.'}
           </p>
         </div>
 
@@ -172,14 +174,14 @@ export default function OrderSuccess() {
           className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
         >
           <MessageCircle size={18} />
-          <span>Need Help? Chat on WhatsApp</span>
+          <span>{language === 'bn' ? 'হোয়াটসঅ্যাপে সাহায্য নিন' : 'Need Help? Chat on WhatsApp'}</span>
         </a>
 
         <Link 
           to="/shop" 
           className="w-full sm:w-auto bg-black text-white px-8 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
         >
-          <span>Continue Shopping</span>
+          <span>{language === 'bn' ? 'আরও কেনাকাটা করুন' : 'Continue Shopping'}</span>
           <ArrowRight size={16} />
         </Link>
       </div>

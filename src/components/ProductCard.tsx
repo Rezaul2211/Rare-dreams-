@@ -6,6 +6,7 @@ import { Product } from '../types';
 import { LazyImage } from './LazyImage';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,7 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, index = 0 }) => {
   const { animateAddToCart } = useFlyToCart();
   const { isWishlisted, toggleWishlist } = useWishlistStore();
+  const { language, t } = useLanguageStore();
   const [added, setAdded] = React.useState(false);
 
   const favorited = isWishlisted(product.id);
@@ -73,16 +75,16 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
         {/* Discount Badge on Top Left */}
         {product.stockQuantity === 0 ? (
           <div className="absolute top-3 left-3 z-10 bg-neutral-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-            Sold Out
+            {t('product.out_of_stock')}
           </div>
         ) : discountPct && discountPct > 0 ? (
           <div className="absolute top-3 left-3 z-10 bg-[#EF4444] text-white text-[11px] sm:text-xs font-black px-2.5 py-1 rounded-full shadow-md tracking-tight flex items-center gap-0.5 border border-white/20">
-            -{discountPct}% OFF
+            -{discountPct}% {t('product.discount')}
           </div>
         ) : product.isFlashSale ? (
           <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
             <span>⚡</span>
-            <span>FLASH SALE</span>
+            <span>{t('home.flash_sale')}</span>
           </div>
         ) : null}
 
@@ -109,7 +111,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
       <div className="p-4 flex flex-col flex-grow">
         {product.category && (
           <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
-            {product.category}
+            {translateCategory(product.category, language)}
           </span>
         )}
 
@@ -123,11 +125,11 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-neutral-100">
           <div className="flex flex-col">
             <span className="font-extrabold text-base md:text-lg leading-none text-neutral-900">
-              ৳ {product.price.toFixed(2)}
+              ৳ {product.price.toFixed(0)}
             </span>
             {product.comparePrice && product.comparePrice > product.price && (
               <span className="text-xs text-neutral-400 line-through mt-1">
-                ৳ {product.comparePrice.toFixed(2)}
+                ৳ {product.comparePrice.toFixed(0)}
               </span>
             )}
           </div>
@@ -151,4 +153,5 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
     </motion.div>
   );
 });
+
 

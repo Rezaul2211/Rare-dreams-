@@ -255,8 +255,21 @@ Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2
       }
     }
 
+    // 3. Smart Keyword Fallback Detector
+    const lower = (name || '').toLowerCase();
+    let smartSubcat = 'Exclusive Collection';
+    if (lower.includes('panjabi') || lower.includes('পাঞ্জাবি')) smartSubcat = "Panjabi & Pajama Set";
+    else if (lower.includes('kabli') || lower.includes('কাবলি')) smartSubcat = "Kabli Suit";
+    else if (lower.includes('gown') || lower.includes('গাউন')) smartSubcat = "Party Gown";
+    else if (lower.includes('frock') || lower.includes('ফ্রক')) smartSubcat = "Designer Frock";
+    else if (lower.includes('lehenga') || lower.includes('লেহেঙ্গা')) smartSubcat = "Luxury Lehenga";
+    else if (lower.includes('shoe') || lower.includes('loafer') || lower.includes('জুতা') || lower.includes('স্যান্ডেল')) smartSubcat = "Leather Loafers & Shoes";
+    else if (lower.includes('shirt') || lower.includes('শার্ট')) smartSubcat = "Casual & Formal Shirt";
+    else if (lower.includes('pant') || lower.includes('jeans') || lower.includes('প্যান্ট')) smartSubcat = "Jeans & Trousers";
+    else if (category === 'Foot wear') smartSubcat = "Shoes & Loafers";
+
     res.json({
-      subcategory: category === 'Foot wear' ? 'Shoes & Loafers' : 'Exclusive Collection',
+      subcategory: smartSubcat,
       tags: ['Party Wear', 'Premium Quality', 'Rare Dreams Special', 'New Arrival']
     });
   } catch (error: any) {

@@ -10,7 +10,6 @@ import {
   Menu, 
   X, 
   ShieldCheck, 
-  ArrowLeft, 
   Users, 
   Image, 
   Bell, 
@@ -46,9 +45,8 @@ export default function AdminLayout() {
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Add Product', path: '/admin/products/new', icon: Package },
-    { name: 'Order History', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Products List', path: '/admin/products', icon: Package },
+    { name: 'Order History', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Banners & Styling', path: '/admin/settings', icon: Image },
     { name: 'System Setup', path: '/admin/system', icon: Settings },
@@ -60,13 +58,13 @@ export default function AdminLayout() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[#F8F9FC] font-sans">
-      {/* Top Header Bar matching Screenshot 2 */}
-      <div className="bg-white border-b border-neutral-200/80 px-4 py-3 flex justify-between items-center sticky top-0 z-40 shadow-2xs">
-        <div className="flex items-center space-x-3">
+      {/* Top Header Bar */}
+      <div className="bg-white border-b border-neutral-200/80 px-3 sm:px-4 py-2.5 flex justify-between items-center sticky top-0 z-40 shadow-2xs">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Toggle Menu button */}
           <button 
             onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="p-2 text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors"
+            className="p-2 text-neutral-700 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
             aria-label="Toggle menu"
           >
             {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -74,45 +72,36 @@ export default function AdminLayout() {
 
           {/* Logo Brand */}
           <Link to="/admin" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center shadow-xs shrink-0">
               <Crown size={18} className="text-neutral-900 fill-amber-500" />
             </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-tight text-neutral-900 font-display">
+            <div className="hidden min-[380px]:block">
+              <h2 className="text-xs sm:text-sm font-black uppercase tracking-tight text-neutral-900 font-display">
                 RARE DREAMS
               </h2>
-              <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider -mt-0.5">
+              <p className="text-[9px] sm:text-[10px] text-neutral-400 font-bold uppercase tracking-wider -mt-0.5">
                 Admin Panel
               </p>
             </div>
           </Link>
         </div>
 
-        {/* Header Right Tools: Back button, Notification Bell, Admin Avatar */}
-        <div className="flex items-center space-x-3">
-          <Link
-            to="/"
-            className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold rounded-xl transition-colors"
-            title="View Live Store"
-          >
-            <Store size={14} className="text-amber-600" />
-            <span>Store</span>
-          </Link>
-
+        {/* Header Right Tools: Bell, Avatar */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Notification Bell with Badge */}
-          <button className="relative p-2 text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-4 h-4 bg-purple-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
+          <button className="relative p-2 text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer">
+            <Bell size={18} />
+            <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-purple-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
               3
             </span>
           </button>
 
-          {/* User Avatar with Green Active Dot */}
+          {/* User Avatar */}
           <div className="relative shrink-0 cursor-pointer" onClick={() => navigate('/account')}>
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop"
               alt={cleanAdminName}
-              className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-xs"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-white shadow-xs"
             />
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
           </div>

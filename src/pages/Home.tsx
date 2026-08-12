@@ -10,12 +10,14 @@ import { ProductCard } from '../components/ProductCard';
 import HomeSkeleton from '../components/HomeSkeleton';
 import { DEFAULT_HERO_SLIDES, BannerSlide } from './admin/AdminSettings';
 import { useCategoryStore } from '../store/useCategoryStore';
+import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import SEO from '../components/SEO';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroSlides, setHeroSlides] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
   const { categories: storeCategories } = useCategoryStore();
+  const { language, t } = useLanguageStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSettings, setLoadingSettings] = useState(true);
@@ -201,16 +203,16 @@ export default function Home() {
             <div className="max-w-6xl mx-auto px-3 sm:px-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Featured Collections</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">{t('home.hero_tagline')}</span>
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                    Shop By Category
+                    {t('home.explore_categories')}
                   </h2>
                 </div>
                 <Link 
                   to="/shop" 
                   className="text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 transition-colors flex items-center gap-1 bg-neutral-100 px-3 py-1.5 rounded-xl"
                 >
-                  <span>See All</span>
+                  <span>{t('home.view_all')}</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>
@@ -242,7 +244,7 @@ export default function Home() {
                       {/* Overlay Title */}
                       <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 text-center z-10 px-2">
                         <h3 className="text-base sm:text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-500 font-display">
-                          {cat.title}
+                          {translateCategory(cat.title, language)}
                         </h3>
                       </div>
                     </Link>
@@ -254,7 +256,7 @@ export default function Home() {
         </>
       )}
 
-      {/* PRODUCTS BY CATEGORY SECTIONS (Replacing old "View All" single list) */}
+      {/* PRODUCTS BY CATEGORY SECTIONS */}
       <div className="space-y-8 pb-12 bg-[#FAFAFA] pt-8">
         {storeCategories.map((cat) => {
           const catProducts = productsByCategory.get(cat.title) || [];
@@ -264,9 +266,9 @@ export default function Home() {
             <section key={cat.title} className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
               <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Category</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{t('home.explore_categories')}</span>
                   <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                    {cat.title}
+                    {translateCategory(cat.title, language)}
                   </h2>
                 </div>
 
@@ -274,7 +276,7 @@ export default function Home() {
                   to={cat.link || `/category/${cat.title}`} 
                   className="text-xs font-bold uppercase tracking-wider text-neutral-800 hover:text-black transition-colors flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1.5 rounded-xl shadow-2xs hover:shadow-xs"
                 >
-                  <span>See All</span>
+                  <span>{t('home.view_all')}</span>
                   <ArrowRight size={14} />
                 </Link>
               </div>
@@ -300,9 +302,9 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full pt-4">
           <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Fresh Stock</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">{t('home.featured_products')}</span>
               <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                New Arrivals
+                {t('home.new_arrivals')}
               </h2>
             </div>
 
@@ -310,7 +312,7 @@ export default function Home() {
               to="/shop" 
               className="text-xs font-bold uppercase tracking-wider text-white bg-black hover:bg-neutral-800 transition-colors flex items-center gap-1 px-4 py-2 rounded-xl shadow-xs"
             >
-              <span>See All</span>
+              <span>{t('home.view_all')}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -329,7 +331,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center text-neutral-500 py-12 bg-white rounded-3xl border border-neutral-200">
-              No products found in store catalogue yet.
+              {language === 'bn' ? 'স্টোরে এখনও কোন পোশাক যুক্ত হয়নি।' : 'No products found in store catalogue yet.'}
             </div>
           )}
         </section>
