@@ -201,20 +201,10 @@ export default function Home() {
           {/* Featured Categories (2x2 Grid with Clean Gap) */}
           <section className="pt-4 pb-8 bg-white w-full">
             <div className="max-w-6xl mx-auto px-3 sm:px-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">{t('home.hero_tagline')}</span>
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                    {t('home.explore_categories')}
-                  </h2>
-                </div>
-                <Link 
-                  to="/shop" 
-                  className="text-xs font-bold uppercase tracking-wider text-neutral-900 hover:text-neutral-600 transition-colors flex items-center gap-1 bg-neutral-100 px-3 py-1.5 rounded-xl"
-                >
-                  <span>{t('home.view_all')}</span>
-                  <ArrowRight size={14} />
-                </Link>
+              <div className="mb-4">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
+                  {t('home.explore_categories')}
+                </h2>
               </div>
 
               {/* Grid */}
