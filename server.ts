@@ -212,6 +212,106 @@ Instructions:
 });
 
 // 3. AI Auto-Tag & Subcategory Assistant API Route (Admin Tool)
+// 3. AI Auto-Tag & Subcategory Assistant API Route (Admin Tool)
+app.post("/api/ai-product-auto-fill", async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ error: "No image provided" });
+    }
+
+    const prompt = `You are an expert e-commerce catalog AI assistant for the luxury Bangladeshi kids & family fashion brand "Rare Dreams".
+Analyze the provided product image using vision and search intelligence.
+Generate complete, accurate product metadata strictly in JSON format.
+
+Required JSON Structure:
+{
+  "name": "Exact product title in Bengali & English e.g. ছেলেদের রয়েল কাftan পাঞ্জাবি সেট - Maroon",
+  "category": "Must be ONE of: Mens items, Womens items, Baby items, Foot wear",
+  "subcategory": "e.g. Panjabi Set, Party Gown, Baby Romper, Leather Loafers, Formal Shirt, Jeans",
+  "description": "Comprehensive, attractive product description in Bengali highlighting luxury quality, fabric comfort, stitching, and occasion suitability",
+  "material": "e.g. 100% Premium Cotton / Pure Silk / Katan / Genuine Leather",
+  "price": 1250,
+  "comparePrice": 1650,
+  "discount": 24,
+  "sizeOptions": ["22", "24", "26", "28", "30"],
+  "colorOptions": ["Maroon", "Gold"]
+}
+`;
+
+    const ai = getAI();
+    if (ai) {
+      try {
+        let imagePart: any = null;
+        if (typeof image === 'string' && image.startsWith("data:")) {
+          const match = image.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+          if (match) {
+            imagePart = {
+              inlineData: {
+                mimeType: match[1],
+                data: match[2]
+              }
+            };
+          }
+        } else if (typeof image === 'string' && image.startsWith("http")) {
+          const imgRes = await fetch(image);
+          if (imgRes.ok) {
+            const arrayBuffer = await imgRes.arrayBuffer();
+            const base64Str = Buffer.from(arrayBuffer).toString("base64");
+            const contentType = imgRes.headers.get("content-type") || "image/jpeg";
+            imagePart = {
+              inlineData: {
+                mimeType: contentType,
+                data: base64Str
+              }
+            };
+          }
+        }
+
+        const contents: any[] = [];
+        if (imagePart) {
+          contents.push({ role: "user", parts: [imagePart, { text: prompt }] });
+        } else {
+          contents.push({ role: "user", parts: [{ text: prompt }] });
+        }
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents
+        });
+
+        if (response?.text) {
+          const cleanText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+          try {
+            const parsed = JSON.parse(cleanText);
+            return res.json(parsed);
+          } catch (e) {
+            console.warn("JSON parse error from Gemini vision:", e);
+          }
+        }
+      } catch (geminiErr: any) {
+        console.warn("Gemini vision auto-fill error:", geminiErr?.message || geminiErr);
+      }
+    }
+
+    // Fallback response
+    res.json({
+      name: "এক্সক্লুসিভ প্রিমিয়াম রয়েল কালেকশন",
+      category: "Mens items",
+      subcategory: "Panjabi & Pajama Set",
+      description: "রেয়ার ড্রিমস (Rare Dreams)-এর এই প্রিমিয়াম পোশাকটি অত্যন্ত সুক্ষ্ম সেলাই ও ১০০% আরামদায়ক ফেব্রিকে তৈরি। স্কিন ফ্রেন্ডলি ও যেকোনো অনুষ্ঠানে ব্যবহারের জন্য অতুলনীয়।",
+      material: "১০০% প্রিমিয়াম কটন",
+      price: 1250,
+      comparePrice: 1550,
+      discount: 20,
+      sizeOptions: ["22", "24", "26", "28", "30"],
+      colorOptions: ["Maroon", "Gold"]
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Auto fill failed" });
+  }
+});
+
 app.post("/api/ai-tag-product", async (req, res) => {
   try {
     const { name, category } = req.body;

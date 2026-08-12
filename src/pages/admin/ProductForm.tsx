@@ -16,6 +16,42 @@ export default function ProductForm() {
   const [fetching, setFetching] = useState(isEditing);
   const [generatingAiDesc, setGeneratingAiDesc] = useState(false);
   const [autoTagging, setAutoTagging] = useState(false);
+  const [autoFilling, setAutoFilling] = useState(false);
+
+  const handleAiAutoFillFromImage = async () => {
+    if (!formData.images || formData.images.length === 0) {
+      alert("অনুগ্রহ করে প্রথমে প্রোডাক্ট এর ছবি আপলোড বা যুক্ত করুন!");
+      return;
+    }
+    setAutoFilling(true);
+    try {
+      const res = await fetch("/api/ai-product-auto-fill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: formData.images[0] })
+      });
+      const data = await res.json();
+      if (data && !data.error) {
+        setFormData(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          description: data.description || prev.description,
+          category: data.category || prev.category,
+          subcategory: data.subcategory || prev.subcategory,
+          material: data.material || prev.material,
+          price: data.price ? Number(data.price) : prev.price,
+          comparePrice: data.comparePrice ? Number(data.comparePrice) : prev.comparePrice,
+          discount: data.discount ? Number(data.discount) : prev.discount,
+          sizeOptions: Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0 ? data.sizeOptions : (prev.sizeOptions || []),
+          colorOptions: Array.isArray(data.colorOptions) && data.colorOptions.length > 0 ? data.colorOptions : (prev.colorOptions || []),
+        }));
+      }
+    } catch (err) {
+      console.error("Auto fill error:", err);
+    } finally {
+      setAutoFilling(false);
+    }
+  };
 
   const handleAiGenerateDesc = async () => {
     if (!formData.name) {
@@ -326,7 +362,30 @@ export default function ProductForm() {
 
             {/* Images */}
             <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
-              <h2 className="text-base sm:text-lg font-bold">Product Images</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-base sm:text-lg font-bold">Product Images</h2>
+                
+                {/* AI Image Auto-Fill Button */}
+                <button
+                  type="button"
+                  onClick={handleAiAutoFillFromImage}
+                  disabled={autoFilling || !formData.images || formData.images.length === 0}
+                  className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3 py-1.5 rounded-xl hover:from-amber-200 hover:to-amber-200 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                  title="Upload image first, then click to auto generate name, category, description & tags"
+                >
+                  {autoFilling ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin text-amber-800" />
+                      <span>গুগল সার্চ ও এআই জেনারেট হচ্ছে...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={15} className="text-amber-700" />
+                      <span>ছবি দেখে অটো নাম ও তথ্য জেনারেট করুন</span>
+                    </>
+                  )}
+                </button>
+              </div>
               
               {/* Local File Upload Button */}
               <div className="border-2 border-dashed border-neutral-300 rounded-2xl p-4 text-center hover:bg-neutral-50 transition-colors w-full">

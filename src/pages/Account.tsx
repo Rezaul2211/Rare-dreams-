@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
+import { useWishlistStore } from '../store/useWishlistStore';
+import { useFlyToCart } from '../context/FlyToCartContext';
 import { useLanguageStore } from '../store/useLanguageStore';
 import { Order, AddressItem, PaymentMethodItem, Product } from '../types';
 import { 
@@ -62,12 +64,16 @@ const INITIAL_COUPONS = [
 export default function Account() {
   const { user, logout, updateUserProfile } = useAuthStore();
   const { items: cartItems } = useCartStore();
+  const { wishlistIds, toggleWishlist } = useWishlistStore();
+  const { animateAddToCart } = useFlyToCart();
   const { language, setLanguage } = useLanguageStore();
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalProductCount, setTotalProductCount] = useState<number>(6);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
+  const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
+  const [loadingWishlist, setLoadingWishlist] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   // Form States
@@ -150,6 +156,43 @@ export default function Account() {
 
     fetchBackgroundStats();
   }, [user]);
+
+  // Fetch Wishlist products from Firestore when wishlistIds changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchWishlistProducts = async () => {
+      if (!wishlistIds || wishlistIds.length === 0) {
+        if (isMounted) setWishlistProducts([]);
+        return;
+      }
+      if (isMounted) setLoadingWishlist(true);
+      try {
+        const prods = await Promise.all(
+          wishlistIds.map(async (id) => {
+            try {
+              const docSnap = await getDoc(doc(db, 'products', id));
+              if (docSnap.exists()) {
+                return { id: docSnap.id, ...docSnap.data() } as Product;
+              }
+            } catch (e) {
+              console.error("Error fetching wishlist product", id, e);
+            }
+            return null;
+          })
+        );
+        if (isMounted) {
+          setWishlistProducts(prods.filter((p): p is Product => p !== null));
+        }
+      } catch (err) {
+        console.error("Error loading wishlist products:", err);
+      } finally {
+        if (isMounted) setLoadingWishlist(false);
+      }
+    };
+
+    fetchWishlistProducts();
+    return () => { isMounted = false; };
+  }, [wishlistIds]);
 
   const handleClearRecentlyViewed = () => {
     localStorage.removeItem('rare_dreams_recently_viewed');
@@ -384,6 +427,27 @@ export default function Account() {
               <span className="text-base font-bold text-neutral-900">
                 Sales History
               </span>
+            </div>
+            <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
+          </button>
+
+          {/* Wishlist & Saved Items */}
+          <button
+            onClick={() => setActiveModal('wishlist')}
+            className="w-full bg-white hover:bg-neutral-50 p-4 rounded-2xl border border-neutral-200/90 shadow-2xs flex items-center justify-between group transition-all text-left"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-rose-100/80 text-rose-800 flex items-center justify-center shrink-0">
+                <Heart size={20} strokeWidth={2} className="fill-rose-500/20 text-rose-700" />
+              </div>
+              <div>
+                <span className="text-base font-bold text-neutral-900 block leading-tight">
+                  Wishlist & Saved Items
+                </span>
+                <span className="text-xs text-neutral-500 font-medium">
+                  {wishlistIds.length} {wishlistIds.length === 1 ? 'item' : 'items'} saved
+                </span>
+              </div>
             </div>
             <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
           </button>
@@ -781,6 +845,118 @@ export default function Account() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* 5. WISHLIST / SAVED ITEMS MODAL */}
+      {activeModal === 'wishlist' && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 border border-neutral-100 relative max-h-[85vh] overflow-y-auto">
+            <button 
+              onClick={() => setActiveModal(null)}
+              className="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center space-x-3 border-b border-neutral-100 pb-3 pr-8">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+                <Heart size={20} className="fill-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">Wishlist & Saved Items</h3>
+                <p className="text-xs text-neutral-400 font-medium">
+                  {wishlistProducts.length} saved product{wishlistProducts.length === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {loadingWishlist ? (
+                <div className="text-center py-8 text-neutral-400 text-xs font-medium">
+                  Loading saved wishlist items...
+                </div>
+              ) : wishlistProducts.length === 0 ? (
+                <div className="text-center py-10 bg-neutral-50 rounded-2xl border border-dashed border-neutral-200 space-y-3 p-4">
+                  <Heart className="mx-auto text-rose-300 fill-rose-100" size={40} />
+                  <div>
+                    <p className="text-xs font-bold text-neutral-700">Your Wishlist is empty</p>
+                    <p className="text-[11px] text-neutral-400 mt-1">
+                      Save items you like from the product details page to view them here later.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { setActiveModal(null); navigate('/shop'); }}
+                    className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-neutral-800 transition-colors inline-block cursor-pointer"
+                  >
+                    Explore Shop
+                  </button>
+                </div>
+              ) : (
+                wishlistProducts.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80 flex items-center justify-between gap-3 group hover:border-neutral-300 transition-all"
+                  >
+                    <Link 
+                      to={`/product/${product.id}`} 
+                      onClick={() => setActiveModal(null)}
+                      className="flex items-center space-x-3 min-w-0 flex-1"
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-200 shrink-0 border border-neutral-200/60">
+                        {product.images?.[0] ? (
+                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-400">No Image</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block truncate">
+                          {product.category}
+                        </span>
+                        <h4 className="text-xs font-bold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
+                          {product.name}
+                        </h4>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs font-black text-neutral-900 font-mono">
+                            ৳{product.price.toLocaleString()}
+                          </span>
+                          {product.comparePrice && product.comparePrice > product.price && (
+                            <span className="text-[10px] text-neutral-400 line-through">
+                              ৳{product.comparePrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (product.stockQuantity === 0) return;
+                          animateAddToCart(product, e);
+                        }}
+                        disabled={product.stockQuantity === 0}
+                        className="bg-black text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-neutral-800 transition-colors flex items-center space-x-1 cursor-pointer disabled:opacity-40"
+                        title="Add to Cart"
+                      >
+                        <ShoppingBag size={14} />
+                        <span className="hidden sm:inline">Add</span>
+                      </button>
+                      <button
+                        onClick={() => toggleWishlist(product.id)}
+                        className="p-2 rounded-xl bg-white border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-200 transition-colors cursor-pointer"
+                        title="Remove from Wishlist"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}

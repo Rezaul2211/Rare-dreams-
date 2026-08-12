@@ -7,6 +7,7 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
+import { CompactProductCard } from '../components/CompactProductCard';
 import HomeSkeleton from '../components/HomeSkeleton';
 import { DEFAULT_HERO_SLIDES, BannerSlide } from './admin/AdminSettings';
 import { useCategoryStore } from '../store/useCategoryStore';
@@ -21,6 +22,28 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSettings, setLoadingSettings] = useState(true);
+
+  // New Arrivals Horizontal Auto-Scroll Ref & Pause state
+  const newArrivalsRef = React.useRef<HTMLDivElement>(null);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+
+  // Smooth continuous auto-scroll for New Arrivals
+  useEffect(() => {
+    if (isUserInteracting || allProducts.length === 0) return;
+    const container = newArrivalsRef.current;
+    if (!container) return;
+
+    const interval = setInterval(() => {
+      if (!container) return;
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 8) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 1, behavior: 'auto' });
+      }
+    }, 25);
+
+    return () => clearInterval(interval);
+  }, [isUserInteracting, allProducts.length]);
 
   // Fetch Homepage Customization Settings from Firestore
   useEffect(() => {
@@ -248,39 +271,35 @@ export default function Home() {
 
       {/* PRODUCTS DISPLAY SECTIONS */}
       <div className="space-y-10 pb-12 bg-[#FAFAFA] pt-6">
-        {/* 1. FIRST: ALL NEW ARRIVALS SECTION */}
+        {/* 1. FIRST: ALL NEW ARRIVALS SECTION (Horizontal Compact Single-Row Auto-Scrolling) */}
         <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
-          <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">{t('home.featured_products')}</span>
-              <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
+          <div className="flex items-center justify-between mb-3 border-b border-neutral-200/80 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-neutral-900 font-display">
                 {t('home.new_arrivals')}
               </h2>
             </div>
 
             <Link 
               to="/shop" 
-              className="text-xs font-bold uppercase tracking-wider text-white bg-black hover:bg-neutral-800 transition-colors flex items-center gap-1 px-4 py-2 rounded-xl shadow-xs"
+              className="text-xs font-bold text-amber-800 hover:text-black transition-colors flex items-center gap-0.5 hover:underline decoration-amber-600 underline-offset-2 shrink-0"
             >
               <span>{t('home.view_all')}</span>
-              <ArrowRight size={14} />
+              <ChevronRight size={14} />
             </Link>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
               {[...Array(4)].map((_, i) => (
-                <ProductSkeleton key={i} index={i} />
+                <div key={i} className="w-[145px] sm:w-[170px] aspect-[3/4] bg-neutral-200 animate-pulse rounded-2xl shrink-0" />
               ))}
             </div>
           ) : allProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-              {allProducts.slice(0, 8).map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </div>
+            <NewArrivalsCarousel products={allProducts.slice(0, 12)} />
           ) : (
-            <div className="text-center text-neutral-500 py-12 bg-white rounded-3xl border border-neutral-200">
+            <div className="text-center text-neutral-500 py-8 bg-white rounded-2xl border border-neutral-200 text-xs">
               {language === 'bn' ? 'স্টোরে এখনও কোন পোশাক যুক্ত হয়নি।' : 'No products found in store catalogue yet.'}
             </div>
           )}
@@ -293,20 +312,20 @@ export default function Home() {
 
           return (
             <section key={cat.title} className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
-              <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
+              <div className="flex items-center justify-between mb-4 border-b border-neutral-200/80 pb-2">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{t('home.explore_categories')}</span>
-                  <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">{t('home.explore_categories')}</span>
+                  <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-neutral-900 font-display">
                     {translateCategory(cat.title, language)}
                   </h2>
                 </div>
 
                 <Link 
                   to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
-                  className="text-xs font-bold uppercase tracking-wider text-neutral-800 hover:text-black transition-colors flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1.5 rounded-xl shadow-2xs hover:shadow-xs"
+                  className="text-xs font-bold text-neutral-700 hover:text-black transition-colors flex items-center gap-0.5 hover:underline underline-offset-2 shrink-0"
                 >
                   <span>{t('home.view_all')}</span>
-                  <ArrowRight size={14} />
+                  <ChevronRight size={14} />
                 </Link>
               </div>
 
@@ -326,6 +345,73 @@ export default function Home() {
             </section>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function NewArrivalsCarousel({ products }: { products: Product[] }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const interval = setInterval(() => {
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 4) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollLeft += 1;
+      }
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  const handleScrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -240, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 240, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="relative group/carousel">
+      {/* Scroll Navigation Buttons */}
+      <button
+        onClick={handleScrollLeft}
+        className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/90 shadow-md border border-neutral-200 text-neutral-800 flex items-center justify-center hover:bg-black hover:text-white transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer"
+        aria-label="Scroll left"
+      >
+        <ChevronLeft size={18} />
+      </button>
+
+      <button
+        onClick={handleScrollRight}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/90 shadow-md border border-neutral-200 text-neutral-800 flex items-center justify-center hover:bg-black hover:text-white transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer"
+        aria-label="Scroll right"
+      >
+        <ChevronRight size={18} />
+      </button>
+
+      <div
+        ref={scrollRef}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+        className="flex flex-nowrap overflow-x-auto gap-3 pb-3 pt-1 scrollbar-none touch-pan-x cursor-grab active:cursor-grabbing select-none"
+      >
+        {products.map((product, idx) => (
+          <CompactProductCard key={product.id || idx} product={product} index={idx} />
+        ))}
       </div>
     </div>
   );

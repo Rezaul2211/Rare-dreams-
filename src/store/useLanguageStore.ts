@@ -14,7 +14,7 @@ export const translations: Record<Language, Record<string, string>> = {
   bn: {
     // Header & Nav
     'nav.home': 'হোম',
-    'nav.shop_all': 'সব পোশাক',
+    'nav.shop_all': 'শপ',
     'nav.cart': 'কার্ট',
     'nav.account': 'অ্যাকাউন্ট',
     'nav.admin': 'এডমিন প্যানেল',
@@ -166,7 +166,7 @@ export const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header & Nav
     'nav.home': 'Home',
-    'nav.shop_all': 'Shop All',
+    'nav.shop_all': 'Shop',
     'nav.cart': 'Cart',
     'nav.account': 'Account',
     'nav.admin': 'Admin Panel',
