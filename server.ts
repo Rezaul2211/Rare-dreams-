@@ -16,7 +16,14 @@ function getAI(): GoogleGenAI | null {
   const key = process.env.GEMINI_API_KEY;
   if (!key || key.trim() === '' || key === "MY_GEMINI_API_KEY" || key.startsWith("MY_")) return null;
   if (!aiClient) {
-    aiClient = new GoogleGenAI({ apiKey: key.trim() });
+    aiClient = new GoogleGenAI({
+      apiKey: key.trim(),
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build'
+        }
+      }
+    });
   }
   return aiClient;
 }
@@ -65,6 +72,56 @@ async function callGroq(prompt: string, systemPrompt?: string, jsonMode?: boolea
     }
   } catch (err) {
     console.warn("Groq API request error:", err);
+  }
+  return null;
+}
+
+// Reusable Groq Vision Helper
+async function callGroqVision(prompt: string, mimeType: string, base64Data: string, jsonMode?: boolean): Promise<string | null> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey || groqApiKey.trim() === '' || groqApiKey.startsWith('MY_')) {
+    return null;
+  }
+
+  const body: any = {
+    model: "qwen/qwen3.6-27b",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Data}` } }
+        ]
+      }
+    ],
+    temperature: 0.7,
+    max_tokens: 1024
+  };
+
+  if (jsonMode) {
+    body.response_format = { type: "json_object" };
+  }
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${groqApiKey.trim()}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) return content.trim();
+    } else {
+      const errText = await res.text();
+      console.warn("Groq Vision API warning status:", res.status, errText);
+    }
+  } catch (err) {
+    console.warn("Groq Vision API request error:", err);
   }
   return null;
 }
@@ -124,7 +181,7 @@ Requirements:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -182,7 +239,7 @@ Instructions:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -239,44 +296,57 @@ Required JSON Structure:
 }
 `;
 
+    let mimeType = "image/jpeg";
+    let base64Data = "";
+
+    if (typeof image === 'string' && image.startsWith("data:")) {
+      const match = image.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+      if (match) {
+        mimeType = match[1];
+        base64Data = match[2];
+      }
+    } else if (typeof image === 'string' && image.startsWith("http")) {
+      const imgRes = await fetch(image);
+      if (imgRes.ok) {
+        const arrayBuffer = await imgRes.arrayBuffer();
+        base64Data = Buffer.from(arrayBuffer).toString("base64");
+        mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+      }
+    }
+
+    // 1. Try Groq Vision first if we have image data
+    if (base64Data) {
+      const groqResponse = await callGroqVision(prompt, mimeType, base64Data, true);
+      if (groqResponse) {
+        try {
+          const cleanText = groqResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanText);
+          return res.json(parsed);
+        } catch (e) {
+          console.warn("JSON parse error from Groq vision:", e);
+        }
+      }
+    }
+
+    // 2. Fallback to Gemini
     const ai = getAI();
     if (ai) {
       try {
-        let imagePart: any = null;
-        if (typeof image === 'string' && image.startsWith("data:")) {
-          const match = image.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
-          if (match) {
-            imagePart = {
-              inlineData: {
-                mimeType: match[1],
-                data: match[2]
-              }
-            };
-          }
-        } else if (typeof image === 'string' && image.startsWith("http")) {
-          const imgRes = await fetch(image);
-          if (imgRes.ok) {
-            const arrayBuffer = await imgRes.arrayBuffer();
-            const base64Str = Buffer.from(arrayBuffer).toString("base64");
-            const contentType = imgRes.headers.get("content-type") || "image/jpeg";
-            imagePart = {
-              inlineData: {
-                mimeType: contentType,
-                data: base64Str
-              }
-            };
-          }
-        }
-
         const contents: any[] = [];
-        if (imagePart) {
-          contents.push({ role: "user", parts: [imagePart, { text: prompt }] });
+        if (base64Data) {
+          contents.push({
+            role: "user",
+            parts: [
+              { inlineData: { mimeType, data: base64Data } },
+              { text: prompt }
+            ]
+          });
         } else {
           contents.push({ role: "user", parts: [{ text: prompt }] });
         }
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents
         });
 
@@ -291,10 +361,14 @@ Required JSON Structure:
         }
       } catch (geminiErr: any) {
         console.warn("Gemini vision auto-fill error:", geminiErr?.message || geminiErr);
+        // Only block if Groq failed and Gemini specifically complains about invalid token
+        if (geminiErr?.message?.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || geminiErr?.status === 401) {
+          return res.status(401).json({ error: "Invalid API Keys. Please provide a valid Groq API Key (free) or Gemini API Key in settings." });
+        }
       }
     }
 
-    // Fallback response
+    // 3. Fallback response
     res.json({
       name: "এক্সক্লুসিভ প্রিমিয়াম রয়েল কালেকশন",
       category: "Mens items",
@@ -342,7 +416,7 @@ Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -503,7 +577,7 @@ RESPONSE FORMAT:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [
             {
               role: "user",
@@ -555,12 +629,12 @@ app.get("/api/ai-health-check", async (req, res) => {
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: [{ role: "user", parts: [{ text: "Respond 'OK' if reachable." }] }]
         });
         if (response?.text) {
           results.gemini.reachable = true;
-          results.gemini.message = "Connected & Active (gemini-2.5-flash)";
+          results.gemini.message = "Connected & Active (gemini-3.6-flash)";
         } else {
           results.gemini.message = "Connected but received empty response";
         }

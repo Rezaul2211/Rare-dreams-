@@ -35,12 +35,12 @@ export default function Home() {
 
     const interval = setInterval(() => {
       if (!container) return;
-      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 8) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
+        container.scrollLeft = 0;
       } else {
-        container.scrollBy({ left: 1, behavior: 'auto' });
+        container.scrollLeft += 1;
       }
-    }, 25);
+    }, 45);
 
     return () => clearInterval(interval);
   }, [isUserInteracting, allProducts.length]);
@@ -365,21 +365,23 @@ function NewArrivalsCarousel({ products }: { products: Product[] }) {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || products.length === 0) return;
     const container = scrollRef.current;
     if (!container) return;
 
-    // Gentle, very slow continuous slide (1px every 85ms)
+    // Smooth, jitter-free scroll interval
     const interval = setInterval(() => {
-      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 4) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
+      if (!container) return;
+      // If reached end, seamlessly reset scroll to start without triggering smooth-scroll animation conflict
+      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
+        container.scrollLeft = 0;
       } else {
         container.scrollLeft += 1;
       }
-    }, 85);
+    }, 45);
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, products.length]);
 
   const handleScrollLeft = () => {
     if (scrollRef.current) {

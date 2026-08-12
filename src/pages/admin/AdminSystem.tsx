@@ -160,176 +160,213 @@ export default function AdminSystem() {
     }
   };
 
+  // Consolidated Sync All Data Handler
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+  const handleSyncAllData = async () => {
+    setSyncingAll(true);
+    setSyncMessage(null);
+    try {
+      // 1. Fetch AI Health Status
+      await fetchAiHealth();
+      
+      // 2. Refresh staff users query
+      const qUsers = query(collection(db, 'users'), where('role', 'in', ['admin', 'seller']));
+      const snapshot = await getDocs(qUsers);
+      if (snapshot) {
+        setStaffUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      }
+
+      setSyncMessage("সমস্ত এআই এপিআই এবং সিস্টেম ডাটা সফলভাবে সিঙ্ক সম্পন্ন হয়েছে!");
+      setTimeout(() => setSyncMessage(null), 4000);
+    } catch (e: any) {
+      console.error("Sync all error:", e);
+      setSyncMessage("ডাটা সিঙ্ক করার সময় সাময়িক ত্রুটি ঘটেছে।");
+    } finally {
+      setSyncingAll(false);
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-3 duration-300">
+      {/* Top Header Card with Single 'Sync All Data' Button */}
+      <div className="bg-white p-6 sm:p-7 rounded-3xl border border-neutral-200/90 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
-            <span>System & AI Infrastructure</span>
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Control Panel & AI Engine</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-neutral-900 mt-0.5">
+            System & Infrastructure
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">Manage admin permissions, AI API connectivity test, and data storage</p>
+          <p className="text-xs text-neutral-500 font-medium mt-1">
+            Manage admin permissions, dual AI connectivity (Gemini & Groq), and cloud database operations
+          </p>
         </div>
+
+        {/* Consolidated Single Sync Button */}
         <button
-          onClick={fetchAiHealth}
-          disabled={testingHealth}
-          className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+          onClick={handleSyncAllData}
+          disabled={syncingAll}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold px-6 py-3.5 rounded-2xl shadow-md transition-all cursor-pointer disabled:opacity-60 shrink-0 border border-neutral-800"
         >
-          {testingHealth ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
-          <span>এআই হেলথ টেস্ট টেস্ট করুন</span>
+          {syncingAll ? (
+            <>
+              <Loader2 size={16} className="animate-spin text-amber-400" />
+              <span>তথ্য সিঙ্ক করা হচ্ছে...</span>
+            </>
+          ) : (
+            <>
+              <RefreshCw size={16} className="text-amber-400" />
+              <span>Sync All Data</span>
+            </>
+          )}
         </button>
       </div>
 
-      {/* AI Health Connectivity Card */}
-      <div className="bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-xl space-y-6">
-        <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-              <Cpu size={22} />
+      {syncMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs font-bold text-emerald-900 flex items-center gap-2.5 animate-in fade-in shadow-2xs">
+          <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+          <span>{syncMessage}</span>
+        </div>
+      )}
+
+      {/* Clean Card-Based Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* CARD 1: AI API Connectivity Status */}
+        <div className="bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white p-6 rounded-3xl border border-neutral-800 shadow-lg space-y-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
+                  <Cpu size={22} />
+                </div>
+                <div>
+                  <h2 className="text-base font-black uppercase tracking-tight text-white flex items-center gap-2">
+                    <span>AI Engine Status</span>
+                    <span className="text-[9px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30">
+                      Dual Engine
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    Groq LLM for Bengali Chat & Gemini for Vision Auto-Fill
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              {/* Google Gemini */}
+              <div className="bg-neutral-800/80 p-4 rounded-2xl border border-neutral-700/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-amber-400" /> Gemini Vision
+                  </span>
+                  {healthData?.gemini?.reachable ? (
+                    <span className="text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <CheckCircle2 size={10} /> Active
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <XCircle size={10} /> Check Key
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-neutral-400 font-mono">model: gemini-2.5-flash</p>
+                <div className="text-[10px] text-neutral-300 bg-neutral-900/60 p-2 rounded-xl border border-neutral-800/80 truncate">
+                  {healthData?.gemini?.message || (testingHealth ? "Testing..." : "Click Sync All")}
+                </div>
+              </div>
+
+              {/* Groq Engine */}
+              <div className="bg-neutral-800/80 p-4 rounded-2xl border border-neutral-700/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                    <Activity size={14} className="text-orange-400" /> Groq Chat
+                  </span>
+                  {healthData?.groq?.reachable ? (
+                    <span className="text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <CheckCircle2 size={10} /> Active
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <XCircle size={10} /> Check Key
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-neutral-400 font-mono">model: llama-3.3-70b</p>
+                <div className="text-[10px] text-neutral-300 bg-neutral-900/60 p-2 rounded-xl border border-neutral-800/80 truncate">
+                  {healthData?.groq?.message || (testingHealth ? "Testing..." : "Click Sync All")}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-[10px] text-neutral-400 bg-neutral-950/40 p-3 rounded-2xl border border-neutral-800/60">
+            💡 <strong className="text-white">Dual AI Integration:</strong> উভয় এআই কি একইসাথে সেট করতে পারবেন। গ্রাহকদের সাথে চ্যাটের জন্য Groq ব্যবহার হয় এবং ছবি দেখে অটো ফিল করার জন্য Gemini Vision ব্যবহার হয়।
+          </div>
+        </div>
+
+        {/* CARD 2: Cloud Storage & Database Limits */}
+        <div className="bg-white p-6 rounded-3xl border border-neutral-200/90 shadow-2xs space-y-5 flex flex-col justify-between">
+          <div>
+            <div className="border-b border-neutral-100 pb-4 flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
+                <Database size={22} />
+              </div>
+              <div>
+                <h2 className="text-base font-black uppercase text-neutral-900 tracking-tight">
+                  Database & Storage
+                </h2>
+                <p className="text-[11px] text-neutral-500 font-medium">Firestore & Firebase Storage Status</p>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 mt-4">
+              <div className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-neutral-800 uppercase">Cloud Storage</span>
+                  <span className="text-xs font-bold text-emerald-700">120 MB / 5 GB Free</span>
+                </div>
+                <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '5%' }}></div>
+                </div>
+              </div>
+
+              <div className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-neutral-800 uppercase">Database Reads</span>
+                  <span className="text-xs font-bold text-blue-700">1.2K / 50K Daily Free</span>
+                </div>
+                <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '2%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-neutral-500 font-medium bg-neutral-50 p-3 rounded-2xl border border-neutral-200/60">
+            ✅ সমস্ত ছবি হাই-কমপ্রেশন এলগরিদমে জমা হচ্ছে তাই ফ্রী টায়ারেই কয়েক হাজার প্রোডাক্টের ছবি আপলোড করা যাবে।
+          </p>
+        </div>
+
+        {/* CARD 3: Role & Staff Management */}
+        <div className="bg-white p-6 rounded-3xl border border-neutral-200/90 shadow-2xs space-y-5">
+          <div className="border-b border-neutral-100 pb-4 flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shrink-0">
+              <ShieldCheck size={22} />
             </div>
             <div>
-              <h2 className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-2">
-                <span>AI API Connectivity Status</span>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30">
-                  Live Status
-                </span>
+              <h2 className="text-base font-black uppercase text-neutral-900 tracking-tight">
+                Staff & Role Assignment
               </h2>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Verifying Google Gemini API & Groq LLM API credentials & response test
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Google Gemini API */}
-          <div className="bg-neutral-800/80 p-5 rounded-2xl border border-neutral-700/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Sparkles size={18} className="text-amber-400" />
-                <span className="font-bold text-sm text-white">Google Gemini API</span>
-              </div>
-              {healthData?.gemini?.reachable ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 size={13} /> Active & Reachable
-                </span>
-              ) : healthData?.gemini?.configured ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">
-                  <AlertTriangle size={13} /> Connection Issue
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full">
-                  <XCircle size={13} /> Not Configured
-                </span>
-              )}
-            </div>
-            
-            <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between text-neutral-400">
-                <span>Model Alias:</span>
-                <span className="font-mono text-neutral-200">gemini-2.5-flash</span>
-              </div>
-              <div className="flex items-center justify-between text-neutral-400">
-                <span>API Key Prefix:</span>
-                <span className="font-mono text-neutral-200">{healthData?.gemini?.keySnippet || 'Checking...'}</span>
-              </div>
-              <div className="pt-2 text-[11px] text-neutral-300 bg-neutral-900/60 p-2.5 rounded-xl border border-neutral-800">
-                {healthData?.gemini?.message || (testingHealth ? "Testing connection..." : "Click test button above")}
-              </div>
+              <p className="text-[11px] text-neutral-500 font-medium">Grant Admin or Seller permissions</p>
             </div>
           </div>
 
-          {/* Groq AI API */}
-          <div className="bg-neutral-800/80 p-5 rounded-2xl border border-neutral-700/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Activity size={18} className="text-orange-400" />
-                <span className="font-bold text-sm text-white">Groq Engine API</span>
-              </div>
-              {healthData?.groq?.reachable ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 size={13} /> Active & Reachable
-                </span>
-              ) : healthData?.groq?.configured ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">
-                  <AlertTriangle size={13} /> Connection Issue
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full">
-                  <XCircle size={13} /> Not Configured
-                </span>
-              )}
-            </div>
-            
-            <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between text-neutral-400">
-                <span>Model Engine:</span>
-                <span className="font-mono text-neutral-200">llama-3.3-70b-versatile</span>
-              </div>
-              <div className="flex items-center justify-between text-neutral-400">
-                <span>API Key Prefix:</span>
-                <span className="font-mono text-neutral-200">{healthData?.groq?.keySnippet || 'Checking...'}</span>
-              </div>
-              <div className="pt-2 text-[11px] text-neutral-300 bg-neutral-900/60 p-2.5 rounded-xl border border-neutral-800">
-                {healthData?.groq?.message || (testingHealth ? "Testing connection..." : "Click test button above")}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Storage Widget */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
-          <div className="border-b border-neutral-100 pb-4">
-            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
-              <Database size={20} className="text-emerald-600" />
-              Storage & Limits
-            </h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-emerald-900 uppercase">Cloud Storage</span>
-                <span className="text-xs font-bold text-emerald-700">120 MB / 5 GB Free</span>
-              </div>
-              <div className="w-full bg-emerald-100 rounded-full h-2 mb-1 overflow-hidden">
-                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '5%' }}></div>
-              </div>
-              <p className="text-[10px] text-emerald-700 font-medium mt-2">
-                Firebase provides 5GB of free storage for images and videos. High limits are available if you upgrade your plan.
-              </p>
-            </div>
-
-            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-blue-900 uppercase">Database Reads</span>
-                <span className="text-xs font-bold text-blue-700">1.2K / 50K Daily Free</span>
-              </div>
-              <div className="w-full bg-blue-100 rounded-full h-2 mb-1 overflow-hidden">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '2%' }}></div>
-              </div>
-              <p className="text-[10px] text-blue-700 font-medium mt-2">
-                Firestore provides 50,000 free document reads per day.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Roles & Permissions */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
-          <div className="border-b border-neutral-100 pb-4">
-            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
-              <ShieldCheck size={20} className="text-blue-600" />
-              Role Assignment
-            </h2>
-            <p className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider font-bold">
-              Grant Admin or Seller Permissions via Email
-            </p>
-          </div>
-          
-          <form onSubmit={handleAssignRole} className="space-y-4">
+          <form onSubmit={handleAssignRole} className="space-y-3">
             {roleMessage && (
               <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                 roleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
@@ -338,7 +375,7 @@ export default function AdminSystem() {
                 {roleMessage.text}
               </div>
             )}
-            
+
             <div>
               <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">User Email Address</label>
               <div className="relative">
@@ -351,46 +388,49 @@ export default function AdminSystem() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seller@example.com"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-            
-            <div>
-              <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">Assign Role</label>
-              <select 
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="admin">Admin (Full Access)</option>
-                <option value="seller">Seller (Manage Products)</option>
-                <option value="customer">Customer (Standard)</option>
-              </select>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">Role</label>
+                <select 
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold uppercase outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="admin">Admin (Full Access)</option>
+                  <option value="seller">Seller (Manage Products)</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button 
+                  type="submit" 
+                  disabled={loadingRole || !email}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs uppercase transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  {loadingRole ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                  <span>Save Role</span>
+                </button>
+              </div>
             </div>
-            
-            <button 
-              type="submit" 
-              disabled={loadingRole || !email}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingRole ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-              <span>Update User Role</span>
-            </button>
           </form>
 
           {staffUsers.length > 0 && (
-            <div className="pt-4 border-t border-neutral-100">
-              <h3 className="text-[10px] font-bold uppercase text-neutral-500 mb-3">Current Staff Members</h3>
-              <div className="space-y-2">
+            <div className="pt-3 border-t border-neutral-100">
+              <h3 className="text-[10px] font-bold uppercase text-neutral-400 mb-2">Active Staff Members</h3>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto">
                 {staffUsers.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
+                  <div key={u.id} className="flex items-center justify-between bg-neutral-50 p-2 rounded-xl border border-neutral-200/60">
                     <div className="truncate pr-2">
                       <p className="text-xs font-bold text-neutral-900 truncate">{u.email}</p>
-                      <p className="text-[10px] text-neutral-500 uppercase font-bold">{u.role}</p>
+                      <span className="text-[9px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded uppercase">{u.role}</span>
                     </div>
-                    <button type="button" onClick={() => handleRevokeAccess(u.id, u.email)} className="shrink-0 p-2 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors" title="Revoke Access">
-                      <UserMinus size={16} />
+                    <button type="button" onClick={() => handleRevokeAccess(u.id, u.email)} className="shrink-0 p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer" title="Revoke Access">
+                      <UserMinus size={14} />
                     </button>
                   </div>
                 ))}
@@ -399,43 +439,46 @@ export default function AdminSystem() {
           )}
         </div>
 
-        {/* Danger Zone */}
-        <div className="lg:col-span-2 bg-red-50/30 p-6 sm:p-8 rounded-3xl border border-red-100 shadow-xs space-y-6">
-          <div className="border-b border-red-100 pb-4">
-            <h2 className="text-lg font-black uppercase text-red-700 tracking-tight flex items-center gap-2">
-              <ShieldAlert size={20} className="text-red-600" />
-              Danger Zone
-            </h2>
-            <p className="text-[10px] text-red-500/80 mt-1 uppercase tracking-wider font-bold">
-              Irreversible Data Operations
-            </p>
-          </div>
-          
-          {deleteMessage && (
-            <div className={`p-4 rounded-xl text-sm font-bold flex items-center gap-2 ${
-              deleteMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'
-            }`}>
-              {deleteMessage.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-              {deleteMessage.text}
+        {/* CARD 4: Safeguards & Maintenance */}
+        <div className="bg-red-50/20 p-6 rounded-3xl border border-red-100 shadow-2xs space-y-5 flex flex-col justify-between">
+          <div>
+            <div className="border-b border-red-100 pb-4 flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center border border-red-200 shrink-0">
+                <ShieldAlert size={22} />
+              </div>
+              <div>
+                <h2 className="text-base font-black uppercase text-red-800 tracking-tight">
+                  Safeguards & Maintenance
+                </h2>
+                <p className="text-[11px] text-red-600/80 font-medium">Testing Data Cleanup Operations</p>
+              </div>
             </div>
-          )}
 
-          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between bg-white p-5 rounded-2xl border border-red-100">
-            <div>
-              <h3 className="text-sm font-black text-neutral-900 mb-1">Clear Selling History</h3>
-              <p className="text-xs text-neutral-500 max-w-md">
-                Permanently delete all past orders and transaction records. This is useful when moving from testing/development into a live production environment.
+            {deleteMessage && (
+              <div className={`p-3 my-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                deleteMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {deleteMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                {deleteMessage.text}
+              </div>
+            )}
+
+            <div className="mt-4 bg-white p-4 rounded-2xl border border-red-100 space-y-2">
+              <h3 className="text-xs font-extrabold text-neutral-900">Clear Test Selling History</h3>
+              <p className="text-[11px] text-neutral-500 leading-relaxed">
+                পাস্ট টেস্ট অর্ডার এবং ট্রানজ্যাকশন ডাটা মুছে ফেলার জন্য এই অপশনটি কাজ করে। কাস্টমার এবং প্রোডাক্ট তথ্য ঠিক থাকবে।
               </p>
             </div>
-            <button 
-              onClick={handleClearHistory}
-              disabled={loadingDelete}
-              className="shrink-0 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 font-bold py-3 px-6 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              {loadingDelete ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-              <span>Wipe Data</span>
-            </button>
           </div>
+
+          <button 
+            onClick={handleClearHistory}
+            disabled={loadingDelete}
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-xs"
+          >
+            {loadingDelete ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+            <span>Wipe Order History</span>
+          </button>
         </div>
 
       </div>

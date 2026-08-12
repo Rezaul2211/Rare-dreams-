@@ -45,6 +45,8 @@ export default function ProductForm() {
             sizeOptions: Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0 ? data.sizeOptions : (prev.sizeOptions || []),
             colorOptions: Array.isArray(data.colorOptions) && data.colorOptions.length > 0 ? data.colorOptions : (prev.colorOptions || []),
           }));
+        } else if (data && data.error) {
+          alert(data.error);
         }
       } else if (formData.name) {
         const [descRes, tagRes] = await Promise.all([
@@ -474,35 +476,20 @@ export default function ProductForm() {
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none font-medium"
                 >
-                  {categories.map((c) => (
+                  {(categories || []).map((c) => (
                     <option key={c.id || c.title} value={c.title}>
                       {c.title}
                     </option>
                   ))}
                   {/* Fallback legacy option if current category is not in list */}
-                  {formData.category && !categories.some(c => c.title === formData.category) && (
+                  {formData.category && !(categories || []).some(c => c.title === formData.category) && (
                     <option value={formData.category}>{formData.category}</option>
                   )}
                 </select>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs sm:text-sm font-medium text-neutral-700">Subcategory / Tag</label>
-                  <button
-                    type="button"
-                    onClick={handleAiAutoTag}
-                    disabled={autoTagging}
-                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {autoTagging ? (
-                      <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                      <Sparkles size={12} className="text-amber-600" />
-                    )}
-                    <span>AI Auto-Tag</span>
-                  </button>
-                </div>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Subcategory / Tag</label>
                 <input
                   type="text"
                   name="subcategory"
