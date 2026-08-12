@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, updateDoc, doc, deleteDoc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { assignUserRoleByEmail, revokeUserRoleByEmail } from '../../lib/roles';
-import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2, UserMinus } from 'lucide-react';
+import { ShieldAlert, Trash2, Mail, ShieldCheck, Database, Server, Loader2, AlertTriangle, CheckCircle2, UserMinus, Cpu, Sparkles, RefreshCw, Activity, Radio, Check, XCircle } from 'lucide-react';
 
 export default function AdminSystem() {
   const [email, setEmail] = useState('');
@@ -13,6 +13,32 @@ export default function AdminSystem() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
+
+  // AI Health Check State
+  const [testingHealth, setTestingHealth] = useState(false);
+  const [healthData, setHealthData] = useState<{
+    gemini?: { configured: boolean; reachable: boolean; keySnippet: string; message: string };
+    groq?: { configured: boolean; reachable: boolean; keySnippet: string; message: string };
+  } | null>(null);
+
+  const fetchAiHealth = async () => {
+    setTestingHealth(true);
+    try {
+      const res = await fetch('/api/ai-health-check');
+      if (res.ok) {
+        const data = await res.json();
+        setHealthData(data);
+      }
+    } catch (e) {
+      console.error("Error testing AI health:", e);
+    } finally {
+      setTestingHealth(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAiHealth();
+  }, []);
 
   useEffect(() => {
     // Listen to users with admin/seller role
@@ -136,10 +162,118 @@ export default function AdminSystem() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900">System & Advanced</h1>
-          <p className="text-xs text-neutral-500 mt-1">Manage admin permissions, data wipes, and storage</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
+            <span>System & AI Infrastructure</span>
+          </h1>
+          <p className="text-xs text-neutral-500 mt-1">Manage admin permissions, AI API connectivity test, and data storage</p>
+        </div>
+        <button
+          onClick={fetchAiHealth}
+          disabled={testingHealth}
+          className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+        >
+          {testingHealth ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+          <span>এআই হেলথ টেস্ট টেস্ট করুন</span>
+        </button>
+      </div>
+
+      {/* AI Health Connectivity Card */}
+      <div className="bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-white p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-xl space-y-6">
+        <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+              <Cpu size={22} />
+            </div>
+            <div>
+              <h2 className="text-lg font-black uppercase tracking-tight text-white flex items-center gap-2">
+                <span>AI API Connectivity Status</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30">
+                  Live Status
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Verifying Google Gemini API & Groq LLM API credentials & response test
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Google Gemini API */}
+          <div className="bg-neutral-800/80 p-5 rounded-2xl border border-neutral-700/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Sparkles size={18} className="text-amber-400" />
+                <span className="font-bold text-sm text-white">Google Gemini API</span>
+              </div>
+              {healthData?.gemini?.reachable ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 size={13} /> Active & Reachable
+                </span>
+              ) : healthData?.gemini?.configured ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                  <AlertTriangle size={13} /> Connection Issue
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full">
+                  <XCircle size={13} /> Not Configured
+                </span>
+              )}
+            </div>
+            
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between text-neutral-400">
+                <span>Model Alias:</span>
+                <span className="font-mono text-neutral-200">gemini-2.5-flash</span>
+              </div>
+              <div className="flex items-center justify-between text-neutral-400">
+                <span>API Key Prefix:</span>
+                <span className="font-mono text-neutral-200">{healthData?.gemini?.keySnippet || 'Checking...'}</span>
+              </div>
+              <div className="pt-2 text-[11px] text-neutral-300 bg-neutral-900/60 p-2.5 rounded-xl border border-neutral-800">
+                {healthData?.gemini?.message || (testingHealth ? "Testing connection..." : "Click test button above")}
+              </div>
+            </div>
+          </div>
+
+          {/* Groq AI API */}
+          <div className="bg-neutral-800/80 p-5 rounded-2xl border border-neutral-700/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Activity size={18} className="text-orange-400" />
+                <span className="font-bold text-sm text-white">Groq Engine API</span>
+              </div>
+              {healthData?.groq?.reachable ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 size={13} /> Active & Reachable
+                </span>
+              ) : healthData?.groq?.configured ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                  <AlertTriangle size={13} /> Connection Issue
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full">
+                  <XCircle size={13} /> Not Configured
+                </span>
+              )}
+            </div>
+            
+            <div className="space-y-1.5 text-xs">
+              <div className="flex items-center justify-between text-neutral-400">
+                <span>Model Engine:</span>
+                <span className="font-mono text-neutral-200">llama-3.3-70b-versatile</span>
+              </div>
+              <div className="flex items-center justify-between text-neutral-400">
+                <span>API Key Prefix:</span>
+                <span className="font-mono text-neutral-200">{healthData?.groq?.keySnippet || 'Checking...'}</span>
+              </div>
+              <div className="pt-2 text-[11px] text-neutral-300 bg-neutral-900/60 p-2.5 rounded-xl border border-neutral-800">
+                {healthData?.groq?.message || (testingHealth ? "Testing connection..." : "Click test button above")}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

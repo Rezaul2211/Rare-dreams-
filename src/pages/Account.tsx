@@ -274,6 +274,7 @@ export default function Account() {
   const initialLetter = cleanDisplayName.charAt(0).toUpperCase() || 'R';
   const totalSalesCount = orders.length;
   const pendingOrdersCount = orders.filter(o => o.status?.toLowerCase() === 'pending').length;
+  const isAdmin = user?.role === 'admin' || user?.role === 'seller' || user?.email?.toLowerCase().trim() === 'xmrezaul.karim998@gmail.com';
 
   const getFilteredOrders = (filter: string) => {
     if (filter === 'All') return orders;
@@ -308,12 +309,18 @@ export default function Account() {
               {cleanDisplayName}
             </h1>
             <div className="pt-0.5">
-              <span className="bg-[#0f766e] text-white text-xs font-bold px-4 py-1 rounded-full inline-block shadow-2xs">
-                Store Owner
-              </span>
+              {isAdmin ? (
+                <span className="bg-[#0f766e] text-white text-xs font-bold px-4 py-1 rounded-full inline-block shadow-2xs">
+                  Store Owner / Admin
+                </span>
+              ) : (
+                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-4 py-1 rounded-full inline-block shadow-2xs">
+                  Verified Member
+                </span>
+              )}
             </div>
             <p className="text-xs text-neutral-500 font-medium pt-0.5">
-              {user?.email || 'Rare Dreams admin'}
+              {user?.email || 'Rare Dreams User'}
             </p>
           </div>
         </div>
@@ -325,7 +332,7 @@ export default function Account() {
               {totalSalesCount}
             </span>
             <span className="text-[10px] sm:text-[11px] font-bold text-neutral-600 tracking-wider uppercase mt-1 leading-none">
-              TOTAL SALES
+              {isAdmin ? 'TOTAL SALES' : 'MY ORDERS'}
             </span>
           </div>
 
@@ -340,10 +347,10 @@ export default function Account() {
 
           <div className="bg-[#EBECEF]/80 rounded-2xl p-3.5 text-center flex flex-col items-center justify-center shadow-2xs border border-neutral-200/50">
             <span className="text-2xl sm:text-3xl font-black text-neutral-900 leading-tight">
-              {totalProductCount}
+              {wishlistIds.length}
             </span>
             <span className="text-[10px] sm:text-[11px] font-bold text-neutral-600 tracking-wider uppercase mt-1 leading-none">
-              PRODUCTS
+              SAVED ITEMS
             </span>
           </div>
         </div>
@@ -399,21 +406,28 @@ export default function Account() {
 
         {/* 5. MAIN MENU ACTION CARDS LIST */}
         <div className="space-y-2.5">
-          {/* Admin Panel Button (DIRECT ACCESS) */}
-          <button
-            onClick={() => navigate('/admin')}
-            className="w-full bg-white hover:bg-neutral-50 p-4 rounded-2xl border border-neutral-200/90 shadow-2xs flex items-center justify-between group transition-all text-left"
-          >
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center shrink-0">
-                <Store size={20} strokeWidth={2} />
+          {/* Admin Panel Button (ONLY IF ADMIN) */}
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="w-full bg-white hover:bg-neutral-50 p-4 rounded-2xl border border-amber-300/80 bg-amber-50/20 shadow-2xs flex items-center justify-between group transition-all text-left cursor-pointer"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                  <Store size={20} strokeWidth={2} />
+                </div>
+                <div>
+                  <span className="text-base font-bold text-neutral-900 block leading-tight">
+                    Admin Control Panel
+                  </span>
+                  <span className="text-xs text-amber-800 font-medium">
+                    Store management, products & orders
+                  </span>
+                </div>
               </div>
-              <span className="text-base font-bold text-neutral-900">
-                Admin Panel
-              </span>
-            </div>
-            <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
-          </button>
+              <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
+            </button>
+          )}
 
           {/* Sales History */}
           <button

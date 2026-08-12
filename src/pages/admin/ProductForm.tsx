@@ -14,109 +14,67 @@ export default function ProductForm() {
   
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
-  const [generatingAiDesc, setGeneratingAiDesc] = useState(false);
-  const [autoTagging, setAutoTagging] = useState(false);
   const [autoFilling, setAutoFilling] = useState(false);
 
-  const handleAiAutoFillFromImage = async () => {
-    if (!formData.images || formData.images.length === 0) {
-      alert("অনুগ্রহ করে প্রথমে প্রোডাক্ট এর ছবি আপলোড বা যুক্ত করুন!");
+  const handleMasterAiAutoFill = async () => {
+    if ((!formData.images || formData.images.length === 0) && !formData.name) {
+      alert("অনুগ্রহ করে প্রোডাক্টের একটি ছবি আপলোড করুন অথবা একটি নাম লিখুন!");
       return;
     }
+
     setAutoFilling(true);
     try {
-      const res = await fetch("/api/ai-product-auto-fill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: formData.images[0] })
-      });
-      const data = await res.json();
-      if (data && !data.error) {
+      if (formData.images && formData.images.length > 0) {
+        const res = await fetch("/api/ai-product-auto-fill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: formData.images[0] })
+        });
+        const data = await res.json();
+        if (data && !data.error) {
+          setFormData(prev => ({
+            ...prev,
+            name: data.name || prev.name,
+            description: data.description || prev.description,
+            category: data.category || prev.category,
+            subcategory: data.subcategory || prev.subcategory,
+            material: data.material || prev.material,
+            price: data.price ? Number(data.price) : prev.price,
+            comparePrice: data.comparePrice ? Number(data.comparePrice) : prev.comparePrice,
+            discount: data.discount ? Number(data.discount) : prev.discount,
+            sizeOptions: Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0 ? data.sizeOptions : (prev.sizeOptions || []),
+            colorOptions: Array.isArray(data.colorOptions) && data.colorOptions.length > 0 ? data.colorOptions : (prev.colorOptions || []),
+          }));
+        }
+      } else if (formData.name) {
+        const [descRes, tagRes] = await Promise.all([
+          fetch("/api/ai-generate-description", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: formData.name,
+              category: formData.category,
+              price: formData.price,
+              material: formData.material
+            })
+          }).then(r => r.json()).catch(() => ({})),
+          fetch("/api/ai-tag-product", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: formData.name, category: formData.category })
+          }).then(r => r.json()).catch(() => ({}))
+        ]);
+
         setFormData(prev => ({
           ...prev,
-          name: data.name || prev.name,
-          description: data.description || prev.description,
-          category: data.category || prev.category,
-          subcategory: data.subcategory || prev.subcategory,
-          material: data.material || prev.material,
-          price: data.price ? Number(data.price) : prev.price,
-          comparePrice: data.comparePrice ? Number(data.comparePrice) : prev.comparePrice,
-          discount: data.discount ? Number(data.discount) : prev.discount,
-          sizeOptions: Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0 ? data.sizeOptions : (prev.sizeOptions || []),
-          colorOptions: Array.isArray(data.colorOptions) && data.colorOptions.length > 0 ? data.colorOptions : (prev.colorOptions || []),
+          description: descRes.description || prev.description,
+          subcategory: tagRes.subcategory || prev.subcategory || prev.subcategory,
         }));
       }
     } catch (err) {
-      console.error("Auto fill error:", err);
+      console.error("Master AI auto fill error:", err);
     } finally {
       setAutoFilling(false);
-    }
-  };
-
-  const handleAiGenerateDesc = async () => {
-    if (!formData.name) {
-      alert("Please enter a Product Name first!");
-      return;
-    }
-    setGeneratingAiDesc(true);
-    try {
-      const res = await fetch("/api/ai-generate-description", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          category: formData.category,
-          subcategory: formData.subcategory,
-          price: formData.price,
-          material: formData.material
-        })
-      });
-      const data = await res.json();
-      if (data.description) {
-        setFormData(prev => ({ ...prev, description: data.description }));
-      }
-    } catch (err) {
-      console.error("AI Description Error:", err);
-    } finally {
-      setGeneratingAiDesc(false);
-    }
-  };
-
-  const handleAiAutoTag = async () => {
-    if (!formData.name) {
-      alert("Please enter a Product Name first!");
-      return;
-    }
-    setAutoTagging(true);
-    try {
-      const res = await fetch("/api/ai-tag-product", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          category: formData.category
-        })
-      });
-      const data = await res.json();
-      if (data.subcategory) {
-        setFormData(prev => ({ ...prev, subcategory: data.subcategory }));
-      }
-    } catch (err) {
-      console.error("AI Auto-tag Error:", err);
-      // Fallback smart detector
-      const lower = (formData.name || '').toLowerCase();
-      let subcat = "Exclusive Collection";
-      if (lower.includes('panjabi') || lower.includes('পাঞ্জাবি')) subcat = "Panjabi & Pajama Set";
-      else if (lower.includes('kabli') || lower.includes('কাবলি')) subcat = "Kabli Suit";
-      else if (lower.includes('gown') || lower.includes('গাউন')) subcat = "Party Gown";
-      else if (lower.includes('frock') || lower.includes('ফ্রক')) subcat = "Designer Frock";
-      else if (lower.includes('lehenga') || lower.includes('লেহেঙ্গা')) subcat = "Luxury Lehenga";
-      else if (lower.includes('shoe') || lower.includes('loafer') || lower.includes('জুতা') || lower.includes('স্যান্ডেল')) subcat = "Leather Loafers & Shoes";
-      else if (lower.includes('shirt') || lower.includes('শার্ট')) subcat = "Casual & Formal Shirt";
-      else if (lower.includes('pant') || lower.includes('jeans') || lower.includes('প্যান্ট')) subcat = "Jeans & Trousers";
-      setFormData(prev => ({ ...prev, subcategory: subcat }));
-    } finally {
-      setAutoTagging(false);
     }
   };
   
@@ -306,6 +264,42 @@ export default function ProductForm() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">{isEditing ? 'Edit Product' : 'Add New Product'}</h1>
       </div>
 
+      {/* MASTER AI AUTO FILL BANNER CARD */}
+      <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white p-5 rounded-3xl shadow-lg border border-amber-400 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-100 shrink-0 border border-white/30">
+            <Sparkles size={26} />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-black tracking-tight">
+              ১-ক্লিকে এআই অটো ফিল (All-in-One Master Auto Fill)
+            </h2>
+            <p className="text-xs text-amber-100 mt-0.5">
+              ছবি আপলোড করুন বা নাম লিখুন — এআই স্বয়ংক্রিয়ভাবে নাম, বর্ণনা, ক্যাটাগরি, সাইজ ও দাম পূরণ করে দেবে।
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleMasterAiAutoFill}
+          disabled={autoFilling}
+          className="w-full md:w-auto bg-white hover:bg-amber-50 text-amber-900 font-extrabold px-6 py-3 rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm shrink-0 cursor-pointer disabled:opacity-50"
+        >
+          {autoFilling ? (
+            <>
+              <Loader2 size={18} className="animate-spin text-amber-700" />
+              <span>এআই তথ্য জেনারেট করছে...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles size={18} className="text-amber-600" />
+              <span>✨ অল-ইন-ওয়ান অটো ফিল করুন</span>
+            </>
+          )}
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
           {/* Main Info */}
@@ -322,32 +316,12 @@ export default function ProductForm() {
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  placeholder="e.g. Premium Cotton Shirt"
+                  placeholder="e.g. ছেলেদের প্রিমিয়াম কটন কাপ্তান সেট"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs sm:text-sm font-medium text-neutral-700">Description</label>
-                  <button
-                    type="button"
-                    onClick={handleAiGenerateDesc}
-                    disabled={generatingAiDesc}
-                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {generatingAiDesc ? (
-                      <>
-                        <Loader2 size={13} className="animate-spin" />
-                        <span>Generating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={13} className="text-amber-600" />
-                        <span>AI Auto-Generate</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                <label className="block text-xs sm:text-sm font-medium text-neutral-700 mb-1">Description</label>
                 <textarea
                   name="description"
                   required
@@ -364,27 +338,6 @@ export default function ProductForm() {
             <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h2 className="text-base sm:text-lg font-bold">Product Images</h2>
-                
-                {/* AI Image Auto-Fill Button */}
-                <button
-                  type="button"
-                  onClick={handleAiAutoFillFromImage}
-                  disabled={autoFilling || !formData.images || formData.images.length === 0}
-                  className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3 py-1.5 rounded-xl hover:from-amber-200 hover:to-amber-200 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
-                  title="Upload image first, then click to auto generate name, category, description & tags"
-                >
-                  {autoFilling ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin text-amber-800" />
-                      <span>গুগল সার্চ ও এআই জেনারেট হচ্ছে...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={15} className="text-amber-700" />
-                      <span>ছবি দেখে অটো নাম ও তথ্য জেনারেট করুন</span>
-                    </>
-                  )}
-                </button>
               </div>
               
               {/* Local File Upload Button */}

@@ -124,7 +124,7 @@ Requirements:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-2.5-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -182,7 +182,7 @@ Instructions:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-2.5-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -276,7 +276,7 @@ Required JSON Structure:
         }
 
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-2.5-flash",
           contents
         });
 
@@ -342,7 +342,7 @@ Return JSON strictly: {"subcategory": "SUBCATEGORY_NAME", "tags": ["TAG1", "TAG2
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-2.5-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
         if (response?.text) {
@@ -503,7 +503,7 @@ RESPONSE FORMAT:
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-2.5-flash",
           contents: [
             {
               role: "user",
@@ -526,6 +526,69 @@ RESPONSE FORMAT:
 
   // 3. Fallback to smart knowledge base
   return res.json({ reply: getSmartFallback(lower) });
+});
+
+// AI API Health & Connectivity Check Endpoint
+app.get("/api/ai-health-check", async (req, res) => {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+
+  const results = {
+    gemini: {
+      configured: false,
+      reachable: false,
+      keySnippet: geminiKey ? `${geminiKey.substring(0, 6)}...` : 'Not Set',
+      message: "GEMINI_API_KEY is not set"
+    },
+    groq: {
+      configured: false,
+      reachable: false,
+      keySnippet: groqKey ? `${groqKey.substring(0, 6)}...` : 'Not Set',
+      message: "GROQ_API_KEY is not set"
+    }
+  };
+
+  // 1. Test Gemini
+  if (geminiKey && geminiKey.trim() !== "" && !geminiKey.startsWith("MY_")) {
+    results.gemini.configured = true;
+    const ai = getAI();
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: "Respond 'OK' if reachable." }] }]
+        });
+        if (response?.text) {
+          results.gemini.reachable = true;
+          results.gemini.message = "Connected & Active (gemini-2.5-flash)";
+        } else {
+          results.gemini.message = "Connected but received empty response";
+        }
+      } catch (err: any) {
+        results.gemini.message = err?.message || "Connection to Gemini API failed";
+      }
+    } else {
+      results.gemini.message = "Failed to initialize Gemini SDK client";
+    }
+  }
+
+  // 2. Test Groq
+  if (groqKey && groqKey.trim() !== "" && !groqKey.startsWith("MY_")) {
+    results.groq.configured = true;
+    try {
+      const groqRes = await callGroq("Respond 'OK' if reachable.");
+      if (groqRes) {
+        results.groq.reachable = true;
+        results.groq.message = "Connected & Active (llama-3.3-70b-versatile)";
+      } else {
+        results.groq.message = "Groq request returned no output or auth error";
+      }
+    } catch (err: any) {
+      results.groq.message = err?.message || "Connection to Groq API failed";
+    }
+  }
+
+  res.json(results);
 });
 
 
