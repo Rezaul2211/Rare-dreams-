@@ -7,12 +7,13 @@ import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
 import { ProductCard } from '../components/ProductCard';
 import { ProductSkeleton } from '../components/ProductSkeleton';
+import { ProductReviews } from '../components/ProductReviews';
 import SEO from '../components/SEO';
 
 export default function ProductDetail() {
@@ -21,6 +22,7 @@ export default function ProductDetail() {
   const { language, t } = useLanguageStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reviewSummary, setReviewSummary] = useState({ avgRating: 5.0, totalCount: 0 });
   
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -115,6 +117,16 @@ export default function ProductDetail() {
           setQuantity(1);
           if (data.sizeOptions?.length) setSelectedSize(data.sizeOptions[0]);
           if (data.colorOptions?.length) setSelectedColor(data.colorOptions[0]);
+
+          // Track recently viewed products in localStorage
+          try {
+            const rawRv = localStorage.getItem('rare_dreams_recently_viewed');
+            const rvList = rawRv ? JSON.parse(rawRv) : [];
+            const updatedRv = [data, ...rvList.filter((p: Product) => p.id !== data.id)].slice(0, 10);
+            localStorage.setItem('rare_dreams_recently_viewed', JSON.stringify(updatedRv));
+          } catch (e) {
+            console.error("Error updating recently viewed products:", e);
+          }
         }
       } catch (error) {
         console.error("Error fetching product", error);
@@ -287,6 +299,32 @@ export default function ProductDetail() {
         <div className="w-full lg:w-1/2 flex flex-col pt-2">
           <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-6 mb-8">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 mb-2">{product.name}</h1>
+            
+            {/* Star Rating Badge Header */}
+            <a 
+              href="#customer-reviews"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="inline-flex items-center space-x-2 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-3 py-1.5 rounded-xl transition-all mb-3 w-max cursor-pointer group"
+            >
+              <div className="flex items-center space-x-0.5 text-amber-500">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star 
+                    key={s} 
+                    size={14} 
+                    className={s <= Math.round(reviewSummary.avgRating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} 
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-black text-amber-900">{reviewSummary.avgRating}</span>
+              <span className="text-neutral-300">•</span>
+              <span className="text-xs font-bold text-amber-800 underline underline-offset-2 group-hover:text-amber-950">
+                {language === 'bn' ? `${reviewSummary.totalCount} টি রিভিউ` : `${reviewSummary.totalCount} Reviews`}
+              </span>
+            </a>
+
             <div className="flex items-center text-sm text-neutral-500 mb-4 space-x-4">
               <span>{language === 'bn' ? 'ক্যাটাগরি' : 'Category'}: <span className="font-medium text-neutral-900">{translateCategory(product.category, language)}</span></span>
               <span>{language === 'bn' ? 'ব্র্যান্ড' : 'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
@@ -525,6 +563,13 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Customer Product Reviews & Ratings */}
+      <ProductReviews 
+        productId={product.id} 
+        productName={product.name} 
+        onRatingUpdate={(avg, count) => setReviewSummary({ avgRating: avg, totalCount: count })}
+      />
 
       {/* Recommended Products: You May Also Like */}
       <section className="mt-16 pt-12 border-t border-neutral-200/80">

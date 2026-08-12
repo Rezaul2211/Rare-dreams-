@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Heart, ShoppingBag, Check } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Star } from 'lucide-react';
 import { Product } from '../types';
 import { LazyImage } from './LazyImage';
 import { useFlyToCart } from '../context/FlyToCartContext';
@@ -116,10 +116,21 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
         )}
 
         <Link to={`/product/${product.id}`} className="block">
-          <h3 className="text-sm font-semibold text-neutral-900 line-clamp-2 mb-3 leading-snug group-hover:text-black transition-colors">
+          <h3 className="text-sm font-semibold text-neutral-900 line-clamp-2 mb-1.5 leading-snug group-hover:text-black transition-colors">
             {product.name}
           </h3>
         </Link>
+
+        {/* Rating Stars Badge */}
+        <div className="flex items-center space-x-1 mb-2.5">
+          <div className="flex items-center text-amber-400">
+            <Star size={12} className="fill-amber-400 text-amber-400" />
+          </div>
+          <span className="text-[11px] font-bold text-neutral-800">5.0</span>
+          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-md border border-emerald-100/80">
+            ✓ Verified
+          </span>
+        </div>
 
         {/* Price & Fly-To-Cart Action Button */}
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-neutral-100">

@@ -246,50 +246,10 @@ export default function Home() {
         </>
       )}
 
-      {/* PRODUCTS BY CATEGORY SECTIONS */}
-      <div className="space-y-8 pb-12 bg-[#FAFAFA] pt-8">
-        {storeCategories.map((cat) => {
-          const catProducts = productsByCategory.get(cat.title) || [];
-          if (!loading && catProducts.length === 0) return null; // Skip empty categories
-
-          return (
-            <section key={cat.title} className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
-              <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{t('home.explore_categories')}</span>
-                  <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                    {translateCategory(cat.title, language)}
-                  </h2>
-                </div>
-
-                <Link 
-                  to={cat.link || `/category/${cat.title}`} 
-                  className="text-xs font-bold uppercase tracking-wider text-neutral-800 hover:text-black transition-colors flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1.5 rounded-xl shadow-2xs hover:shadow-xs"
-                >
-                  <span>{t('home.view_all')}</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-
-              {loading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {[...Array(4)].map((_, i) => (
-                    <ProductSkeleton key={i} index={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {catProducts.slice(0, 4).map((product, index) => (
-                    <ProductCard key={product.id} product={product} index={index} />
-                  ))}
-                </div>
-              )}
-            </section>
-          );
-        })}
-
-        {/* ALL NEW ARRIVALS SECTION */}
-        <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full pt-4">
+      {/* PRODUCTS DISPLAY SECTIONS */}
+      <div className="space-y-10 pb-12 bg-[#FAFAFA] pt-6">
+        {/* 1. FIRST: ALL NEW ARRIVALS SECTION */}
+        <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
           <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">{t('home.featured_products')}</span>
@@ -325,6 +285,47 @@ export default function Home() {
             </div>
           )}
         </section>
+
+        {/* 2. SECOND: PRODUCTS BY CATEGORY IN ORDER (Men's -> Women's -> Baby's -> Footwear) */}
+        {storeCategories.map((cat) => {
+          const catProducts = productsByCategory.get(cat.title) || [];
+          if (!loading && catProducts.length === 0) return null; // Skip empty categories
+
+          return (
+            <section key={cat.title} className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
+              <div className="flex justify-between items-end mb-4 border-b border-neutral-200/80 pb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{t('home.explore_categories')}</span>
+                  <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-neutral-900 font-display">
+                    {translateCategory(cat.title, language)}
+                  </h2>
+                </div>
+
+                <Link 
+                  to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
+                  className="text-xs font-bold uppercase tracking-wider text-neutral-800 hover:text-black transition-colors flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1.5 rounded-xl shadow-2xs hover:shadow-xs"
+                >
+                  <span>{t('home.view_all')}</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <ProductSkeleton key={i} index={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  {catProducts.slice(0, 4).map((product, index) => (
+                    <ProductCard key={product.id} product={product} index={index} />
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

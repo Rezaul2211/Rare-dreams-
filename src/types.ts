@@ -96,3 +96,20 @@ export interface StoreConfig {
   rocketNumber: string;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  userId?: string;
+  userName: string;
+  userEmail?: string;
+  userPhone?: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  isVerifiedPurchase?: boolean;
+  helpfulCount?: number;
+  createdAt: any;
+  adminReply?: string;
+  adminReplyAt?: any;
+}
+

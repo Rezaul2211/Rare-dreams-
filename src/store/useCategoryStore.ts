@@ -12,16 +12,16 @@ export interface CategoryItem {
 
 export const DEFAULT_CATEGORIES: CategoryItem[] = [
   {
-    id: 'foot-wear',
-    title: 'Foot wear',
-    link: '/category/Foot wear',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
-  },
-  {
     id: 'mens-items',
     title: "Men's items",
     link: "/category/Men's items",
     image: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    id: 'womens-items',
+    title: "Women's items",
+    link: "/category/Women's items",
+    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'baby-items',
@@ -30,10 +30,10 @@ export const DEFAULT_CATEGORIES: CategoryItem[] = [
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
   },
   {
-    id: 'womens-items',
-    title: "Women's items",
-    link: "/category/Women's items",
-    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=800&auto=format&fit=crop'
+    id: 'foot-wear',
+    title: 'Foot wear',
+    link: '/category/Foot wear',
+    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
