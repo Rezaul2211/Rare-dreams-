@@ -7,6 +7,7 @@ import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
+import { trackInitiateCheckout, trackPurchase } from '../lib/pixel';
 import { ShieldCheck, ChevronLeft, Copy, Check, Smartphone, Loader2, ArrowRight, X, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function Checkout() {
@@ -39,10 +40,18 @@ export default function Checkout() {
   const BKASH_NUMBER = config.bkashNumber || '01954710343';
   const NAGAD_NUMBER = config.nagadNumber || '01342563522';
 
-
   const subtotal = getSubtotal();
   const shipping = formData.district === 'Dhaka' ? 60 : 120;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
+
+  React.useEffect(() => {
+    if (items.length > 0) {
+      trackInitiateCheckout({
+        num_items: items.length,
+        value: total,
+      });
+    }
+  }, []);
 
   if (items.length === 0 && !isOrderPlaced && !loading) {
     return <Navigate to="/cart" replace />;
@@ -130,6 +139,14 @@ export default function Checkout() {
 
       setIsOrderPlaced(true);
       await setDoc(orderRef, orderData);
+
+      // Track Facebook Meta Pixel Purchase event
+      trackPurchase({
+        order_id: orderId,
+        value: total,
+        num_items: items.reduce((acc, item) => acc + item.quantity, 0),
+      });
+
       clearCart();
       setShowGatewayModal(false);
       navigate(`/order-success/${orderId}`, { replace: true });

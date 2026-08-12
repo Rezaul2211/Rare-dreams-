@@ -122,10 +122,20 @@ export default function Home() {
         if (!p.category) return false;
         const c = p.category.toLowerCase().trim();
         if (c === target) return true;
-        if (target.includes('boy') && (c.includes('boy') || c.includes('kids'))) return true;
-        if (target.includes('girl') && (c.includes('girl') || c.includes('kids'))) return true;
-        if (target.includes('baby') && (c.includes('baby') || c.includes('kids'))) return true;
-        if ((target.includes('footwear') || target.includes('shoe')) && (c.includes('footwear') || c.includes('shoe') || c.includes('sneaker'))) return true;
+
+        if (target.includes('women') || target.includes('মহিলা')) {
+          return c.includes('women') || c.includes('girl') || c.includes('মহিলা') || c.includes('মেয়ে') || c.includes('শাড়ি') || c.includes('থ্রি পিস');
+        }
+        if ((target.includes('men') || target.includes('পুরুষ')) && !target.includes('women')) {
+          return (c.includes('men') && !c.includes('women')) || c.includes('boy') || c.includes('পুরুষ') || c.includes('ছেলে') || c.includes('পাঞ্জাবি');
+        }
+        if (target.includes('baby') || target.includes('kid') || target.includes('বাচ্চা')) {
+          return c.includes('baby') || c.includes('kid') || c.includes('বাচ্চা') || c.includes('শিশু') || c.includes('ইনফ্যান্ট');
+        }
+        if (target.includes('foot') || target.includes('shoe') || target.includes('জুতা')) {
+          return c.includes('foot') || c.includes('shoe') || c.includes('sneaker') || c.includes('জুতা') || c.includes('স্যান্ডেল') || c.includes('জুতো');
+        }
+
         return c.includes(target) || target.includes(c);
       });
       map.set(cat.title, catProducts);
@@ -359,13 +369,14 @@ function NewArrivalsCarousel({ products }: { products: Product[] }) {
     const container = scrollRef.current;
     if (!container) return;
 
+    // Gentle, very slow continuous slide (1px every 85ms)
     const interval = setInterval(() => {
       if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 4) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
         container.scrollLeft += 1;
       }
-    }, 30);
+    }, 85);
 
     return () => clearInterval(interval);
   }, [isPaused]);
@@ -407,10 +418,10 @@ function NewArrivalsCarousel({ products }: { products: Product[] }) {
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
-        className="flex flex-nowrap overflow-x-auto gap-3 pb-3 pt-1 scrollbar-none touch-pan-x cursor-grab active:cursor-grabbing select-none"
+        className="flex flex-nowrap overflow-x-auto gap-2.5 pb-2 pt-1 no-scrollbar scrollbar-none touch-auto cursor-grab active:cursor-grabbing"
       >
         {products.map((product, idx) => (
-          <CompactProductCard key={product.id || idx} product={product} index={idx} />
+          <CompactProductCard key={product.id || idx} product={product} />
         ))}
       </div>
     </div>

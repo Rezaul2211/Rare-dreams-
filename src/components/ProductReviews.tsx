@@ -28,7 +28,8 @@ import {
   Sparkles, 
   ShieldCheck,
   Send,
-  UserCheck
+  UserCheck,
+  AlertCircle
 } from 'lucide-react';
 
 interface ProductReviewsProps {
@@ -60,6 +61,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   const [reviewImage, setReviewImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   // Filters & Sorting
   const [filterRating, setFilterRating] = useState<number | 'all' | 'photos' | 'verified'>('all');
@@ -217,15 +219,15 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Check verified purchase against Firestore Orders
+  // Check verified purchase against Firestore Orders specifically for this product
   const checkVerifiedCustomer = async (): Promise<boolean> => {
     try {
-      if (user?.uid) return true; // Logged in user is trusted
+      // Store Admin is always allowed
+      if (user?.email === 'xmrezaul.karim998@gmail.com' || user?.role === 'admin') return true;
+
       const cleanPhone = userPhone.trim().replace(/\D/g, '');
       const cleanEmail = userEmail.trim().toLowerCase();
       const cleanOrder = orderId.trim().toUpperCase();
-
-      if (!cleanPhone && !cleanEmail && !cleanOrder) return false;
 
       const ordersRef = collection(db, 'orders');
       const snap = await getDocs(ordersRef);
@@ -236,17 +238,32 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         const oPhone = (o.phone || '').replace(/\D/g, '');
         const oEmail = (o.email || '').toLowerCase();
         const oId = docSnap.id.toUpperCase();
+        const oUserId = o.userId;
 
-        if (
-          (cleanOrder && oId.includes(cleanOrder)) ||
-          (cleanPhone && oPhone.includes(cleanPhone)) ||
-          (cleanEmail && oEmail && oEmail === cleanEmail)
-        ) {
-          found = true;
+        // Check if customer matches this order
+        const isCustomerMatch = 
+          (user?.uid && oUserId === user.uid) ||
+          (cleanOrder && cleanOrder.length >= 3 && oId.includes(cleanOrder)) ||
+          (cleanPhone && cleanPhone.length >= 8 && oPhone.includes(cleanPhone)) ||
+          (cleanEmail && oEmail && oEmail === cleanEmail);
+
+        if (isCustomerMatch) {
+          // Check if this order contains the item
+          const orderProducts = o.products || o.items || [];
+          const containsItem = orderProducts.some((item: any) => 
+            item.id === productId || 
+            item.productId === productId ||
+            (item.name && item.name.toLowerCase().includes(productName.toLowerCase()))
+          );
+
+          if (containsItem) {
+            found = true;
+          }
         }
       });
       return found;
-    } catch {
+    } catch (err) {
+      console.warn("Verified buyer check failed:", err);
       return false;
     }
   };
@@ -254,6 +271,8 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   // Submit review handler
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    setVerificationError(null);
+
     if (!userName.trim()) {
       alert(language === 'bn' ? 'অনুগ্রহ করে আপনার নাম দিন' : 'Please enter your name');
       return;
@@ -267,6 +286,15 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     try {
       const isVerified = await checkVerifiedCustomer();
 
+      if (!isVerified) {
+        const msg = language === 'bn' 
+          ? 'দুঃখিত! শুধুমাত্র যেসকল ক্রেতা এই পণ্যটি সফলভাবে ক্রয় করেছেন (Verified Buyer) তারাই রিভিউ জমা দিতে পারবেন। অনুগ্রহ করে ক্রয়ের সময় ব্যবহৃত মোবাইল নম্বর বা অর্ডার নম্বর দিয়ে চেষ্টা করুন।'
+          : 'Sorry! Only verified customers who purchased this product can leave a review. Please enter the phone number or Order ID used during purchase.';
+        setVerificationError(msg);
+        setSubmitting(false);
+        return;
+      }
+
       const newReviewData = {
         productId,
         userId: user?.uid || null,
@@ -276,7 +304,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         rating,
         comment: comment.trim(),
         images: reviewImage ? [reviewImage] : [],
-        isVerifiedPurchase: isVerified,
+        isVerifiedPurchase: true,
         helpfulCount: 0,
         createdAt: new Date().toISOString()
       };
@@ -294,21 +322,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       setTimeout(() => setSubmitSuccess(false), 4000);
     } catch (err) {
       console.error("Error adding review:", err);
-      // Fallback local addition if network fails
-      const fallbackReview: Review = {
-        id: `local-${Date.now()}`,
-        productId,
-        userName: userName.trim(),
-        rating,
-        comment: comment.trim(),
-        images: reviewImage ? [reviewImage] : [],
-        isVerifiedPurchase: true,
-        helpfulCount: 0,
-        createdAt: new Date().toISOString()
-      };
-      setReviews((prev) => [fallbackReview, ...prev]);
-      setSubmitSuccess(true);
-      setShowForm(false);
+      setVerificationError(language === 'bn' ? 'রিভিউ জমা দিতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : 'Failed to submit review. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -402,30 +416,33 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   };
 
   return (
-    <section id="customer-reviews" className="mt-16 pt-12 border-t border-neutral-200/80 w-full">
-      {/* Header Title */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-        <div>
-          <div className="flex items-center space-x-2 text-amber-600 bg-amber-50 px-3 py-1 rounded-full w-max text-[11px] font-black uppercase tracking-wider mb-2 border border-amber-200/60">
-            <UserCheck size={14} className="text-amber-600 shrink-0" />
-            <span>{language === 'bn' ? 'যাচাইকৃত গ্রাহক মূল্যায়ন' : 'Verified Customer Ratings'}</span>
+    <section id="customer-reviews" className="mt-10 pt-8 border-t border-neutral-200/80 w-full">
+      {/* Compact Clean Header Bar */}
+      <div className="flex items-center justify-between bg-neutral-50 px-4 py-3 rounded-2xl border border-neutral-200/80 mb-5">
+        <div className="flex items-center space-x-2.5">
+          <span className="text-xs sm:text-sm font-black text-neutral-900">
+            {language === 'bn' ? 'কাস্টমার রিভিউ' : 'Reviews'} ({totalCount})
+          </span>
+          <span className="text-neutral-300">•</span>
+          <div className="flex items-center space-x-1 text-xs font-bold text-neutral-800 bg-white px-2 py-0.5 rounded-lg border border-neutral-200/60 shadow-2xs">
+            <Star size={13} className="text-amber-400 fill-amber-400" />
+            <span>{avgRating}</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
-            {language === 'bn' ? 'কাস্টমার রিভিউ ও রেটিং' : 'Customer Reviews & Ratings'}
-          </h2>
-          <p className="text-xs text-neutral-500 mt-1">
-            {language === 'bn' 
-              ? `${productName}-এর প্রকৃত ক্রেতাদের অভিজ্ঞতার মতামত` 
-              : `Real reviews from verified buyers of ${productName}`}
-          </p>
+          <span className="hidden sm:inline-flex items-center space-x-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+            <ShieldCheck size={12} className="text-emerald-600" />
+            <span>{language === 'bn' ? 'যাচাইকৃত বায়ার' : 'Verified Buyer Only'}</span>
+          </span>
         </div>
 
         <button
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center justify-center space-x-2 bg-neutral-900 hover:bg-black text-white px-5 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-lg cursor-pointer shrink-0 active:scale-98"
+          onClick={() => {
+            setShowForm(!showForm);
+            setVerificationError(null);
+          }}
+          className="inline-flex items-center space-x-1.5 bg-neutral-900 hover:bg-black text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
         >
-          <MessageSquare size={16} />
-          <span>{showForm ? (language === 'bn' ? 'ফর্ম বন্ধ করুন' : 'Close Form') : (language === 'bn' ? 'মতামত বা রিভিউ দিন' : 'Write a Review')}</span>
+          <MessageSquare size={13} />
+          <span>{showForm ? (language === 'bn' ? 'বন্ধ করুন' : 'Close') : (language === 'bn' ? 'রিভিউ দিন' : 'Write Review')}</span>
         </button>
       </div>
 
@@ -434,90 +451,38 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200/90 rounded-2xl flex items-center space-x-3 text-emerald-900 animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wide">{language === 'bn' ? 'ধন্যবাদ! আপনার রিভিউ সফলভাবে জমা হয়েছে' : 'Thank You! Your review has been published'}</h4>
-            <p className="text-xs text-emerald-700 font-medium">{language === 'bn' ? 'অন্যান্য ক্রেতাদের সিদ্ধান্ত নিতে আপনার মতামত সাহায্য করবে।' : 'Your feedback will help other shoppers make informed choices.'}</p>
+            <h4 className="font-bold text-xs uppercase tracking-wide">{language === 'bn' ? 'ধন্যবাদ! আপনার রিভিউ সফলভাবে প্রকাশিত হয়েছে' : 'Thank You! Your review has been published'}</h4>
+            <p className="text-xs text-emerald-700 font-medium">{language === 'bn' ? 'আপনার মতামত অন্যান্য ক্রেতাদের সাহায্য করবে।' : 'Your feedback will help other shoppers make informed choices.'}</p>
           </div>
         </div>
       )}
 
-      {/* RATING OVERVIEW SUMMARY DASHBOARD */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-xs mb-8">
-        {/* Score Card */}
-        <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-neutral-50 rounded-2xl border border-neutral-100 text-center">
-          <span className="text-5xl font-black text-neutral-900 tracking-tight font-display">
-            {avgRating}
-          </span>
-          <div className="flex items-center space-x-1 my-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star
-                key={s}
-                size={20}
-                className={s <= Math.round(Number(avgRating)) ? 'text-amber-400 fill-amber-400' : 'text-neutral-200 fill-neutral-200'}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-bold text-neutral-600 uppercase tracking-wider">
-            {language === 'bn' ? `${totalCount} টি রিভিউ অনুযায়ী` : `Based on ${totalCount} reviews`}
-          </span>
-          <div className="mt-3 inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
-            <ShieldCheck size={14} className="text-emerald-600" />
-            <span>{language === 'bn' ? '১০০% আসল ও যাচাইকৃত' : '100% Authentic Ratings'}</span>
-          </div>
-        </div>
-
-        {/* Rating Breakdown Bars */}
-        <div className="lg:col-span-8 flex flex-col justify-center space-y-2.5 px-2">
-          {[5, 4, 3, 2, 1].map((starNum) => {
-            const count = countsByStars[starNum as 1|2|3|4|5] || 0;
-            const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
-
-            return (
-              <button
-                key={starNum}
-                onClick={() => setFilterRating(filterRating === starNum ? 'all' : starNum)}
-                className={`flex items-center space-x-3 w-full text-left group hover:opacity-100 transition-all ${
-                  filterRating === starNum ? 'scale-[1.01]' : ''
-                }`}
-              >
-                <div className="flex items-center space-x-1 w-14 shrink-0 text-xs font-bold text-neutral-700">
-                  <span>{starNum}</span>
-                  <Star size={13} className="text-amber-400 fill-amber-400 shrink-0" />
-                </div>
-
-                <div className="flex-1 bg-neutral-100 h-2.5 rounded-full overflow-hidden relative">
-                  <div
-                    className="bg-amber-400 h-full rounded-full transition-all duration-500 group-hover:bg-amber-500"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-
-                <span className="w-12 text-right text-xs font-bold text-neutral-500 shrink-0">
-                  {count} ({percentage}%)
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* WRITE A REVIEW FORM MODAL / COLLAPSIBLE */}
       {showForm && (
-        <div className="bg-amber-50/60 border-2 border-amber-200/90 rounded-3xl p-6 sm:p-8 mb-10 shadow-md animate-in fade-in slide-in-from-top-4 relative">
+        <div className="bg-amber-50/60 border-2 border-amber-200/90 rounded-3xl p-5 sm:p-7 mb-8 shadow-md animate-in fade-in slide-in-from-top-4 relative">
           <button
             onClick={() => setShowForm(false)}
-            className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-black rounded-full hover:bg-neutral-200/50 transition-colors"
+            className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-black rounded-full hover:bg-neutral-200/50 transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
 
-          <div className="flex items-center space-x-2 text-amber-800 text-xs font-extrabold uppercase tracking-wider mb-2">
+          <div className="flex items-center space-x-2 text-amber-800 text-xs font-extrabold uppercase tracking-wider mb-1">
             <Sparkles size={16} className="text-amber-600" />
-            <span>{language === 'bn' ? 'রিভিউ ও অভিজ্ঞতা শেয়ার করুন' : 'Share Your Experience'}</span>
+            <span>{language === 'bn' ? 'রিভিউ ও মতামত' : 'Write a Review'}</span>
           </div>
 
-          <h3 className="text-xl font-black text-neutral-900 tracking-tight mb-6">
-            {language === 'bn' ? `${productName}-এর জন্য আপনার মূল্যায়ন` : `Write a Review for ${productName}`}
+          <h3 className="text-lg font-black text-neutral-900 tracking-tight mb-4">
+            {language === 'bn' ? `${productName}-এর অভিজ্ঞতা লিখুন` : `Review ${productName}`}
           </h3>
+
+          {/* Verification Warning Error if not a verified buyer */}
+          {verificationError && (
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-bold mb-5 flex items-center space-x-2.5 animate-in fade-in">
+              <AlertCircle size={18} className="shrink-0 text-red-600" />
+              <span>{verificationError}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmitReview} className="space-y-5">
             {/* Interactive Rating Stars */}

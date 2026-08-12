@@ -7,6 +7,7 @@ import { LazyImage } from './LazyImage';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
+import { trackAddToCart } from '../lib/pixel';
 
 interface ProductCardProps {
   product: Product;
@@ -38,6 +39,12 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
     e.stopPropagation();
 
     if (product.stockQuantity === 0) return;
+
+    trackAddToCart({
+      content_name: product.name,
+      content_ids: [product.id],
+      value: product.price,
+    });
 
     animateAddToCart(product, e);
     setAdded(true);

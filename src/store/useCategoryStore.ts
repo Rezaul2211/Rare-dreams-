@@ -47,8 +47,21 @@ interface CategoryState {
   deleteCategory: (index: number) => Promise<void>;
 }
 
+export function sortCategoriesByStandardOrder(list: CategoryItem[]): CategoryItem[] {
+  const getOrderIndex = (title: string) => {
+    const lower = title.toLowerCase().trim();
+    if (lower.includes('women') || lower.includes('মহিলা') || lower.includes('নারী') || lower.includes('মেয়ে')) return 1;
+    if (lower.includes('men') || lower.includes('পুরুষ') || lower.includes('ছেলে')) return 0;
+    if (lower.includes('baby') || lower.includes('kid') || lower.includes('বাচ্চা') || lower.includes('শিশু')) return 2;
+    if (lower.includes('foot') || lower.includes('shoe') || lower.includes('জুতা') || lower.includes('স্যান্ডেল') || lower.includes('জুতো')) return 3;
+    return 4;
+  };
+
+  return [...list].sort((a, b) => getOrderIndex(a.title) - getOrderIndex(b.title));
+}
+
 export const useCategoryStore = create<CategoryState>((set, get) => ({
-  categories: DEFAULT_CATEGORIES,
+  categories: sortCategoriesByStandardOrder(DEFAULT_CATEGORIES),
   loading: true,
 
   fetchCategories: () => {
@@ -58,12 +71,12 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.list && Array.isArray(data.list) && data.list.length > 0) {
-            set({ categories: data.list, loading: false });
+            set({ categories: sortCategoriesByStandardOrder(data.list), loading: false });
           } else {
-            set({ categories: DEFAULT_CATEGORIES, loading: false });
+            set({ categories: sortCategoriesByStandardOrder(DEFAULT_CATEGORIES), loading: false });
           }
         } else {
-          set({ categories: DEFAULT_CATEGORIES, loading: false });
+          set({ categories: sortCategoriesByStandardOrder(DEFAULT_CATEGORIES), loading: false });
         }
       }, (error) => {
         console.error("Firestore categories listener error:", error);

@@ -40,12 +40,18 @@ export default function Shop() {
             if (!p.category) return false;
             const c = p.category.toLowerCase().trim();
             if (c === target) return true;
-            if (target.includes('boy') && (c.includes('boy') || c.includes('kids'))) return true;
-            if (target.includes('girl') && (c.includes('girl') || c.includes('kids'))) return true;
-            if (target.includes('baby') && (c.includes('baby') || c.includes('kids'))) return true;
-            if ((target.includes('footwear') || target.includes('shoe')) && (c.includes('footwear') || c.includes('shoe') || c.includes('sneaker'))) return true;
-            if (target.includes('men') && !target.includes('women') && c.includes('men')) return true;
-            if (target.includes('women') && c.includes('women')) return true;
+            if (target.includes('women') || target.includes('মহিলা')) {
+              return c.includes('women') || c.includes('girl') || c.includes('মহিলা') || c.includes('মেয়ে') || c.includes('শাড়ি') || c.includes('থ্রি পিস');
+            }
+            if ((target.includes('men') || target.includes('পুরুষ')) && !target.includes('women')) {
+              return (c.includes('men') && !c.includes('women')) || c.includes('boy') || c.includes('পুরুষ') || c.includes('ছেলে') || c.includes('পাঞ্জাবি');
+            }
+            if (target.includes('baby') || target.includes('kid') || target.includes('বাচ্চা')) {
+              return c.includes('baby') || c.includes('kid') || c.includes('বাচ্চা') || c.includes('শিশু');
+            }
+            if (target.includes('foot') || target.includes('shoe') || target.includes('জুতা')) {
+              return c.includes('foot') || c.includes('shoe') || c.includes('sneaker') || c.includes('জুতা') || c.includes('স্যান্ডেল') || c.includes('জুতো');
+            }
             return c.includes(target) || target.includes(c);
           });
         }

@@ -7,6 +7,7 @@ import { useCartStore } from '../store/useCartStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
+import { trackViewContent, trackAddToCart } from '../lib/pixel';
 import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
@@ -106,7 +107,6 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       if (!id) return;
       setLoading(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       try {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
@@ -117,6 +117,14 @@ export default function ProductDetail() {
           setQuantity(1);
           if (data.sizeOptions?.length) setSelectedSize(data.sizeOptions[0]);
           if (data.colorOptions?.length) setSelectedColor(data.colorOptions[0]);
+
+          // Meta Pixel ViewContent event
+          trackViewContent({
+            content_name: data.name,
+            content_category: data.category,
+            content_ids: [data.id],
+            value: data.price,
+          });
 
           // Track recently viewed products in localStorage
           try {
@@ -174,6 +182,13 @@ export default function ProductDetail() {
 
   const handleAddToCart = (e?: React.MouseEvent<HTMLElement>) => {
     if (!product) return;
+    
+    // Meta Pixel AddToCart event
+    trackAddToCart({
+      content_name: product.name,
+      content_ids: [product.id],
+      value: product.price * quantity,
+    });
     
     // Validate selections if options exist
     if (product.sizeOptions?.length && !selectedSize) {
@@ -429,16 +444,16 @@ export default function ProductDetail() {
                 <button 
                   onClick={(e) => handleAddToCart(e)}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-white border border-neutral-800 text-neutral-900 rounded-2xl py-3.5 text-xs font-bold shadow-2xs hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
+                  className="w-full bg-white border-2 border-neutral-900 text-neutral-900 rounded-2xl py-3.5 text-xs sm:text-sm font-extrabold shadow-2xs hover:bg-neutral-100 active:scale-95 transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
                 >
                   {t('product.add_to_cart')} 🛍️
                 </button>
                 <button 
                   onClick={(e) => { handleAddToCart(); navigate('/checkout'); }}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider"
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-950 rounded-2xl py-3.5 text-xs sm:text-sm font-black shadow-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider border border-amber-400"
                 >
-                  <Zap size={15} className="mr-1.5" /> {t('product.order_now')}
+                  <Zap size={16} className="mr-1.5 fill-neutral-950 text-neutral-950" /> {t('product.order_now')}
                 </button>
               </div>
 
@@ -470,10 +485,10 @@ export default function ProductDetail() {
                 href={`https://wa.me/8801700000000?text=Hi%20Rare%20Dreams!%20I'm%20interested%20in%20${encodeURIComponent(product.name)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full bg-emerald-600 text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer border border-emerald-500"
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer"
               >
-                <MessageCircle size={18} className="mr-2 fill-white" />
-                {language === 'bn' ? 'যেকোনো সহায়তায় হোয়াটসঅ্যাপে নক দিন' : 'Knock on WhatsApp for any help'}
+                <MessageCircle size={18} className="mr-2 fill-white text-[#25D366]" />
+                <span>{language === 'bn' ? 'হোয়াটসঅ্যাপে সরাসরি হেল্প নিন' : 'WhatsApp Support'}</span>
               </a>
             </div>
           </div>

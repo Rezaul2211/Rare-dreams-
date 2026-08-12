@@ -48,11 +48,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'home.premium_quality_desc': 'বাচ্চাদের জন্য আরামদায়ক ও স্কিন ফ্রেন্ডলি প্রিমিয়াম ফেব্রিক',
 
     // Categories translation map
-    'cat.foot_wear': 'জুতো ও স্যান্ডেল',
-    'cat.mens_items': 'মেনস কালেকশন',
-    'cat.baby_items': 'বেবি কালেকশন',
-    'cat.womens_items': 'উইমেনস কালেকশন',
-    'cat.kids': 'কিশোর কালেকশন',
+    'cat.foot_wear': 'জুতা ও স্যান্ডেল',
+    'cat.mens_items': 'পুরুষদের কালেকশন',
+    'cat.baby_items': 'বাচ্চাদের কালেকশন',
+    'cat.womens_items': 'মহিলাদের কালেকশন',
+    'cat.kids': 'বাচ্চাদের কালেকশন',
 
     // Product Card & Actions
     'product.add_to_cart': 'কার্টে যোগ করুন',
@@ -339,10 +339,10 @@ export const useLanguageStore = create<LanguageState>()(
 export function translateCategory(title: string, language: Language): string {
   if (language === 'en') return title;
   const lower = title.toLowerCase().trim();
-  if (lower.includes('foot') || lower.includes('shoe') || lower.includes('জুতো')) return 'জুতো ও স্যান্ডেল';
-  if (lower.includes('men') || lower.includes('ছেলে') || lower.includes('পাঞ্জাবি')) return 'মেনস কালেকশন';
-  if (lower.includes('baby') || lower.includes('বাচ্চা') || lower.includes('শিশুর')) return 'বেবি কালেকশন';
-  if (lower.includes('women') || lower.includes('মেয়ে') || lower.includes('নারী')) return 'উইমেনস কালেকশন';
-  if (lower.includes('kid')) return 'কিশোর কালেকশন';
+  // Check women BEFORE men because 'women' contains 'men'
+  if (lower.includes('women') || lower.includes('মেয়ে') || lower.includes('নারী') || lower.includes('মহিলা')) return 'মহিলাদের কালেকশন';
+  if (lower.includes('men') || lower.includes('ছেলে') || lower.includes('পাঞ্জাবি') || lower.includes('পুরুষ')) return 'পুরুষদের কালেকশন';
+  if (lower.includes('baby') || lower.includes('kid') || lower.includes('বাচ্চা') || lower.includes('শিশু')) return 'বাচ্চাদের কালেকশন';
+  if (lower.includes('foot') || lower.includes('shoe') || lower.includes('জুতো') || lower.includes('স্যান্ডেল')) return 'জুতা ও স্যান্ডেল';
   return title;
 }

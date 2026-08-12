@@ -63,6 +63,46 @@ export const SEO: React.FC<SEOProps> = ({
     }
     canonical.setAttribute('href', currentUrl);
 
+    // JSON-LD Structured Data Injection
+    let jsonLdScript = document.querySelector('#seo-json-ld') as HTMLScriptElement;
+    if (!jsonLdScript) {
+      jsonLdScript = document.createElement('script');
+      jsonLdScript.id = 'seo-json-ld';
+      jsonLdScript.type = 'application/ld+json';
+      document.head.appendChild(jsonLdScript);
+    }
+
+    const jsonLdData: any = {
+      "@context": "https://schema.org",
+      "@type": type === 'product' ? 'Product' : 'WebPage',
+      "name": siteTitle,
+      "description": description,
+      "url": currentUrl,
+      "image": image,
+      "publisher": {
+        "@type": "Organization",
+        "name": "Rare Dreams",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop"
+        }
+      }
+    };
+
+    if (type === 'product') {
+      jsonLdData["offers"] = {
+        "@type": "Offer",
+        "priceCurrency": "BDT",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "Rare Dreams"
+        }
+      };
+    }
+
+    jsonLdScript.textContent = JSON.stringify(jsonLdData);
+
   }, [siteTitle, description, image, currentUrl, type, keywords]);
 
   return null;
