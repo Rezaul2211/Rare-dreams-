@@ -11,7 +11,7 @@ import { trackInitiateCheckout, trackPurchase } from '../lib/pixel';
 import { ShieldCheck, ChevronLeft, Copy, Check, Smartphone, Loader2, ArrowRight, X, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function Checkout() {
-  const { items, getSubtotal, clearCart } = useCartStore();
+  const { items: allCartItems, directCheckoutItem, getCheckoutItems, getCheckoutSubtotal, clearCart, setDirectCheckoutItem, removeItem } = useCartStore();
   const { user } = useAuthStore();
   const { config } = useStoreConfigStore();
   const { language, t } = useLanguageStore();
@@ -22,6 +22,8 @@ export default function Checkout() {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+
+  const checkoutItems = getCheckoutItems();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -40,20 +42,20 @@ export default function Checkout() {
   const BKASH_NUMBER = config.bkashNumber || '01954710343';
   const NAGAD_NUMBER = config.nagadNumber || '01342563522';
 
-  const subtotal = getSubtotal();
+  const subtotal = getCheckoutSubtotal();
   const shipping = formData.district === 'Dhaka' ? 60 : 120;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
 
   React.useEffect(() => {
-    if (items.length > 0) {
+    if (checkoutItems.length > 0) {
       trackInitiateCheckout({
-        num_items: items.length,
+        num_items: checkoutItems.length,
         value: total,
       });
     }
   }, []);
 
-  if (items.length === 0 && !isOrderPlaced && !loading) {
+  if (checkoutItems.length === 0 && !isOrderPlaced && !loading) {
     return <Navigate to="/cart" replace />;
   }
 
@@ -125,7 +127,7 @@ export default function Checkout() {
         upazila: formData.upazila,
         city: formData.city,
         postalCode: formData.postalCode,
-        products: items,
+        products: checkoutItems,
         subtotal,
         shipping,
         total,
@@ -144,10 +146,17 @@ export default function Checkout() {
       trackPurchase({
         order_id: orderId,
         value: total,
-        num_items: items.reduce((acc, item) => acc + item.quantity, 0),
+        num_items: checkoutItems.reduce((acc, item) => acc + item.quantity, 0),
       });
 
-      clearCart();
+      if (directCheckoutItem) {
+        if (directCheckoutItem.cartItemId) {
+          removeItem(directCheckoutItem.cartItemId);
+        }
+        setDirectCheckoutItem(null);
+      } else {
+        clearCart();
+      }
       setShowGatewayModal(false);
       navigate(`/order-success/${orderId}`, { replace: true });
     } catch (error) {
@@ -340,7 +349,11 @@ export default function Checkout() {
       )}
 
       <div className="mb-6">
-        <Link to="/cart" className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black transition-colors">
+        <Link 
+          to="/cart" 
+          onClick={() => setDirectCheckoutItem(null)}
+          className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black transition-colors"
+        >
           <ChevronLeft size={16} className="mr-1" /> {t('checkout.back_to_cart')}
         </Link>
       </div>
@@ -540,10 +553,10 @@ export default function Checkout() {
         {/* Order Summary Card */}
         <div className="w-full lg:w-2/5">
           <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-md sticky top-24">
-            <h2 className="text-base font-black uppercase tracking-wider text-neutral-900 mb-6 pb-4 border-b border-neutral-100">{t('checkout.order_summary')} ({items.length})</h2>
+            <h2 className="text-base font-black uppercase tracking-wider text-neutral-900 mb-6 pb-4 border-b border-neutral-100">{t('checkout.order_summary')} ({checkoutItems.length})</h2>
             
             <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-1">
-              {items.map((item) => (
+              {checkoutItems.map((item) => (
                 <div key={item.cartItemId} className="flex items-center justify-between gap-3 text-sm">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-14 bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200/60 shrink-0">

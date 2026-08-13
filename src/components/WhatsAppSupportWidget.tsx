@@ -144,10 +144,21 @@ export default function WhatsAppSupportWidget() {
     return raw.replace(/[^0-9]/g, '');
   };
 
-  // Open WhatsApp with direct text
+  // Open WhatsApp with direct text and current URL
   const handleOpenWhatsApp = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const finalMsg = waText.trim() || 'হ্যালো রেয়ার ড্রিমস! আপনাদের কালেকশন ও অর্ডার সম্পর্কে সাহায্য চাই।';
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const isProductPage = currentUrl.includes('/product/');
+    
+    let finalMsg = '';
+    if (waText.trim()) {
+      finalMsg = `${waText.trim()}${isProductPage ? `\n\nপ্রোডাক্ট লিংক: ${currentUrl}` : ''}`;
+    } else if (isProductPage) {
+      finalMsg = `হ্যালো রেয়ার ড্রিমস! আমি এই প্রোডাক্টটি সম্পর্কে জানতে ও অর্ডার করতে চাই:\n${currentUrl}`;
+    } else {
+      finalMsg = 'হ্যালো রেয়ার ড্রিমস! আপনাদের কালেকশন ও অর্ডার সম্পর্কে সাহায্য চাই।';
+    }
+
     const encoded = encodeURIComponent(finalMsg);
     const waUrl = `https://wa.me/${getCleanWaNumber()}?text=${encoded}`;
     window.open(waUrl, '_blank');

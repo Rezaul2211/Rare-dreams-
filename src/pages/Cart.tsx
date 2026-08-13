@@ -6,9 +6,14 @@ import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Truck } from 'lucide-reac
 import { LazyImage } from '../components/LazyImage';
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, getSubtotal } = useCartStore();
+  const { items, updateQuantity, removeItem, getSubtotal, setDirectCheckoutItem } = useCartStore();
   const { language, t } = useLanguageStore();
   const navigate = useNavigate();
+
+  const handleProceedToCheckout = () => {
+    setDirectCheckoutItem(null);
+    navigate('/checkout');
+  };
 
   const subtotal = getSubtotal();
   const shipping = 0; // Shipping calculated at checkout
@@ -148,7 +153,7 @@ export default function Cart() {
             </div>
 
             <button 
-              onClick={() => navigate('/checkout')}
+              onClick={handleProceedToCheckout}
               className="w-full bg-neutral-900 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black active:scale-95 transition-all flex items-center justify-center space-x-2 shadow-lg"
             >
               <span>{t('cart.proceed_to_checkout')}</span>

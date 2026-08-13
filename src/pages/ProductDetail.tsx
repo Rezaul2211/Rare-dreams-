@@ -94,7 +94,7 @@ export default function ProductDetail() {
 
   const { isWishlisted, toggleWishlist } = useWishlistStore();
   const { animateAddToCart } = useFlyToCart();
-  const addItem = useCartStore((state) => state.addItem);
+  const { addItem, setDirectCheckoutItem } = useCartStore();
   const favorited = product ? isWishlisted(product.id) : false;
 
   // Calculate discount percentage if not explicitly defined
@@ -215,6 +215,37 @@ export default function ProductDetail() {
         quantity,
       });
     }
+  };
+
+  const handleBuyNow = (e?: React.MouseEvent) => {
+    if (!product) return;
+    if (product.stockQuantity === 0) return;
+
+    if (product.sizeOptions?.length && !selectedSize) {
+      alert(language === 'bn' ? 'দয়া করে একটি সাইজ সিলেক্ট করুন' : 'Please select a size');
+      return;
+    }
+    if (product.colorOptions?.length && !selectedColor) {
+      alert(language === 'bn' ? 'দয়া করে একটি কালার সিলেক্ট করুন' : 'Please select a color');
+      return;
+    }
+
+    trackAddToCart({
+      content_name: product.name,
+      content_ids: [product.id],
+      value: product.price * quantity,
+    });
+
+    const directItem = {
+      ...product,
+      cartItemId: `direct-${product.id}-${selectedSize || 'nosize'}-${selectedColor || 'nocolor'}`,
+      selectedSize,
+      selectedColor,
+      quantity,
+    };
+
+    setDirectCheckoutItem(directItem);
+    navigate('/checkout');
   };
 
   if (loading) {
@@ -449,7 +480,7 @@ export default function ProductDetail() {
                   {t('product.add_to_cart')} 🛍️
                 </button>
                 <button 
-                  onClick={(e) => { handleAddToCart(); navigate('/checkout'); }}
+                  onClick={(e) => handleBuyNow(e)}
                   disabled={product.stockQuantity === 0}
                   className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-950 rounded-2xl py-3.5 text-xs sm:text-sm font-black shadow-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider border border-amber-400"
                 >
