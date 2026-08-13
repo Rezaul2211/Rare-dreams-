@@ -66,8 +66,13 @@ export interface Order {
   customerName: string;
   phone: string;
   address: string;
-  city: string;
-  postalCode: string;
+  email?: string;
+  orderNotes?: string;
+  deliveryArea?: string;
+  city?: string;
+  district?: string;
+  upazila?: string;
+  postalCode?: string;
   products: CartItem[];
   subtotal: number;
   shipping: number;

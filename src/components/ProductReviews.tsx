@@ -50,12 +50,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  // Form states
+  // Form states (start blank)
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
-  const [userName, setUserName] = useState(user?.displayName || '');
-  const [userPhone, setUserPhone] = useState(user?.phoneNumber || '');
-  const [userEmail, setUserEmail] = useState(user?.email || '');
+  const [userName, setUserName] = useState('');
+  const [userPhone, setUserPhone] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [orderId, setOrderId] = useState('');
   const [comment, setComment] = useState('');
   const [reviewImage, setReviewImage] = useState<string | null>(null);

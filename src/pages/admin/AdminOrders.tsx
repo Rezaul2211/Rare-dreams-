@@ -475,6 +475,9 @@ export default function AdminOrders() {
                   <Phone size={12} />
                   <span>Call {selectedOrder.phone}</span>
                 </a>
+                {selectedOrder.email && (
+                  <p className="text-xs text-neutral-600 font-medium">Email: {selectedOrder.email}</p>
+                )}
                 <p className="text-[11px] text-neutral-500 font-mono">User ID: {selectedOrder.userId}</p>
               </div>
 
@@ -483,9 +486,17 @@ export default function AdminOrders() {
                   <MapPin size={14} className="text-black" />
                   <span>Delivery Address</span>
                 </h4>
-                <p className="text-xs font-bold text-neutral-900">{selectedOrder.address}</p>
-                <p className="text-xs text-neutral-600">{selectedOrder.city} {selectedOrder.postalCode ? `- ${selectedOrder.postalCode}` : ''}</p>
-                <p className="text-[11px] text-neutral-500 font-medium">Bangladesh</p>
+                <p className="text-xs font-bold text-neutral-900 whitespace-pre-wrap">{selectedOrder.address}</p>
+                {selectedOrder.deliveryArea && (
+                  <p className="text-xs text-neutral-600 font-medium">
+                    Area: <span className="text-neutral-900 font-bold">{selectedOrder.deliveryAreaBn || selectedOrder.deliveryArea}</span>
+                  </p>
+                )}
+                {selectedOrder.orderNotes && (
+                  <div className="mt-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                    <span className="font-bold">Note: </span>{selectedOrder.orderNotes}
+                  </div>
+                )}
               </div>
             </div>
 

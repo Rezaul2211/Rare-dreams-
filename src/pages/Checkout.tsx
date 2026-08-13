@@ -1,21 +1,70 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { bdDistricts } from '../lib/bdData';
 import { db } from '../lib/firebase';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
-import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
+import { useLanguageStore } from '../store/useLanguageStore';
 import { trackInitiateCheckout, trackPurchase } from '../lib/pixel';
-import { ShieldCheck, ChevronLeft, Copy, Check, Smartphone, Loader2, ArrowRight, X, Lock, CheckCircle2 } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  ChevronLeft, 
+  Copy, 
+  Check, 
+  Smartphone, 
+  Loader2, 
+  X, 
+  Lock, 
+  CheckCircle2, 
+  Truck, 
+  ShoppingBag,
+  RotateCcw
+} from 'lucide-react';
+
+interface DeliveryOption {
+  id: 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka';
+  labelBn: string;
+  labelEn: string;
+  subLabelBn: string;
+  subLabelEn: string;
+  cost: number;
+}
+
+const DELIVERY_OPTIONS: DeliveryOption[] = [
+  {
+    id: 'inside_dhaka',
+    labelBn: 'ঢাকা সিটির ভেতরে',
+    labelEn: 'Inside Dhaka City',
+    subLabelBn: 'হোম ডেলিভারি (১-২ দিন)',
+    subLabelEn: 'Home Delivery (1-2 days)',
+    cost: 60,
+  },
+  {
+    id: 'dhaka_suburbs',
+    labelBn: 'ঢাকা সিটির বাহিরে / সাব-ঢাকা',
+    labelEn: 'Dhaka Suburbs / Outskirts',
+    subLabelBn: 'সাভার, গাজীপুর, কেরানীগঞ্জ, ইত্যাদি (২-৩ দিন)',
+    subLabelEn: 'Savar, Gazipur, Keraniganj, etc (2-3 days)',
+    cost: 80,
+  },
+  {
+    id: 'outside_dhaka',
+    labelBn: 'ঢাকা জেলার বাহিরে / সারা বাংলাদেশ',
+    labelEn: 'Outside Dhaka / Whole Bangladesh',
+    subLabelBn: 'কুরিয়ার হোম ডেলিভারি (২-৪ দিন)',
+    subLabelEn: 'Courier Home Delivery (2-4 days)',
+    cost: 120,
+  },
+];
 
 export default function Checkout() {
-  const { items: allCartItems, directCheckoutItem, getCheckoutItems, getCheckoutSubtotal, clearCart, setDirectCheckoutItem, removeItem } = useCartStore();
+  const { directCheckoutItem, getCheckoutItems, getCheckoutSubtotal, clearCart, setDirectCheckoutItem, removeItem } = useCartStore();
   const { user } = useAuthStore();
   const { config } = useStoreConfigStore();
   const { language, t } = useLanguageStore();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [isConnectingGateway, setIsConnectingGateway] = useState(false);
   const [showGatewayModal, setShowGatewayModal] = useState(false);
@@ -25,15 +74,14 @@ export default function Checkout() {
 
   const checkoutItems = getCheckoutItems();
 
+  // Simplified Form State matching streamlined requirements (starts completely empty with no user info auto-filled)
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     phone: '',
     address: '',
-    district: 'Dhaka',
-    upazila: '',
-    city: '',
-    postalCode: '',
+    email: '',
+    orderNotes: '',
+    deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka',
     paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
     senderNumber: '',
     transactionId: '',
@@ -43,7 +91,8 @@ export default function Checkout() {
   const NAGAD_NUMBER = config.nagadNumber || '01342563522';
 
   const subtotal = getCheckoutSubtotal();
-  const shipping = formData.district === 'Dhaka' ? 60 : 120;
+  const selectedDeliveryOption = DELIVERY_OPTIONS.find(d => d.id === formData.deliveryArea) || DELIVERY_OPTIONS[0];
+  const shipping = selectedDeliveryOption.cost;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
 
   React.useEffect(() => {
@@ -66,17 +115,17 @@ export default function Checkout() {
           <CheckCircle2 size={36} />
         </div>
         <h2 className="text-xl md:text-2xl font-black uppercase text-neutral-900 tracking-tight">
-          অর্ডারটি সফলভাবে জমা নেওয়া হচ্ছে...
+          {language === 'bn' ? 'অর্ডারটি সফলভাবে জমা নেওয়া হচ্ছে...' : 'Placing your order successfully...'}
         </h2>
         <p className="text-xs text-neutral-500">
-          Order placed successfully! Redirecting to order confirmation page...
+          Order placed! Redirecting to confirmation page...
         </p>
         <Loader2 className="w-6 h-6 text-neutral-800 animate-spin mx-auto mt-2" />
       </div>
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -86,22 +135,31 @@ export default function Checkout() {
     setTimeout(() => setCopiedNumber(false), 2000);
   };
 
-  // Main Submit handler from Checkout Page
+  // Main Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.firstName.trim() || !formData.phone.trim() || !formData.address.trim() || !formData.city.trim()) {
-      alert('Please fill in all required contact and address fields.');
+    if (!formData.name.trim()) {
+      alert(language === 'bn' ? 'অনুগ্রহ করে আপনার নাম লিখুন।' : 'Please enter your name.');
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      alert(language === 'bn' ? 'অনুগ্রহ করে আপনার ১১ ডিজিট মোবাইল নম্বর লিখুন।' : 'Please enter your mobile phone number.');
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      alert(language === 'bn' ? 'অনুগ্রহ করে ডেলিভারি ঠিকানা (বাসা নম্বর, গ্রাম/মহল্লা, উপজেলা, জেলা) লিখুন।' : 'Please enter your delivery address.');
       return;
     }
 
     if (formData.paymentMethod === 'bKash' || formData.paymentMethod === 'nagad') {
-      // Step 1: Show Gateway Loading state first
       setIsConnectingGateway(true);
       setTimeout(() => {
         setIsConnectingGateway(false);
         setShowGatewayModal(true);
-      }, 1200);
+      }, 1000);
       return;
     }
 
@@ -120,13 +178,14 @@ export default function Checkout() {
       const orderData = {
         id: orderId,
         userId: user?.uid || 'guest',
-        customerName: formData.lastName ? `${formData.firstName} ${formData.lastName}` : formData.firstName,
-        phone: formData.phone,
-        address: formData.address,
-        district: formData.district,
-        upazila: formData.upazila,
-        city: formData.city,
-        postalCode: formData.postalCode,
+        customerName: formData.name.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        email: formData.email.trim() || '',
+        orderNotes: formData.orderNotes.trim() || '',
+        deliveryArea: selectedDeliveryOption.labelEn,
+        deliveryAreaBn: selectedDeliveryOption.labelBn,
+        city: selectedDeliveryOption.labelEn,
         products: checkoutItems,
         subtotal,
         shipping,
@@ -142,7 +201,7 @@ export default function Checkout() {
       setIsOrderPlaced(true);
       await setDoc(orderRef, orderData);
 
-      // Track Facebook Meta Pixel Purchase event
+      // Track Meta Pixel Purchase event
       trackPurchase({
         order_id: orderId,
         value: total,
@@ -169,7 +228,7 @@ export default function Checkout() {
     }
   };
 
-  // Modal Gateway Submit handler
+  // Gateway Modal Submit
   const handleGatewayModalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.senderNumber.trim()) {
@@ -184,11 +243,11 @@ export default function Checkout() {
     setIsVerifyingPayment(true);
     setTimeout(() => {
       finalizeOrder();
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full flex-grow relative">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 w-full flex-grow relative">
       
       {/* FULLSCREEN GATEWAY CONNECTING LOADER */}
       {isConnectingGateway && (
@@ -213,7 +272,7 @@ export default function Checkout() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-neutral-100 relative my-auto">
             
-            {/* Modal Top Header Bar */}
+            {/* Modal Top Header */}
             <div className={`px-6 py-5 text-white flex items-center justify-between ${
               formData.paymentMethod === 'bKash' ? 'bg-[#D12053]' : 'bg-[#F7921E]'
             }`}>
@@ -238,7 +297,6 @@ export default function Checkout() {
 
             {/* Modal Body */}
             <form onSubmit={handleGatewayModalSubmit} className="p-6 space-y-5">
-              {/* Order Amount Banner */}
               <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">Total Payable</span>
@@ -250,7 +308,7 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Official Number Copy Box */}
+              {/* Number Copy Box */}
               <div className={`p-4 rounded-2xl border space-y-2.5 ${
                 formData.paymentMethod === 'bKash' ? 'bg-pink-50/60 border-pink-200' : 'bg-orange-50/60 border-orange-200'
               }`}>
@@ -348,7 +406,8 @@ export default function Checkout() {
         </div>
       )}
 
-      <div className="mb-6">
+      {/* Back Link */}
+      <div className="mb-4">
         <Link 
           to="/cart" 
           onClick={() => setDirectCheckoutItem(null)}
@@ -358,266 +417,424 @@ export default function Checkout() {
         </Link>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-        {/* Checkout Form */}
-        <div className="w-full lg:w-3/5 space-y-6">
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900">{t('checkout.title')}</h1>
+      {/* Main Container */}
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
+        
+        {/* Left Column: Streamlined Simple Checkout Form */}
+        <div className="w-full lg:w-7/12 space-y-6">
           
+          {/* Header Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>{language === 'bn' ? 'নিরাপদ ও দ্রুত চেকআউট' : 'Fast & Secure Checkout'}</span>
+              </span>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
+              {language === 'bn' 
+                ? 'আপনার অর্ডার সম্পন্ন করুন' 
+                : 'Complete Your Order'}
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
+              {language === 'bn' 
+                ? 'অর্ডার করতে অনুগ্রহ করে নিচের তথ্যগুলো পূরণ করুন' 
+                : 'Please fill in your details below to complete your order'}
+            </p>
+          </div>
+
+          {/* Form */}
           <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
-            {/* Contact & Delivery Card */}
-            <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs">
-              <h2 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4 flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px]">1</span>
-                <span>{language === 'bn' ? 'যোগাযোগ ও গ্রাহকের তথ্য' : 'Contact & Customer Information'}</span>
-              </h2>
-
-              {!user ? (
-                <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200/80 mb-5 flex items-center justify-between">
-                  <p className="text-xs text-amber-900 font-medium">
-                    {language === 'bn' ? 'গেস্ট হিসেবে অর্ডার করা হচ্ছে। কোনো পাসওয়ার্ড প্রয়োজন নেই!' : 'Checking out as Guest. No password needed to order!'}
-                  </p>
-                  <Link to="/login" className="text-xs text-amber-950 font-black underline shrink-0 ml-2">{language === 'bn' ? 'লগইন করুন' : 'Sign In'}</Link>
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{t('checkout.full_name')} *</label>
-                  <input 
-                    type="text" 
-                    name="firstName" 
-                    placeholder={language === 'bn' ? 'যেমন: তানভীর' : 'e.g. Tanvir'} 
-                    required 
-                    value={formData.firstName} 
-                    onChange={handleChange} 
-                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{language === 'bn' ? 'শেষ নাম (ঐচ্ছিক)' : 'Last Name (Optional)'}</label>
-                  <input 
-                    type="text" 
-                    name="lastName" 
-                    placeholder={language === 'bn' ? 'যেমন: রহমান' : 'e.g. Rahman'} 
-                    value={formData.lastName} 
-                    onChange={handleChange} 
-                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{t('checkout.phone')} *</label>
-                  <input 
-                    type="tel" 
-                    name="phone" 
-                    placeholder="01700000000" 
-                    required 
-                    value={formData.phone} 
-                    onChange={handleChange} 
-                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all" 
-                  />
-                </div>
+            
+            {/* 1. Customer Information Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-4">
+              
+              {/* Field: Name */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
+                  {language === 'bn' ? 'নাম' : 'Your Name'} <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  placeholder={language === 'bn' ? 'আপনার নাম' : 'Enter your full name'} 
+                  required 
+                  value={formData.name} 
+                  onChange={handleChange} 
+                  className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
+                />
               </div>
+
+              {/* Field: Mobile Number */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
+                  {language === 'bn' ? 'মোবাইল নাম্বার' : 'Mobile Number'} <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="tel" 
+                  name="phone" 
+                  placeholder={language === 'bn' ? '১১ ডিজিট মোবাইল নাম্বার (যেমন: 017XXXXXXXX)' : '11-digit mobile number (e.g. 017XXXXXXXX)'} 
+                  required 
+                  value={formData.phone} 
+                  onChange={handleChange} 
+                  className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 font-mono transition-all placeholder:text-neutral-400 placeholder:font-sans" 
+                />
+              </div>
+
+              {/* Field: Full Address */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
+                  {language === 'bn' ? 'ঠিকানা' : 'Full Delivery Address'} <span className="text-red-500">*</span>
+                </label>
+                <textarea 
+                  name="address" 
+                  rows={2}
+                  placeholder={language === 'bn' ? 'বাসা নম্বর, গ্রাম/মহল্লা, উপজেলা, জেলা' : 'House/Flat No, Area, Thana/Upazila, District'} 
+                  required 
+                  value={formData.address} 
+                  onChange={handleChange} 
+                  className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400 resize-none" 
+                />
+              </div>
+
+              {/* Field: Email (Optional) */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
+                  {language === 'bn' ? 'ইমেইল (অপশনাল)' : 'Email Address (Optional)'}
+                </label>
+                <input 
+                  type="email" 
+                  name="email" 
+                  placeholder={language === 'bn' ? 'আপনার ইমেইল (অপশনাল)' : 'Your email address (optional)'} 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
+                />
+              </div>
+
+              {/* Field: Order Note (Optional) */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
+                  {language === 'bn' ? 'অর্ডার নোট' : 'Order Note (Optional)'}
+                </label>
+                <input 
+                  type="text" 
+                  name="orderNotes" 
+                  placeholder={language === 'bn' ? 'স্পেশাল কিছু বলতে চাইলে লিখুন (অপশনাল)' : 'Special instructions or delivery notes (optional)'} 
+                  value={formData.orderNotes} 
+                  onChange={handleChange} 
+                  className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
+                />
+              </div>
+
             </div>
 
-            {/* Shipping Address Card */}
-            <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs">
-              <h2 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4 flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px]">2</span>
-                <span>{t('checkout.address')}</span>
-              </h2>
+            {/* 2. Delivery Location Selection */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-3">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-neutral-900 mb-1 flex items-center justify-between">
+                <span>{language === 'bn' ? 'ডেলিভারি এরিয়া' : 'Delivery Area'}</span>
+                <span className="text-xs font-semibold text-neutral-400 lowercase">{language === 'bn' ? 'একটি সিলেক্ট করুন' : 'select one'}</span>
+              </label>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{language === 'bn' ? 'সম্পূর্ণ ঠিকানা (বাসা/রোড নম্বর, এলাকা, থানা) *' : 'Full Address (House, Road, Area) *'}</label>
-                  <input 
-                    type="text" 
-                    name="address" 
-                    placeholder={language === 'bn' ? 'বাসা/রোড নম্বর, এলাকা, থানা' : 'House/Road No., Area, Thana'} 
-                    required 
-                    value={formData.address} 
-                    onChange={handleChange} 
-                    className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{t('checkout.district')}</label>
-                    <select
-                      name="district"
-                      required
-                      value={formData.district}
-                      onChange={handleChange}
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all appearance-none"
+              <div className="space-y-2.5">
+                {DELIVERY_OPTIONS.map((opt) => {
+                  const isSelected = formData.deliveryArea === opt.id;
+                  return (
+                    <label 
+                      key={opt.id}
+                      onClick={() => setFormData({ ...formData, deliveryArea: opt.id })}
+                      className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer select-none ${
+                        isSelected 
+                          ? 'border-neutral-900 bg-neutral-900/5 shadow-xs' 
+                          : 'border-neutral-200/90 hover:border-neutral-300 bg-white'
+                      }`}
                     >
-                      {bdDistricts.map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{language === 'bn' ? 'উপজেলা / এলাকা *' : 'Upazila / Area *'}</label>
-                    <input 
-                      type="text" 
-                      name="upazila" 
-                      placeholder={language === 'bn' ? 'যেমন: মিরপুর, গুলশান' : 'e.g. Mirpur, Gulshan'} 
-                      required 
-                      value={formData.upazila} 
-                      onChange={handleChange} 
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{language === 'bn' ? 'সিটি / শহর (ঐচ্ছিক)' : 'City (Optional)'}</label>
-                    <input 
-                      type="text" 
-                      name="city" 
-                      placeholder={language === 'bn' ? 'যেমন: ঢাকা' : 'e.g. Dhaka'} 
-                      value={formData.city} 
-                      onChange={handleChange} 
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">{language === 'bn' ? 'পোস্টাল কোড (ঐচ্ছিক)' : 'Postal Code (Optional)'}</label>
-                    <input 
-                      type="text" 
-                      name="postalCode" 
-                      placeholder="1212" 
-                      value={formData.postalCode} 
-                      onChange={handleChange} 
-                      className="w-full bg-neutral-50 border border-neutral-200 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-black rounded-2xl text-sm transition-all"
-                    />
-                  </div>
-                </div>
+                      <div className="flex items-center space-x-3.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300 bg-white'
+                        }`}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <div>
+                          <p className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-neutral-950 font-black' : 'text-neutral-800'}`}>
+                            {language === 'bn' ? opt.labelBn : opt.labelEn}
+                          </p>
+                          <p className="text-[11px] text-neutral-500 font-medium">
+                            {language === 'bn' ? opt.subLabelBn : opt.subLabelEn}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <span className={`text-xs sm:text-sm font-black ${isSelected ? 'text-neutral-900' : 'text-neutral-700'}`}>
+                          {opt.cost} TK
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Payment Method Card */}
-            <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs">
-              <h2 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4 flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px]">3</span>
-                <span>{language === 'bn' ? 'পেমেন্ট মেথড নির্বাচন করুন' : 'Select Payment Method'}</span>
-              </h2>
+            {/* 3. Payment Method Selection */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-3">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-neutral-900 mb-1">
+                {language === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
+              </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-                <label className={`p-4 rounded-2xl border flex flex-col justify-between cursor-pointer transition-all ${
-                  formData.paymentMethod === 'cod' ? 'border-black bg-neutral-900 text-white shadow-xs' : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
-                }`}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* COD Option */}
+                <label 
+                  onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    formData.paymentMethod === 'cod' 
+                      ? 'border-neutral-900 bg-neutral-900 text-white shadow-md' 
+                      : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm block">{language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}</span>
-                    <input type="radio" name="paymentMethod" value="cod" checked={formData.paymentMethod === 'cod'} onChange={handleChange} className="w-4 h-4 text-black focus:ring-black cursor-pointer" />
+                    <span className="font-extrabold text-xs sm:text-sm">
+                      {language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}
+                    </span>
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="cod" 
+                      checked={formData.paymentMethod === 'cod'} 
+                      onChange={() => {}} 
+                      className="w-4 h-4 text-black cursor-pointer" 
+                    />
                   </div>
-                  <span className={`text-[11px] ${formData.paymentMethod === 'cod' ? 'text-neutral-300' : 'text-neutral-500'}`}>{language === 'bn' ? 'পণ্য হাতে পেয়ে টাকা পরিশোধ' : 'Pay when product arrives'}</span>
+                  <span className={`text-[11px] ${formData.paymentMethod === 'cod' ? 'text-neutral-300' : 'text-neutral-500'}`}>
+                    {language === 'bn' ? 'পণ্য হাতে পেয়ে টাকা পরিশোধ' : 'Pay when product arrives'}
+                  </span>
                 </label>
 
-                <label className={`p-4 rounded-2xl border flex flex-col justify-between cursor-pointer transition-all ${
-                  formData.paymentMethod === 'bKash' ? 'border-[#D12053] bg-[#D12053] text-white shadow-xs' : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
-                }`}>
+                {/* bKash Option */}
+                <label 
+                  onClick={() => setFormData({ ...formData, paymentMethod: 'bKash' })}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    formData.paymentMethod === 'bKash' 
+                      ? 'border-[#D12053] bg-[#D12053] text-white shadow-md' 
+                      : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm block">bKash (বিকাশ)</span>
-                    <input type="radio" name="paymentMethod" value="bKash" checked={formData.paymentMethod === 'bKash'} onChange={handleChange} className="w-4 h-4 text-[#D12053] focus:ring-[#D12053] cursor-pointer" />
+                    <span className="font-extrabold text-xs sm:text-sm">bKash (বিকাশ)</span>
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="bKash" 
+                      checked={formData.paymentMethod === 'bKash'} 
+                      onChange={() => {}} 
+                      className="w-4 h-4 text-[#D12053] cursor-pointer" 
+                    />
                   </div>
-                  <span className={`text-[11px] ${formData.paymentMethod === 'bKash' ? 'text-pink-100' : 'text-neutral-500'}`}>Send Money / Merchant Pay</span>
+                  <span className={`text-[11px] ${formData.paymentMethod === 'bKash' ? 'text-pink-100' : 'text-neutral-500'}`}>
+                    Send Money / Gateway
+                  </span>
                 </label>
 
-                <label className={`p-4 rounded-2xl border flex flex-col justify-between cursor-pointer transition-all ${
-                  formData.paymentMethod === 'nagad' ? 'border-[#F7921E] bg-[#F7921E] text-white shadow-xs' : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
-                }`}>
+                {/* Nagad Option */}
+                <label 
+                  onClick={() => setFormData({ ...formData, paymentMethod: 'nagad' })}
+                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    formData.paymentMethod === 'nagad' 
+                      ? 'border-[#F7921E] bg-[#F7921E] text-white shadow-md' 
+                      : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-900'
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm block">Nagad (নগদ)</span>
-                    <input type="radio" name="paymentMethod" value="nagad" checked={formData.paymentMethod === 'nagad'} onChange={handleChange} className="w-4 h-4 text-[#F7921E] focus:ring-[#F7921E] cursor-pointer" />
+                    <span className="font-extrabold text-xs sm:text-sm">Nagad (নগদ)</span>
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="nagad" 
+                      checked={formData.paymentMethod === 'nagad'} 
+                      onChange={() => {}} 
+                      className="w-4 h-4 text-[#F7921E] cursor-pointer" 
+                    />
                   </div>
-                  <span className={`text-[11px] ${formData.paymentMethod === 'nagad' ? 'text-orange-100' : 'text-neutral-500'}`}>Send Money / Gateway</span>
+                  <span className={`text-[11px] ${formData.paymentMethod === 'nagad' ? 'text-orange-100' : 'text-neutral-500'}`}>
+                    Send Money / Gateway
+                  </span>
                 </label>
               </div>
 
               {formData.paymentMethod !== 'cod' && (
-                <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex items-center space-x-2 mt-3">
+                <div className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex items-center space-x-2 mt-2">
                   <Smartphone size={16} className={formData.paymentMethod === 'bKash' ? 'text-[#D12053]' : 'text-[#F7921E]'} />
                   <span>
-                    {language === 'bn' ? 'অর্ডার কনফার্ম করার পর পেমেন্ট গেটওয়ে চালু হবে।' : `Clicking Confirm & Place Order will launch the interactive ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} payment portal.`}
+                    {language === 'bn' 
+                      ? 'অর্ডার বাটনে ক্লিক করার পর পেমেন্ট গেটওয়ে চালু হবে।' 
+                      : `Clicking confirm will launch the ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} payment portal.`}
                   </span>
                 </div>
               )}
-              
-              <div className="mt-4 flex items-center space-x-2 text-[11px] text-neutral-500 font-medium">
-                <ShieldCheck size={16} className="text-emerald-500" />
-                <span>{language === 'bn' ? 'সকল লেনদেন সম্পূর্ণ নিরাপদ ও আমাদের টিম দ্বারা নিশ্চিত করা।' : 'All transactions are secure & verified directly by our team.'}</span>
-              </div>
             </div>
+
+            {/* Mobile / Direct Order Button for Small Screens */}
+            <div className="block lg:hidden space-y-3 pt-2">
+              <button 
+                type="submit"
+                disabled={loading || isConnectingGateway}
+                className="w-full bg-[#f05a28] hover:bg-[#d94a1d] text-white py-4 px-6 rounded-2xl text-base font-black tracking-wide shadow-lg active:scale-98 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+              >
+                {isConnectingGateway ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>{language === 'bn' ? 'গেটওয়ে যুক্ত হচ্ছে...' : 'Connecting Gateway...'}</span>
+                  </>
+                ) : loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>{language === 'bn' ? 'অর্ডার জমা হচ্ছে...' : 'Confirming Order...'}</span>
+                  </>
+                ) : (
+                  <span>
+                    {language === 'bn' ? `অর্ডার কনফার্ম করুন ${total.toFixed(0)} TK` : `Confirm Order ${total.toFixed(0)} TK`}
+                  </span>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-neutral-600 font-medium leading-relaxed px-2">
+                {language === 'bn' 
+                  ? 'আমাদের একজন কাস্টমার প্রতিনিধি আপনাকে কল করে আবার কনফার্ম হবে।' 
+                  : 'Our customer representative will call you shortly to confirm your order.'}
+              </p>
+            </div>
+
           </form>
         </div>
 
-        {/* Order Summary Card */}
-        <div className="w-full lg:w-2/5">
-          <div className="bg-white rounded-2xl md:rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-md sticky top-24">
-            <h2 className="text-base font-black uppercase tracking-wider text-neutral-900 mb-6 pb-4 border-b border-neutral-100">{t('checkout.order_summary')} ({checkoutItems.length})</h2>
+        {/* Right Column: Order Summary & Confirmation CTA */}
+        <div className="w-full lg:w-5/12">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-md sticky top-24 space-y-6">
             
-            <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-1">
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
+              <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-neutral-900 flex items-center gap-2">
+                <ShoppingBag size={18} className="text-neutral-700" />
+                <span>{language === 'bn' ? 'অর্ডারের বিবরণ' : 'Order Summary'} ({checkoutItems.length})</span>
+              </h2>
+            </div>
+            
+            {/* Items List */}
+            <div className="space-y-3.5 max-h-80 overflow-y-auto pr-1">
               {checkoutItems.map((item) => (
-                <div key={item.cartItemId} className="flex items-center justify-between gap-3 text-sm">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-14 bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200/60 shrink-0">
-                      {item.images && item.images.length > 0 && <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />}
+                <div key={item.cartItemId} className="flex items-center justify-between gap-3 text-sm pb-3 border-b border-neutral-100 last:border-b-0 last:pb-0">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-14 h-16 bg-neutral-100 rounded-2xl overflow-hidden border border-neutral-200/70 shrink-0 relative">
+                      {item.images && item.images.length > 0 ? (
+                        <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-neutral-400 text-xs">No img</div>
+                      )}
+                      <span className="absolute top-1 right-1 bg-black text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                        {item.quantity}
+                      </span>
                     </div>
-                    <div>
-                      <p className="font-bold text-xs text-neutral-900 leading-snug line-clamp-1">{item.name}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs sm:text-sm text-neutral-900 truncate">{item.name}</p>
                       <p className="text-[11px] font-medium text-neutral-500 mt-0.5">
-                        {language === 'bn' ? 'পরিমাণ' : 'Qty'}: {item.quantity} {item.selectedSize && `• ${language === 'bn' ? 'সাইজ' : 'Size'}: ${item.selectedSize}`} {item.selectedColor && `• ${language === 'bn' ? 'কালার' : 'Color'}: ${item.selectedColor}`}
+                        {item.selectedSize && <span className="bg-neutral-100 px-1.5 py-0.5 rounded text-neutral-700 mr-1.5">{item.selectedSize}</span>}
+                        {item.selectedColor && <span className="text-neutral-600">{item.selectedColor}</span>}
                       </p>
                     </div>
                   </div>
-                  <span className="font-bold text-xs text-neutral-900 shrink-0">৳ {(item.price * item.quantity).toFixed(0)}</span>
+                  <span className="font-black text-xs sm:text-sm text-neutral-900 shrink-0">
+                    ৳ {(item.price * item.quantity).toFixed(0)}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-neutral-100 text-sm mb-6">
+            {/* Price Calculations */}
+            <div className="space-y-2.5 pt-4 border-t border-neutral-100 text-xs sm:text-sm">
               <div className="flex justify-between text-neutral-600">
-                <span>{t('cart.subtotal')}</span>
+                <span>{language === 'bn' ? 'সাবটোটাল (পণ্য মূল্য)' : 'Subtotal'}</span>
                 <span className="font-bold text-neutral-900">৳ {subtotal.toFixed(0)}</span>
               </div>
-              <div className="flex justify-between text-neutral-600">
-                <span>{t('checkout.shipping')}</span>
+              <div className="flex justify-between text-neutral-600 items-center">
+                <span>
+                  {language === 'bn' ? 'ডেলিভারি চার্জ' : 'Delivery Charge'}
+                  <span className="text-[11px] text-neutral-400 block sm:inline sm:ml-1">
+                    ({language === 'bn' ? selectedDeliveryOption.labelBn : selectedDeliveryOption.labelEn})
+                  </span>
+                </span>
                 <span className="font-bold text-neutral-900">
-                  {`৳ ${shipping.toFixed(0)}`}
+                  ৳ {shipping.toFixed(0)}
                 </span>
               </div>
             </div>
             
-            <div className="flex justify-between items-end mb-8 pt-4 border-t border-neutral-200">
+            {/* Total */}
+            <div className="flex justify-between items-center pt-4 border-t border-neutral-200">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">{t('cart.total')}</span>
-                <span className="text-2xl font-black text-neutral-900">৳ {total.toFixed(0)}</span>
+                <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400 block">
+                  {language === 'bn' ? 'সর্বমোট পরিশোধযোগ্য' : 'Total Payable'}
+                </span>
+                <span className="text-2xl font-black text-neutral-900">
+                  ৳ {total.toFixed(0)}
+                </span>
               </div>
-              <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-lg uppercase">
-                {formData.paymentMethod.toUpperCase()}
+              <span className="text-xs font-black text-neutral-700 bg-neutral-100 px-3 py-1.5 rounded-xl uppercase">
+                {formData.paymentMethod === 'cod' ? (language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery') : formData.paymentMethod.toUpperCase()}
               </span>
             </div>
 
-            <button 
-              form="checkout-form"
-              type="submit"
-              disabled={loading || isConnectingGateway}
-              className="w-full bg-neutral-900 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-lg disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
-            >
-              {isConnectingGateway ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>{language === 'bn' ? 'গেটওয়ে যুক্ত হচ্ছে...' : 'Connecting Gateway...'}</span>
-                </>
-              ) : loading ? (
-                <span>{language === 'bn' ? 'অর্ডার নিশ্চিত করা হচ্ছে...' : 'Confirming Order...'}</span>
-              ) : (
-                <span>{t('checkout.place_order')}</span>
-              )}
-            </button>
+            {/* Desktop Order Confirm Button */}
+            <div className="hidden lg:block space-y-3 pt-2">
+              <button 
+                form="checkout-form"
+                type="submit"
+                disabled={loading || isConnectingGateway}
+                className="w-full bg-[#f05a28] hover:bg-[#d94a1d] text-white py-4 px-6 rounded-2xl text-base font-black tracking-wide shadow-lg active:scale-98 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-2"
+              >
+                {isConnectingGateway ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>{language === 'bn' ? 'গেটওয়ে যুক্ত হচ্ছে...' : 'Connecting Gateway...'}</span>
+                  </>
+                ) : loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>{language === 'bn' ? 'অর্ডার জমা হচ্ছে...' : 'Confirming Order...'}</span>
+                  </>
+                ) : (
+                  <span>
+                    {language === 'bn' ? `অর্ডার কনফার্ম করুন ${total.toFixed(0)} TK` : `Confirm Order ${total.toFixed(0)} TK`}
+                  </span>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-neutral-600 font-medium leading-relaxed px-2">
+                {language === 'bn' 
+                  ? 'আমাদের একজন কাস্টমার প্রতিনিধি আপনাকে কল করে আবার কনফার্ম হবে।' 
+                  : 'Our customer representative will call you shortly to confirm your order.'}
+              </p>
+            </div>
+
+            {/* Trust Assurances */}
+            <div className="pt-3 border-t border-neutral-100 space-y-2 text-[11px] text-neutral-500 font-medium">
+              <div className="flex items-center space-x-2 text-neutral-700">
+                <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                <span>{language === 'bn' ? '১০০% অরিজিনাল ও প্রিমিয়াম কোয়ালিটি নিশ্চিত' : '100% Original & Premium Quality Guarantee'}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-neutral-700">
+                <Truck size={16} className="text-blue-600 shrink-0" />
+                <span>{language === 'bn' ? 'দ্রুত হোম ডেলিভারি ও সহজে ট্র্যাকিং' : 'Fast doorstep delivery with real-time tracking'}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-neutral-700">
+                <RotateCcw size={16} className="text-amber-600 shrink-0" />
+                <span>{language === 'bn' ? 'পণ্য দেখে পেমেন্ট ও ৭ দিনের সহজ এক্সচেঞ্জ' : 'Pay after check & 7-Day Hassle-Free Exchange'}</span>
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
     </div>
   );
 }
-

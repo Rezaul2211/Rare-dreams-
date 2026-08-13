@@ -122,8 +122,16 @@ export default function OrderSuccess() {
               </span>
               <div className="text-xs space-y-1 text-neutral-800">
                 <p className="font-bold text-sm text-neutral-900">{order.customerName}</p>
-                <p className="font-mono">{order.phone}</p>
-                <p className="text-neutral-600">{order.address}, {order.city} {order.postalCode}</p>
+                <p className="font-mono text-neutral-700">{order.phone}</p>
+                <p className="text-neutral-700 font-medium whitespace-pre-wrap">{order.address}</p>
+                {order.deliveryArea && (
+                  <p className="text-neutral-500 font-medium">Area: {order.deliveryAreaBn || order.deliveryArea}</p>
+                )}
+                {order.orderNotes && (
+                  <p className="text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200 text-[11px] mt-1">
+                    <strong>Note:</strong> {order.orderNotes}
+                  </p>
+                )}
               </div>
             </div>
 
