@@ -8,7 +8,7 @@ import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import { trackViewContent, trackAddToCart } from '../lib/pixel';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star, Video, Play } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
@@ -25,7 +25,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 5.0, totalCount: 0 });
   
-  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedMedia, setSelectedMedia] = useState<number | 'video'>(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
@@ -113,7 +113,7 @@ export default function ProductDetail() {
         if (docSnap.exists()) {
           const data = { id: docSnap.id, ...docSnap.data() } as Product;
           setProduct(data);
-          setSelectedImage(0);
+          setSelectedMedia(0);
           setQuantity(1);
           if (data.sizeOptions?.length) setSelectedSize(data.sizeOptions[0]);
           if (data.colorOptions?.length) setSelectedColor(data.colorOptions[0]);
@@ -276,10 +276,10 @@ export default function ProductDetail() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
-        {/* Images */}
+        {/* Images & Video Gallery */}
         <div className="w-full lg:w-1/2 flex flex-col">
-          {/* Main Image */}
-          <div className="w-full relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm mb-4 group">
+          {/* Main Viewer */}
+          <div className="w-full relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm mb-4 group bg-neutral-900">
             {/* Wishlist Heart Button */}
             <button 
               type="button"
@@ -310,9 +310,34 @@ export default function ProductDetail() {
               </div>
             ) : null}
 
-            {product.images && product.images.length > 0 ? (
+            {selectedMedia === 'video' && product.videoUrl ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                {product.videoUrl.includes('youtube.com') || product.videoUrl.includes('youtu.be') ? (
+                  <iframe 
+                    src={
+                      product.videoUrl.includes('youtu.be/')
+                        ? `https://www.youtube.com/embed/${product.videoUrl.split('youtu.be/')[1]?.split('?')[0]}?autoplay=1&rel=0`
+                        : product.videoUrl.includes('v=')
+                        ? `https://www.youtube.com/embed/${product.videoUrl.split('v=')[1]?.split('&')[0]}?autoplay=1&rel=0`
+                        : product.videoUrl
+                    } 
+                    className="w-full h-full border-0"
+                    title={product.name}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video 
+                    src={product.videoUrl} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full object-contain bg-black" 
+                  />
+                )}
+              </div>
+            ) : product.images && product.images.length > 0 ? (
               <LazyImage 
-                src={product.images[selectedImage]} 
+                src={product.images[typeof selectedMedia === 'number' ? selectedMedia : 0] || product.images[0]} 
                 alt={product.name}
                 className="w-full h-full object-cover object-center"
                 containerClassName="w-full h-full bg-neutral-100"
@@ -322,21 +347,45 @@ export default function ProductDetail() {
             )}
           </div>
           
-          {/* Thumbnails below */}
-          {product.images && product.images.length > 1 && (
+          {/* Thumbnails below (Images + Video) */}
+          {((product.images && product.images.length > 0) || product.videoUrl) && (
             <div className="flex space-x-3 overflow-x-auto pb-2 hide-scrollbar">
-              {product.images.map((img, idx) => (
+              {/* Image Thumbnails */}
+              {product.images?.map((img, idx) => (
                 <button 
                   key={idx}
-                  onClick={() => setSelectedImage(idx)}
+                  onClick={() => setSelectedMedia(idx)}
                   className={clsx(
-                    "w-20 h-24 shrink-0 rounded-xl overflow-hidden transition-all shadow-sm",
-                    selectedImage === idx ? "ring-2 ring-black ring-offset-2" : "opacity-70 hover:opacity-100"
+                    "w-20 h-24 shrink-0 rounded-2xl overflow-hidden transition-all shadow-xs border-2 cursor-pointer relative",
+                    selectedMedia === idx ? "border-amber-500 ring-2 ring-amber-400/50" : "border-neutral-200 opacity-75 hover:opacity-100"
                   )}
                 >
                   <LazyImage src={img} alt="" className="w-full h-full object-cover" containerClassName="w-full h-full" />
+                  {idx === 0 && (
+                    <span className="absolute bottom-1 left-1 bg-black/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                      Main
+                    </span>
+                  )}
                 </button>
               ))}
+
+              {/* Video Thumbnail Button */}
+              {product.videoUrl && (
+                <button
+                  onClick={() => setSelectedMedia('video')}
+                  className={clsx(
+                    "w-20 h-24 shrink-0 rounded-2xl overflow-hidden transition-all shadow-xs border-2 cursor-pointer relative bg-neutral-900 flex flex-col items-center justify-center text-white",
+                    selectedMedia === 'video' ? "border-amber-500 ring-2 ring-amber-400/50" : "border-neutral-800 opacity-80 hover:opacity-100"
+                  )}
+                >
+                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center shadow-md border border-white/20 mb-1">
+                    <Play size={18} className="fill-white text-white ml-0.5" />
+                  </div>
+                  <span className="text-[10px] font-black tracking-wider uppercase text-amber-300">
+                    Video
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>

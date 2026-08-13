@@ -4,7 +4,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, serverTimestamp } from 'fir
 import { db } from '../../lib/firebase';
 import { Product } from '../../types';
 import { useCategoryStore } from '../../store/useCategoryStore';
-import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon, Sparkles, Loader2, Tag } from 'lucide-react';
+import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon, Sparkles, Loader2, Tag, Video, Play, CheckCircle2 } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -92,6 +92,7 @@ export default function ProductForm() {
     material: '',
     description: '',
     images: [],
+    videoUrl: '',
     status: 'published',
     sku: ''
   });
@@ -186,6 +187,23 @@ export default function ProductForm() {
     });
   };
 
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      alert('Please select a valid video file (MP4, WEBM, MOV)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      if (result) {
+        setFormData(prev => ({ ...prev, videoUrl: result }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const addImage = () => {
     if (imageUrl) {
       setFormData(prev => ({ ...prev, images: [...(prev.images || []), imageUrl] }));
@@ -198,6 +216,16 @@ export default function ProductForm() {
       ...prev,
       images: (prev.images || []).filter((_, i) => i !== index)
     }));
+  };
+
+  const makeMainImage = (index: number) => {
+    setFormData(prev => {
+      const images = [...(prev.images || [])];
+      if (index <= 0 || index >= images.length) return prev;
+      const [selected] = images.splice(index, 1);
+      images.unshift(selected);
+      return { ...prev, images };
+    });
   };
 
   const addArrayItem = (field: 'sizeOptions' | 'colorOptions', input: string, setInput: (v: string) => void) => {
@@ -339,11 +367,24 @@ export default function ProductForm() {
             {/* Images */}
             <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h2 className="text-base sm:text-lg font-bold">Product Images</h2>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                    <ImageIcon size={20} className="text-amber-600" />
+                    <span>Product Images (প্রোডাক্ট এর ছবিসমূহ)</span>
+                  </h2>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    মেইন ছবি সহ আরো ৩-৫টি ছবি আপলোড করুন। প্রথম ছবিটি কভার/মেইন ছবি হিসেবে দেখাবে।
+                  </p>
+                </div>
+                {formData.images && formData.images.length > 0 && (
+                  <span className="text-xs font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-full w-max">
+                    {formData.images.length}টি ছবি যুক্ত হয়েছে
+                  </span>
+                )}
               </div>
               
               {/* Local File Upload Button */}
-              <div className="border-2 border-dashed border-neutral-300 rounded-2xl p-4 text-center hover:bg-neutral-50 transition-colors w-full">
+              <div className="border-2 border-dashed border-amber-300 bg-amber-50/40 rounded-2xl p-5 text-center hover:bg-amber-50 transition-colors w-full">
                 <input
                   type="file"
                   id="file-upload"
@@ -353,19 +394,21 @@ export default function ProductForm() {
                   className="hidden"
                 />
                 <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center space-y-2">
-                  <div className="w-10 h-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-700 shrink-0">
-                    <UploadCloud size={20} />
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-200">
+                    <UploadCloud size={24} />
                   </div>
                   <div className="text-center px-2">
-                    <span className="text-xs sm:text-sm font-bold text-neutral-900 underline decoration-2 block">Upload from Phone / PC Storage</span>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">Supports JPG, PNG, WEBP files</p>
+                    <span className="text-sm font-extrabold text-neutral-900 underline decoration-2 block">
+                      ডিভাইস থেকে একাধিক ছবি একসাথে সিলেক্ট করুন
+                    </span>
+                    <p className="text-xs text-neutral-500 mt-0.5">Select 1 or multiple JPG, PNG, WEBP images from Gallery</p>
                   </div>
                 </label>
               </div>
 
               {/* URL Option as alternative */}
-              <div className="pt-2 w-full">
-                <label className="block text-xs font-semibold text-neutral-500 mb-1">Or add image via web URL:</label>
+              <div className="pt-1 w-full">
+                <label className="block text-xs font-semibold text-neutral-500 mb-1">অথবা ওয়েব ইউআরএল (Image URL) দিন:</label>
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <input
                     type="url"
@@ -381,20 +424,121 @@ export default function ProductForm() {
               </div>
 
               {/* Image Previews */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4 w-full">
-                {(formData.images || []).map((img, idx) => (
-                  <div key={idx} className="relative aspect-[3/4] bg-neutral-100 rounded-xl overflow-hidden group border border-neutral-200">
-                    <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+              {formData.images && formData.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4 w-full">
+                  {formData.images.map((img, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`relative aspect-[3/4] bg-neutral-100 rounded-2xl overflow-hidden group border-2 ${
+                        idx === 0 ? 'border-amber-500 ring-2 ring-amber-400/50' : 'border-neutral-200'
+                      }`}
+                    >
+                      <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                      
+                      {/* Main Image Badge */}
+                      {idx === 0 ? (
+                        <div className="absolute top-2 left-2 bg-amber-500 text-neutral-950 text-[10px] font-black px-2 py-0.5 rounded-md shadow-md flex items-center gap-1">
+                          <CheckCircle2 size={10} />
+                          <span>MAIN PHOTO</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => makeMainImage(idx)}
+                          className="absolute top-2 left-2 bg-black/70 hover:bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded-md opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Make Main
+                        </button>
+                      )}
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="absolute top-2 right-2 bg-black/70 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-md"
+                        title="Remove image"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Product Video (NEW) */}
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-neutral-200 shadow-xs space-y-4 w-full min-w-0">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                  <Video size={20} className="text-red-500" />
+                  <span>Product Video (প্রোডাক্ট ভিডিও)</span>
+                </h2>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  ইউটিউব (YouTube Link / Shorts), ফেসবুক ভিডিও লিঙ্ক অথবা সরাসরি ভিডিও ফাইল আপলোড করুন।
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 mb-1">YouTube / Video URL:</label>
+                  <input
+                    type="url"
+                    name="videoUrl"
+                    value={formData.videoUrl || ''}
+                    onChange={handleChange}
+                    placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                    className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-black outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-neutral-400 uppercase">or</span>
+                  <label htmlFor="video-upload" className="cursor-pointer inline-flex items-center gap-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold px-3.5 py-2 rounded-xl border border-neutral-200 transition-colors">
+                    <Video size={14} />
+                    <span>Upload Video File (MP4/WEBM)</span>
+                    <input
+                      type="file"
+                      id="video-upload"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  {formData.videoUrl && (
                     <button
                       type="button"
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-1.5 right-1.5 bg-black/70 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                      title="Remove image"
+                      onClick={() => setFormData(prev => ({ ...prev, videoUrl: '' }))}
+                      className="text-xs font-bold text-red-600 hover:underline"
                     >
-                      <X size={14} />
+                      Remove Video
                     </button>
+                  )}
+                </div>
+
+                {/* Video Preview */}
+                {formData.videoUrl && (
+                  <div className="mt-2 bg-neutral-900 rounded-2xl overflow-hidden p-2 border border-neutral-800">
+                    <p className="text-[11px] font-bold text-neutral-400 mb-1.5 px-2">Video Preview attached to product:</p>
+                    {formData.videoUrl.includes('youtube.com') || formData.videoUrl.includes('youtu.be') ? (
+                      <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
+                        <iframe
+                          src={
+                            formData.videoUrl.includes('youtu.be/')
+                              ? `https://www.youtube.com/embed/${formData.videoUrl.split('youtu.be/')[1]?.split('?')[0]}`
+                              : formData.videoUrl.includes('v=')
+                              ? `https://www.youtube.com/embed/${formData.videoUrl.split('v=')[1]?.split('&')[0]}`
+                              : formData.videoUrl
+                          }
+                          className="w-full h-full border-0"
+                          title="Product Video Preview"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <video src={formData.videoUrl} controls className="w-full max-h-60 rounded-xl bg-black object-contain" />
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
 

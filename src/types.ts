@@ -14,6 +14,7 @@ export interface Product {
   material?: string;
   description: string;
   images: string[];
+  videoUrl?: string;
   status: 'published' | 'draft';
   sku?: string;
   createdAt: any;

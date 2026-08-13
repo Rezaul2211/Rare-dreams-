@@ -320,7 +320,7 @@ export const translations: Record<Language, Record<string, string>> = {
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set, get) => ({
-      language: 'bn', // Defaulting to Bengali (বাংলা) as requested by user
+      language: 'en', // Defaulting to English as requested by user
       setLanguage: (lang: Language) => set({ language: lang }),
       toggleLanguage: () => set((state) => ({ language: state.language === 'bn' ? 'en' : 'bn' })),
       t: (key: string, defaultText?: string) => {
