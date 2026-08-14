@@ -55,16 +55,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
   const reviewCount = (product.name.length * 7 + (product.price % 50)) || 85;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ 
-        duration: 0.5, 
-        delay: Math.min(index * 0.05, 0.3), 
-        ease: [0.22, 1, 0.36, 1] 
-      }}
-      className="group flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xs hover:shadow-md transition-all duration-300 overflow-hidden border border-neutral-200/70 relative"
+    <div
+      className="group flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xs hover:shadow-md transition-shadow duration-300 overflow-hidden border border-neutral-200/70 relative select-none w-full"
     >
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
@@ -159,7 +151,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 

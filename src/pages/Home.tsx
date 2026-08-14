@@ -515,13 +515,18 @@ function ProductSectionSlider({ title, link, products, loading }: ProductSection
       ) : (
         <div
           ref={scrollRef}
-          className="flex gap-1.5 sm:gap-3.5 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-1 pt-0.5"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex gap-1.5 sm:gap-3.5 overflow-x-auto scrollbar-none scroll-smooth pb-1 pt-0.5"
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x pan-y'
+          }}
         >
           {displayProducts.map((product, index) => (
             <div 
               key={product.id} 
-              className="w-[calc((100%-18px)/4)] sm:w-[calc((100%-42px)/4)] shrink-0 snap-start flex flex-col"
+              className="w-[calc((100%-18px)/4)] sm:w-[calc((100%-42px)/4)] shrink-0 flex flex-col"
             >
               <ProductCard product={product} index={index} />
             </div>
@@ -752,28 +757,28 @@ export default function Home() {
                 {/* Banner Content */}
                 <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-10 md:px-14 z-20 max-w-[85%] sm:max-w-[72%]">
                   {slide.tag && (
-                    <div className="flex flex-col items-start mb-0.5 sm:mb-1.5">
+                    <div className="flex flex-col items-start mb-1.5 sm:mb-2.5">
                       <span 
-                        className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold tracking-[0.2em] uppercase block leading-none"
+                        className="text-[7.5px] xs:text-[9.5px] sm:text-xs font-bold tracking-[0.2em] uppercase block leading-none"
                         style={{ color: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
                       >
-                        {slide.tag}
+                        {slide.tag.replace('2025', '2026')}
                       </span>
                       <div 
-                        className="w-5 sm:w-8 h-[1.5px] mt-0.5 sm:mt-1 opacity-85"
+                        className="w-5 sm:w-8 h-[1.5px] mt-1 sm:mt-1.5 opacity-85"
                         style={{ backgroundColor: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
                       />
                     </div>
                   )}
                   
                   <h1 
-                    className="text-sm xs:text-lg sm:text-3xl md:text-4xl font-bold font-serif leading-[1.12] mb-0.5 sm:mb-2 tracking-tight"
+                    className="text-sm xs:text-lg sm:text-3xl md:text-4xl font-bold font-serif leading-[1.2] sm:leading-[1.25] mb-1.5 sm:mb-3 tracking-tight"
                     style={{ color: slide.titleColor || (slide.theme === 'dark' ? '#FFFFFF' : '#1C1917') }}
                   >
                     {slide.title}
                     {slide.titleAccent && (
                       <span 
-                        className="block italic font-normal"
+                        className="block italic font-normal mt-0.5 sm:mt-1"
                         style={{ color: slide.accentColor || (slide.theme === 'dark' ? '#C69A4C' : '#556B4E') }}
                       >
                         {slide.titleAccent}
@@ -783,14 +788,14 @@ export default function Home() {
 
                   {slide.subtitle && (
                     <p 
-                      className="text-[8px] xs:text-[10.5px] sm:text-xs md:text-sm font-normal mb-1.5 sm:mb-4 leading-relaxed whitespace-pre-line hidden xs:block"
+                      className="text-[8px] xs:text-[10.5px] sm:text-xs md:text-sm font-normal mb-2 sm:mb-4 leading-relaxed whitespace-pre-line hidden xs:block"
                       style={{ color: slide.subtitleColor || (slide.theme === 'dark' ? '#D4D4D8' : '#4A5545') }}
                     >
                       {slide.subtitle}
                     </p>
                   )}
 
-                  <div>
+                  <div className="pt-0.5 sm:pt-1">
                     <Link
                       to={slide.link || '/shop'}
                       className="inline-flex items-center gap-1.5 px-3 py-1 xs:px-4 xs:py-2 sm:px-6 sm:py-2.5 rounded-full text-[8.5px] xs:text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"

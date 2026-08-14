@@ -33,7 +33,7 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=2070&auto=format&fit=crop',
-    tag: 'NEW COLLECTION 2025',
+    tag: 'NEW COLLECTION 2026',
     title: 'Elevate Your',
     titleAccent: 'Everyday Style',
     subtitle: 'Timeless looks. Premium quality.\nMade for you.',
