@@ -21,7 +21,8 @@ import {
   ShoppingBag,
   RotateCcw,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  Info
 } from 'lucide-react';
 
 interface DeliveryOption {
@@ -74,37 +75,34 @@ export default function Checkout() {
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
+  const [showPermissionGuide, setShowPermissionGuide] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState<{type: 'error'|'success'|'info'|'warning', text: string} | null>(null);
 
-  const handleAutoLocate = async () => {
+  const fallbackToIP = async (reason: string) => {
+    try {
+      setLocationMessage({ type: 'info', text: 'Getting approximate area...' });
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      
+      if (data && data.city) {
+        const approxAddress = `${data.city}, ${data.region || ''}, ${data.country_name || ''}`.replace(/, ,/g, ',');
+        setFormData(prev => ({ ...prev, address: approxAddress }));
+        setLocationMessage({ type: 'warning', text: `${reason}. We found your approximate area. Please add your House/Flat number manually.` });
+      } else {
+        setLocationMessage({ type: 'error', text: `${reason}, and approximate location also failed. Please type manually.` });
+      }
+    } catch (ipErr) {
+      setLocationMessage({ type: 'error', text: 'Could not detect location. Please type manually.' });
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  const executeGeolocation = () => {
+    setShowPermissionGuide(false);
     setIsLocating(true);
     setLocationMessage(null);
-
-    const fallbackToIP = async (reason: string) => {
-      try {
-        setLocationMessage({ type: 'info', text: 'Getting approximate area...' });
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        
-        if (data && data.city) {
-          const approxAddress = `${data.city}, ${data.region || ''}, ${data.country_name || ''}`.replace(/, ,/g, ',');
-          setFormData(prev => ({ ...prev, address: approxAddress }));
-          setLocationMessage({ type: 'warning', text: `${reason}. We found your approximate area. Please add your House/Flat number manually.` });
-        } else {
-          setLocationMessage({ type: 'error', text: `${reason}, and approximate location also failed. Please type manually.` });
-        }
-      } catch (ipErr) {
-        setLocationMessage({ type: 'error', text: 'Could not detect location. Please type manually.' });
-      } finally {
-        setIsLocating(false);
-      }
-    };
-
-    if (!navigator.geolocation) {
-      await fallbackToIP("Browser doesn't support GPS");
-      return;
-    }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -137,6 +135,36 @@ export default function Checkout() {
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
+  };
+
+  const handleAutoLocate = async () => {
+    if (!navigator.geolocation) {
+      setIsLocating(true);
+      await fallbackToIP("Browser doesn't support GPS");
+      return;
+    }
+
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        if (result.state === 'granted') {
+          executeGeolocation();
+        } else if (result.state === 'prompt') {
+          // Check if they might be using Android where overlays block prompts
+          // We can't detect overlays, but we can show a prompt beforehand to guide them
+          setShowPermissionGuide(true);
+        } else {
+          setIsLocating(true);
+          await fallbackToIP("Location permission is denied in browser settings");
+        }
+      } else {
+        // Fallback for Safari/others without permissions API
+        setShowPermissionGuide(true);
+      }
+    } catch (e) {
+      // Fallback if query fails
+      setShowPermissionGuide(true);
+    }
   };
 
   const checkoutItems = getCheckoutItems();
