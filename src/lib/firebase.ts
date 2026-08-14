@@ -29,7 +29,7 @@ try {
   firestoreDb = initializeFirestore(
     app,
     {
-      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: true,
       localCache: persistentLocalCache({
         tabManager: persistentSingleTabManager({})
       })
@@ -41,7 +41,7 @@ try {
   firestoreDb = initializeFirestore(
     app,
     {
-      experimentalAutoDetectLongPolling: true
+      experimentalForceLongPolling: true
     },
     databaseId
   );
@@ -49,16 +49,4 @@ try {
 
 export const db = firestoreDb;
 export const storage = getStorage(app);
-
-// Test Firestore connection gracefully without unhandled rejections
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('offline')) {
-      console.warn("Firestore running in offline mode.");
-    }
-  }
-}
-testConnection();
 
