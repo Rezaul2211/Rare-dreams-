@@ -1,0 +1,14 @@
+# Robots.txt for Rare Dreams Bangladesh E-Commerce
+# Allows all search engine crawlers to index products and categories
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://raredreams.com.bd/sitemap.xml

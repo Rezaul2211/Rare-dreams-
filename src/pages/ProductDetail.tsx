@@ -8,7 +8,7 @@ import { useFlyToCart } from '../context/FlyToCartContext';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import { trackViewContent, trackAddToCart } from '../lib/pixel';
-import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star, Video, Play } from 'lucide-react';
+import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star, Video, Play, Bell, BellRing } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
@@ -16,14 +16,18 @@ import { ProductCard } from '../components/ProductCard';
 import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductReviews } from '../components/ProductReviews';
 import SEO from '../components/SEO';
+import { usePriceAlertStore } from '../store/usePriceAlertStore';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { language, t } = useLanguageStore();
+  const { isProductSubscribed, togglePriceDropAlert } = usePriceAlertStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reviewSummary, setReviewSummary] = useState({ avgRating: 5.0, totalCount: 0 });
+  const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, totalCount: 0 });
+  const [alertFeedback, setAlertFeedback] = useState<string | null>(null);
+  const [togglingAlert, setTogglingAlert] = useState(false);
   
   const [selectedMedia, setSelectedMedia] = useState<number | 'video'>(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -263,7 +267,20 @@ export default function ProductDetail() {
         description={product.description?.substring(0, 160) || `Buy ${product.name} online at Rare Dreams. Category: ${product.category}. Premium quality and fast nationwide delivery.`}
         image={product.images?.[0]}
         type="product"
-        keywords={`${product.name}, ${product.category}, ${product.subcategory || ''}, Rare Dreams, online shopping Bangladesh`}
+        price={product.price}
+        comparePrice={product.comparePrice}
+        currency="BDT"
+        rating={product.rating || 5.0}
+        reviewCount={reviewSummary.totalCount || product.reviewsCount || 10}
+        sku={product.id}
+        category={product.category}
+        inStock={product.stock ? product.stock > 0 : true}
+        keywords={`${product.name}, ${product.category}, ${product.subcategory || ''}, ${product.name} price in Bangladesh, buy ${product.name} online, Rare Dreams, online shopping Bangladesh`}
+        breadcrumbs={[
+          { name: 'Home', url: window.location.origin },
+          { name: product.category, url: `${window.location.origin}/category/${encodeURIComponent(product.category)}` },
+          { name: product.name, url: window.location.href }
+        ]}
       />
 
       {/* Breadcrumbs */}
@@ -395,29 +412,38 @@ export default function ProductDetail() {
           <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-6 mb-8">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 mb-2">{product.name}</h1>
             
-            {/* Star Rating Badge Header */}
+            {/* Genuine Star Rating Badge Header */}
             <a 
               href="#customer-reviews"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="inline-flex items-center space-x-2 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-3 py-1.5 rounded-xl transition-all mb-3 w-max cursor-pointer group"
+              className="inline-flex items-center space-x-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/80 px-3 py-1.5 rounded-xl transition-all mb-3 w-max cursor-pointer group"
             >
-              <div className="flex items-center space-x-0.5 text-amber-500">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star 
-                    key={s} 
-                    size={14} 
-                    className={s <= Math.round(reviewSummary.avgRating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} 
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-black text-amber-900">{reviewSummary.avgRating}</span>
-              <span className="text-neutral-300">•</span>
-              <span className="text-xs font-bold text-amber-800 underline underline-offset-2 group-hover:text-amber-950">
-                {language === 'bn' ? `${reviewSummary.totalCount} টি রিভিউ` : `${reviewSummary.totalCount} Reviews`}
-              </span>
+              {reviewSummary.totalCount > 0 ? (
+                <>
+                  <div className="flex items-center space-x-0.5 text-amber-500">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star 
+                        key={s} 
+                        size={14} 
+                        className={s <= Math.round(reviewSummary.avgRating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} 
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-black text-neutral-900">{reviewSummary.avgRating}</span>
+                  <span className="text-neutral-300">•</span>
+                  <span className="text-xs font-bold text-neutral-700 underline underline-offset-2 group-hover:text-black">
+                    {language === 'bn' ? `${reviewSummary.totalCount} টি রিভিউ` : `${reviewSummary.totalCount} Reviews`}
+                  </span>
+                </>
+              ) : (
+                <div className="flex items-center space-x-1.5 text-xs text-neutral-500 font-medium">
+                  <Star size={13} className="text-neutral-300 fill-neutral-200" />
+                  <span>{language === 'bn' ? 'কোনো রিভিউ নেই • প্রথম রিভিউ দিন' : 'No reviews yet • Be the first'}</span>
+                </div>
+              )}
             </a>
 
             <div className="flex items-center text-sm text-neutral-500 mb-4 space-x-4">
@@ -425,20 +451,70 @@ export default function ProductDetail() {
               <span>{language === 'bn' ? 'ব্র্যান্ড' : 'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
             </div>
             
-            <div className="flex items-center space-x-3 mb-6">
-              <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900">৳ {product.price.toFixed(2)}</span>
-              {product.comparePrice && product.comparePrice > product.price && (
-                <span className="text-lg text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
-              )}
-              {product.isFlashSale ? (
-                <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                  ⚡ {language === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}
-                </span>
-              ) : discountPct && discountPct > 0 ? (
-                <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                  {language === 'bn' ? `${discountPct}% ছাড়` : `Save ${discountPct}%`}
-                </span>
-              ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900">৳ {product.price.toFixed(2)}</span>
+                {product.comparePrice && product.comparePrice > product.price && (
+                  <span className="text-lg text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
+                )}
+                {product.isFlashSale ? (
+                  <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                    ⚡ {language === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}
+                  </span>
+                ) : discountPct && discountPct > 0 ? (
+                  <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
+                    {language === 'bn' ? `${discountPct}% ছাড়` : `Save ${discountPct}%`}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* 1-Click Simple Price Drop Subscription Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  disabled={togglingAlert}
+                  onClick={async () => {
+                    if (!product) return;
+                    setTogglingAlert(true);
+                    const res = await togglePriceDropAlert({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      images: product.images
+                    });
+                    setTogglingAlert(false);
+                    setAlertFeedback(res.message);
+                    setTimeout(() => setAlertFeedback(null), 3000);
+                  }}
+                  className={clsx(
+                    "inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs border cursor-pointer active:scale-95",
+                    isProductSubscribed(product.id)
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                      : "bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400"
+                  )}
+                  title={language === 'bn' ? 'দাম কমলে ইমেইল নোটিফিকেশন পান' : 'Get email notification when price drops'}
+                >
+                  <Bell 
+                    size={14} 
+                    className={clsx(
+                      isProductSubscribed(product.id) ? "text-emerald-600 fill-emerald-600" : "text-neutral-500"
+                    )} 
+                  />
+                  <span>
+                    {isProductSubscribed(product.id)
+                      ? (language === 'bn' ? '✓ দাম কমলে অ্যালার্ট পাবেন' : '✓ Alert Active')
+                      : (language === 'bn' ? 'দাম কমলে অ্যালার্ট দিন' : 'Alert on Price Drop')}
+                  </span>
+                </button>
+
+                {/* Micro Inline Feedback */}
+                {alertFeedback && (
+                  <div className="absolute right-0 sm:left-0 top-full mt-1.5 z-30 bg-neutral-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-neutral-700 whitespace-nowrap animate-in fade-in slide-in-from-top-1 flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                    <span>{alertFeedback}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Short Description Box */}
@@ -818,3 +894,4 @@ export default function ProductDetail() {
     </div>
   );
 }
+

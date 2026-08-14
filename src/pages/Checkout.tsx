@@ -355,6 +355,7 @@ export default function Checkout() {
                     name="senderNumber"
                     placeholder="017XXXXXXXX"
                     required
+                    autoComplete="off"
                     value={formData.senderNumber}
                     onChange={handleChange}
                     className="w-full bg-neutral-50 border border-neutral-300 px-4 py-3 rounded-xl text-sm font-mono font-bold outline-none focus:bg-white focus:ring-2 focus:ring-black transition-all"
@@ -370,6 +371,7 @@ export default function Checkout() {
                     name="transactionId"
                     placeholder="e.g. 8N7X9Y2Z"
                     required
+                    autoComplete="off"
                     value={formData.transactionId}
                     onChange={handleChange}
                     className="w-full bg-neutral-50 border border-neutral-300 px-4 py-3 rounded-xl text-sm font-mono font-bold uppercase outline-none focus:bg-white focus:ring-2 focus:ring-black transition-all"
@@ -460,6 +462,7 @@ export default function Checkout() {
                   name="name" 
                   placeholder={language === 'bn' ? 'আপনার নাম' : 'Enter your full name'} 
                   required 
+                  autoComplete="off"
                   value={formData.name} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
@@ -476,6 +479,7 @@ export default function Checkout() {
                   name="phone" 
                   placeholder={language === 'bn' ? '১১ ডিজিট মোবাইল নাম্বার (যেমন: 017XXXXXXXX)' : '11-digit mobile number (e.g. 017XXXXXXXX)'} 
                   required 
+                  autoComplete="off"
                   value={formData.phone} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 font-mono transition-all placeholder:text-neutral-400 placeholder:font-sans" 
@@ -492,6 +496,7 @@ export default function Checkout() {
                   rows={2}
                   placeholder={language === 'bn' ? 'বাসা নম্বর, গ্রাম/মহল্লা, উপজেলা, জেলা' : 'House/Flat No, Area, Thana/Upazila, District'} 
                   required 
+                  autoComplete="off"
                   value={formData.address} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400 resize-none" 
@@ -507,6 +512,7 @@ export default function Checkout() {
                   type="email" 
                   name="email" 
                   placeholder={language === 'bn' ? 'আপনার ইমেইল (অপশনাল)' : 'Your email address (optional)'} 
+                  autoComplete="off"
                   value={formData.email} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
@@ -522,6 +528,7 @@ export default function Checkout() {
                   type="text" 
                   name="orderNotes" 
                   placeholder={language === 'bn' ? 'স্পেশাল কিছু বলতে চাইলে লিখুন (অপশনাল)' : 'Special instructions or delivery notes (optional)'} 
+                  autoComplete="off"
                   value={formData.orderNotes} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 

@@ -85,38 +85,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     }
   });
 
-  // Default seed reviews for rich UI experience if database is empty
-  const defaultSampleReviews: Review[] = [
-    {
-      id: 'sample-1',
-      productId,
-      userName: language === 'bn' ? 'তানভীর আহমেদ' : 'Tanvir Ahmed',
-      userPhone: '017****1234',
-      rating: 5,
-      comment: language === 'bn' 
-        ? 'পণ্যটির কাপড় এবং সেলাইয়ের কোয়ালিটি অনেক ভালো। ছবির সাথে শতভাগ মিল পেয়েছি। ডেলিভারিও খুব ফাস্ট ছিল।'
-        : 'The fabric and stitching quality are top-notch. Exactly matched the product photos. Very fast delivery within Dhaka!',
-      isVerifiedPurchase: true,
-      helpfulCount: 8,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      adminReply: language === 'bn' ? 'ধন্যবাদ আপনার সুন্দর ফিডব্যাকের জন্য! Rare Dreams-এর সাথেই থাকুন।' : 'Thank you for your valuable feedback! Stay with Rare Dreams.'
-    },
-    {
-      id: 'sample-2',
-      productId,
-      userName: language === 'bn' ? 'রাফিয়া সুলতানা' : 'Rafia Sultana',
-      userPhone: '018****5678',
-      rating: 5,
-      comment: language === 'bn' 
-        ? 'সাইজ একদম পারফেক্ট ছিল। প্যাকেজিং খুব প্রিমিয়াম। বাচ্চার জন্য অর্ডার করেছিলাম, ভীষণ পছন্দ হয়েছে।'
-        : 'Size was perfectly tailored. Packaging felt very luxury & premium. My kid loved it!',
-      isVerifiedPurchase: true,
-      helpfulCount: 5,
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ];
-
-  // Fetch reviews from Firestore
+  // Fetch reviews from Firestore (Only genuine real reviews)
   useEffect(() => {
     let isMounted = true;
     const fetchReviews = async () => {
@@ -132,28 +101,25 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
           fetched.push({ id: docSnap.id, ...docSnap.data() } as Review);
         });
 
-        // Combine Firestore reviews with sample reviews if fewer than 2 exist
-        let combined = fetched;
-        if (fetched.length === 0) {
-          combined = defaultSampleReviews;
-        }
-
         if (isMounted) {
-          setReviews(combined);
+          setReviews(fetched);
           
-          // Compute average rating and count
-          const total = combined.length;
-          const sum = combined.reduce((acc, r) => acc + r.rating, 0);
-          const avg = total > 0 ? Number((sum / total).toFixed(1)) : 5.0;
+          // Compute authentic average rating and count
+          const total = fetched.length;
+          const sum = fetched.reduce((acc, r) => acc + (r.rating || 5), 0);
+          const avg = total > 0 ? Number((sum / total).toFixed(1)) : 0;
           
           if (onRatingUpdate) {
             onRatingUpdate(avg, total);
           }
         }
       } catch (err) {
-        console.warn("Could not load reviews from Firestore, using smart fallback:", err);
+        console.warn("Could not load reviews from Firestore:", err);
         if (isMounted) {
-          setReviews(defaultSampleReviews);
+          setReviews([]);
+          if (onRatingUpdate) {
+            onRatingUpdate(0, 0);
+          }
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -386,8 +352,8 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
 
   // Stats computation
   const totalCount = reviews.length;
-  const ratingSum = reviews.reduce((acc, r) => acc + r.rating, 0);
-  const avgRating = totalCount > 0 ? (ratingSum / totalCount).toFixed(1) : '5.0';
+  const ratingSum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+  const avgRating = totalCount > 0 ? (ratingSum / totalCount).toFixed(1) : '0.0';
 
   const countsByStars = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   reviews.forEach((r) => {
@@ -527,6 +493,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                 <input
                   type="text"
                   required
+                  autoComplete="off"
                   placeholder={language === 'bn' ? 'যেমন: রহিম আহমেদ' : 'e.g. Rahim Ahmed'}
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
@@ -540,6 +507,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                 </label>
                 <input
                   type="tel"
+                  autoComplete="off"
                   placeholder={language === 'bn' ? '০১৭XXXXXXXX' : '017XXXXXXXX'}
                   value={userPhone}
                   onChange={(e) => setUserPhone(e.target.value)}
@@ -553,6 +521,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                 </label>
                 <input
                   type="text"
+                  autoComplete="off"
                   placeholder={language === 'bn' ? 'যেমন: ORD-8392' : 'e.g. ORD-8392'}
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
@@ -568,6 +537,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
               </label>
               <textarea
                 required
+                autoComplete="off"
                 rows={3}
                 placeholder={
                   language === 'bn'

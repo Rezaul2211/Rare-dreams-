@@ -7,6 +7,7 @@ import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useFlyToCart } from '../context/FlyToCartContext';
 import { useLanguageStore } from '../store/useLanguageStore';
+import { usePriceAlertStore } from '../store/usePriceAlertStore';
 import { Order, AddressItem, PaymentMethodItem, Product } from '../types';
 import { 
   User as UserIcon, 
@@ -37,7 +38,9 @@ import {
   Settings as SettingsIcon,
   HelpCircle,
   ShoppingBasket,
-  Globe
+  Globe,
+  Bell,
+  BellRing
 } from 'lucide-react';
 
 interface ReviewItem {
@@ -67,6 +70,7 @@ export default function Account() {
   const { wishlistIds, toggleWishlist } = useWishlistStore();
   const { animateAddToCart } = useFlyToCart();
   const { language, setLanguage } = useLanguageStore();
+  const { alerts, fetchUserAlerts, unsubscribeFromPriceDrop } = usePriceAlertStore();
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -466,6 +470,27 @@ export default function Account() {
             <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
           </button>
 
+          {/* Price Drop Alerts & Subscriptions */}
+          <button
+            onClick={() => setActiveModal('price_alerts')}
+            className="w-full bg-white hover:bg-neutral-50 p-4 rounded-2xl border border-amber-300/80 shadow-2xs flex items-center justify-between group transition-all text-left cursor-pointer"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                <Bell size={20} strokeWidth={2} className="text-amber-700" />
+              </div>
+              <div>
+                <span className="text-base font-bold text-neutral-900 block leading-tight">
+                  {language === 'bn' ? 'মূল্য হ্রাস অ্যালার্ট (Price Drop Alerts)' : 'Price Drop Alerts'}
+                </span>
+                <span className="text-xs text-neutral-500 font-medium">
+                  {alerts.length} {alerts.length === 1 ? 'active alert' : 'active alerts'}
+                </span>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-neutral-400 group-hover:text-black transition-colors" />
+          </button>
+
           {/* Shipping Addresses */}
           <button
             onClick={() => setActiveModal('address')}
@@ -556,6 +581,7 @@ export default function Account() {
                 <input 
                   type="text" 
                   required
+                  autoComplete="off"
                   value={profileName} 
                   onChange={(e) => setProfileName(e.target.value)}
                   className="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black"
@@ -567,6 +593,7 @@ export default function Account() {
                 <input 
                   type="text" 
                   placeholder="e.g. 01700000000"
+                  autoComplete="off"
                   value={profilePhone} 
                   onChange={(e) => setProfilePhone(e.target.value)}
                   className="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black"
@@ -578,6 +605,7 @@ export default function Account() {
                 <input 
                   type="url" 
                   value={profilePhoto} 
+                  autoComplete="off"
                   onChange={(e) => setProfilePhoto(e.target.value)}
                   placeholder="Paste image URL"
                   className="w-full text-xs bg-neutral-50 border border-neutral-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black"
@@ -671,6 +699,7 @@ export default function Account() {
                 <input
                   type="text"
                   placeholder="Recipient Name"
+                  autoComplete="off"
                   value={addrName}
                   onChange={(e) => setAddrName(e.target.value)}
                   className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
@@ -678,6 +707,7 @@ export default function Account() {
                 <input
                   type="text"
                   placeholder="Phone Number"
+                  autoComplete="off"
                   value={addrPhone}
                   onChange={(e) => setAddrPhone(e.target.value)}
                   className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
@@ -686,6 +716,7 @@ export default function Account() {
                   type="text"
                   placeholder="Full Address / House, Road, Area"
                   required
+                  autoComplete="off"
                   value={addrStreet}
                   onChange={(e) => setAddrStreet(e.target.value)}
                   className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
@@ -694,6 +725,7 @@ export default function Account() {
                   type="text"
                   placeholder="City / District"
                   required
+                  autoComplete="off"
                   value={addrCity}
                   onChange={(e) => setAddrCity(e.target.value)}
                   className="w-full text-xs bg-white border border-neutral-200 rounded-xl px-3 py-2"
@@ -974,6 +1006,120 @@ export default function Account() {
           </div>
         </div>
       )}
+
+      {/* 13. PRICE DROP ALERTS MODAL */}
+      {activeModal === 'price_alerts' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-neutral-100 space-y-4 max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setActiveModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-black transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center space-x-3 border-b border-neutral-100 pb-3 pr-8">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                <BellRing size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">
+                  {language === 'bn' ? 'মূল্য হ্রাস অ্যালার্ট (Price Drop Alerts)' : 'Price Drop Alerts'}
+                </h3>
+                <p className="text-xs text-neutral-400 font-medium">
+                  {alerts.length} {alerts.length === 1 ? 'active subscription' : 'active subscriptions'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {alerts.length === 0 ? (
+                <div className="text-center py-10 bg-neutral-50 rounded-2xl border border-dashed border-neutral-200 space-y-3 p-4">
+                  <Bell className="mx-auto text-amber-400 stroke-[1.5]" size={40} />
+                  <div>
+                    <p className="text-xs font-bold text-neutral-700">
+                      {language === 'bn' ? 'কোনো সক্রিয় প্রাইস অ্যালার্ট নেই' : 'No active price drop alerts'}
+                    </p>
+                    <p className="text-[11px] text-neutral-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                      {language === 'bn'
+                        ? 'পণ্যের বিস্তারিত পাতায় "Notify Me" চাপুন। দাম কমলেই আমরা আপনাকে সরাসরি জানাবো।'
+                        : 'Click "Notify Me" on any product to track price drops and receive instant alerts.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { setActiveModal(null); navigate('/shop'); }}
+                    className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-neutral-800 transition-colors inline-block cursor-pointer"
+                  >
+                    {language === 'bn' ? 'দোকান ব্রাউজ করুন' : 'Browse Products'}
+                  </button>
+                </div>
+              ) : (
+                alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80 flex items-center justify-between gap-3 group hover:border-amber-300 transition-all"
+                  >
+                    <Link
+                      to={`/product/${alert.productId}`}
+                      onClick={() => setActiveModal(null)}
+                      className="flex items-center space-x-3 min-w-0 flex-1"
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shrink-0 border border-neutral-200/60 shadow-2xs">
+                        {alert.productImage ? (
+                          <img src={alert.productImage} alt={alert.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-400">No Image</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-1.5 mb-0.5">
+                          <span className={`text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md ${
+                            alert.status === 'triggered'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {alert.status === 'triggered' 
+                              ? (language === 'bn' ? '🔥 দাম কমেছে' : '🔥 Price Dropped')
+                              : (language === 'bn' ? 'অ্যাক্টিভ অ্যালার্ট' : 'Tracking')}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
+                          {alert.productName}
+                        </h4>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs font-black text-neutral-900 font-mono">
+                            ৳{alert.initialPrice?.toLocaleString()}
+                          </span>
+                          {alert.targetPrice && alert.targetPrice < alert.initialPrice && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                              Target: ৳{alert.targetPrice}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <button
+                        onClick={async () => {
+                          if (window.confirm(language === 'bn' ? 'আপনি কি এই অ্যালার্টটি মুছে ফেলতে চান?' : 'Delete this price alert?')) {
+                            await unsubscribeFromPriceDrop(alert.id);
+                          }
+                        }}
+                        className="p-2 rounded-xl bg-white border border-neutral-200 text-neutral-400 hover:text-red-500 hover:border-red-200 transition-colors cursor-pointer shadow-2xs"
+                        title="Delete Alert"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );

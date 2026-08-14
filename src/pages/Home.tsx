@@ -27,22 +27,46 @@ export default function Home() {
   const newArrivalsRef = React.useRef<HTMLDivElement>(null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
 
-  // Smooth continuous auto-scroll for New Arrivals
+  // High-performance smooth auto-scroll using requestAnimationFrame only when in viewport
   useEffect(() => {
     if (isUserInteracting || allProducts.length === 0) return;
     const container = newArrivalsRef.current;
     if (!container) return;
 
-    const interval = setInterval(() => {
-      if (!container) return;
-      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
-        container.scrollLeft = 0;
-      } else {
-        container.scrollLeft += 1;
-      }
-    }, 45);
+    let animId: number;
+    let isVisible = false;
 
-    return () => clearInterval(interval);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(container);
+
+    let lastTime = performance.now();
+    const scrollSpeed = 0.04; // pixels per ms
+
+    const step = (now: number) => {
+      const delta = now - lastTime;
+      lastTime = now;
+
+      if (isVisible && !isUserInteracting && container) {
+        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
+          container.scrollLeft = 0;
+        } else {
+          container.scrollLeft += delta * scrollSpeed;
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      observer.disconnect();
+    };
   }, [isUserInteracting, allProducts.length]);
 
   // Fetch Homepage Customization Settings from Firestore

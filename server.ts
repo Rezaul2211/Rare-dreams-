@@ -465,6 +465,46 @@ app.post("/api/make-admin", async (req, res) => {
   }
 });
 
+// Price Drop Subscription & Alert Tracking API Routes
+app.post("/api/price-alerts/subscribe", async (req, res) => {
+  try {
+    const { productId, productName, initialPrice, targetPrice, userEmail, userPhone, userId } = req.body;
+    console.log(`[Price Drop Subscription] Registered alert for "${productName}" (${productId}) by ${userEmail || userPhone}`);
+    res.json({ success: true, message: "Subscription registered" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/price-alerts/track-price-changes", async (req, res) => {
+  try {
+    const { productId, productName, oldPrice, newPrice, productImage } = req.body;
+    if (!productId || newPrice === undefined) {
+      return res.status(400).json({ error: "Missing productId or newPrice" });
+    }
+
+    const nOldPrice = Number(oldPrice || 0);
+    const nNewPrice = Number(newPrice || 0);
+
+    if (nNewPrice < nOldPrice && nNewPrice > 0) {
+      const discountPct = Math.round(((nOldPrice - nNewPrice) / nOldPrice) * 100);
+      console.log(`[Price Drop Detected] Product: ${productName || productId} dropped from ৳${nOldPrice} to ৳${nNewPrice} (-${discountPct}%)`);
+      return res.json({ 
+        success: true, 
+        priceDropped: true, 
+        oldPrice: nOldPrice, 
+        newPrice: nNewPrice, 
+        discountPercentage: discountPct 
+      });
+    }
+
+    res.json({ success: true, priceDropped: false, currentPrice: nNewPrice });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 app.post("/api/ai-chat", async (req, res) => {
   const { message } = req.body;
   const lower = (message || '').toLowerCase();
@@ -634,6 +674,65 @@ app.get("/api/ai-health-check", async (req, res) => {
   }
 
   res.json(results);
+});
+
+// Dynamic robots.txt
+app.get("/robots.txt", (req, res) => {
+  const host = req.headers.host || "raredreams.com.bd";
+  const protocol = req.headers["x-forwarded-proto"] || "https";
+  const baseUrl = `${protocol}://${host}`;
+
+  const robotsContent = `# Robots.txt for Rare Dreams Bangladesh E-Commerce
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+
+Crawl-delay: 1
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+
+  res.setHeader("Content-Type", "text/plain");
+  res.send(robotsContent);
+});
+
+// Dynamic sitemap.xml
+app.get("/sitemap.xml", (req, res) => {
+  const host = req.headers.host || "raredreams.com.bd";
+  const protocol = req.headers["x-forwarded-proto"] || "https";
+  const baseUrl = `${protocol}://${host}`;
+  const currentDate = new Date().toISOString().split("T")[0];
+
+  const mainPages = [
+    { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
+    { loc: `${baseUrl}/shop`, priority: "0.9", changefreq: "daily" },
+    { loc: `${baseUrl}/category/Men's%20items`, priority: "0.8", changefreq: "daily" },
+    { loc: `${baseUrl}/category/Women's%20items`, priority: "0.8", changefreq: "daily" },
+    { loc: `${baseUrl}/category/Baby%20items`, priority: "0.8", changefreq: "daily" },
+    { loc: `${baseUrl}/category/Foot%20wear`, priority: "0.8", changefreq: "daily" },
+    { loc: `${baseUrl}/track-order`, priority: "0.6", changefreq: "monthly" },
+    { loc: `${baseUrl}/help`, priority: "0.5", changefreq: "monthly" },
+  ];
+
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${mainPages
+  .map(
+    (page) => `  <url>
+    <loc>${page.loc}</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`
+  )
+  .join("\n")}
+</urlset>`;
+
+  res.setHeader("Content-Type", "application/xml");
+  res.send(sitemapXml);
 });
 
 

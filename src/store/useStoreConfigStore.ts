@@ -18,6 +18,12 @@ export const DEFAULT_STORE_CONFIG: StoreConfig = {
   bkashNumber: '01712345678',
   nagadNumber: '01812345678',
   rocketNumber: '01912345678',
+  metaTitle: 'Rare Dreams | Exclusive Luxury Kids & Family Fashion Bangladesh',
+  metaDescription: 'Shop premium, designer kids wear, boys panjabi, girls lehenga, baby essentials & footwear at Rare Dreams Bangladesh. 100% genuine fabrics, fast cash on delivery nationwide.',
+  metaKeywords: 'Rare Dreams, kids apparel, boys panjabi, girls lehenga, baby clothes Bangladesh, footwear Dhaka, luxury kids fashion, online shopping BD, cash on delivery',
+  googleSiteVerification: '',
+  canonicalDomain: 'https://raredreams.com.bd',
+  ogImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop',
 };
 
 interface StoreConfigState {

@@ -100,6 +100,13 @@ export interface StoreConfig {
   bkashNumber: string;
   nagadNumber: string;
   rocketNumber: string;
+  // SEO & Google Indexing Configuration
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  googleSiteVerification?: string;
+  canonicalDomain?: string;
+  ogImage?: string;
 }
 
 export interface Review {
@@ -117,5 +124,42 @@ export interface Review {
   createdAt: any;
   adminReply?: string;
   adminReplyAt?: any;
+}
+
+export interface PriceAlert {
+  id: string;
+  productId: string;
+  productName: string;
+  productImage?: string;
+  initialPrice: number;
+  targetPrice?: number;
+  currentPrice: number;
+  userEmail?: string;
+  userPhone?: string;
+  userId?: string;
+  status: 'active' | 'triggered' | 'cancelled';
+  createdAt: any;
+  notifiedAt?: any;
+  notifiedPrice?: number;
+  notificationChannels?: ('email' | 'sms' | 'in_app')[];
+}
+
+export interface UserNotification {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  userPhone?: string;
+  type: 'price_drop' | 'order_update' | 'promotion' | 'system';
+  title: string;
+  message: string;
+  productId?: string;
+  productName?: string;
+  productImage?: string;
+  oldPrice?: number;
+  newPrice?: number;
+  discountPercentage?: number;
+  url?: string;
+  read: boolean;
+  createdAt: any;
 }
 

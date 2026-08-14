@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, setDoc, getDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, serverTimestamp, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Product } from '../../types';
 import { useCategoryStore } from '../../store/useCategoryStore';
-import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon, Sparkles, Loader2, Tag, Video, Play, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, X, UploadCloud, Image as ImageIcon, Tag, Video, Play, CheckCircle2 } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -14,71 +14,7 @@ export default function ProductForm() {
   
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
-  const [autoFilling, setAutoFilling] = useState(false);
-
-  const handleMasterAiAutoFill = async () => {
-    if ((!formData.images || formData.images.length === 0) && !formData.name) {
-      alert("অনুগ্রহ করে প্রোডাক্টের একটি ছবি আপলোড করুন অথবা একটি নাম লিখুন!");
-      return;
-    }
-
-    setAutoFilling(true);
-    try {
-      if (formData.images && formData.images.length > 0) {
-        const res = await fetch("/api/ai-product-auto-fill", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: formData.images[0] })
-        });
-        const data = await res.json();
-        if (data && !data.error) {
-          setFormData(prev => ({
-            ...prev,
-            name: data.name || prev.name,
-            description: data.description || prev.description,
-            category: data.category || prev.category,
-            subcategory: data.subcategory || prev.subcategory,
-            material: data.material || prev.material,
-            price: data.price ? Number(data.price) : prev.price,
-            comparePrice: data.comparePrice ? Number(data.comparePrice) : prev.comparePrice,
-            discount: data.discount ? Number(data.discount) : prev.discount,
-            sizeOptions: Array.isArray(data.sizeOptions) && data.sizeOptions.length > 0 ? data.sizeOptions : (prev.sizeOptions || []),
-            colorOptions: Array.isArray(data.colorOptions) && data.colorOptions.length > 0 ? data.colorOptions : (prev.colorOptions || []),
-          }));
-        } else if (data && data.error) {
-          alert(data.error);
-        }
-      } else if (formData.name) {
-        const [descRes, tagRes] = await Promise.all([
-          fetch("/api/ai-generate-description", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: formData.name,
-              category: formData.category,
-              price: formData.price,
-              material: formData.material
-            })
-          }).then(r => r.json()).catch(() => ({})),
-          fetch("/api/ai-tag-product", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: formData.name, category: formData.category })
-          }).then(r => r.json()).catch(() => ({}))
-        ]);
-
-        setFormData(prev => ({
-          ...prev,
-          description: descRes.description || prev.description,
-          subcategory: tagRes.subcategory || prev.subcategory || prev.subcategory,
-        }));
-      }
-    } catch (err) {
-      console.error("Master AI auto fill error:", err);
-    } finally {
-      setAutoFilling(false);
-    }
-  };
+  const [initialProductPrice, setInitialProductPrice] = useState<number | null>(null);
   
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
@@ -108,7 +44,9 @@ export default function ProductForm() {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setFormData(docSnap.data() as Product);
+          const pData = docSnap.data() as Product;
+          setFormData(pData);
+          setInitialProductPrice(Number(pData.price || 0));
         }
       } catch (error) {
         console.error("Error fetching product", error);
@@ -266,6 +204,70 @@ export default function ProductForm() {
           ...payload,
           updatedAt: serverTimestamp()
         });
+
+        // If price dropped compared to when loaded, notify all matching subscribers
+        const newPriceNum = Number(payload.price || 0);
+        if (initialProductPrice !== null && newPriceNum < initialProductPrice && newPriceNum > 0) {
+          const discountAmt = initialProductPrice - newPriceNum;
+          const dropPercentage = Math.round((discountAmt / initialProductPrice) * 100);
+
+          try {
+            const alertsQ = query(
+              collection(db, 'price_alerts'),
+              where('productId', '==', id),
+              where('status', '==', 'active')
+            );
+            const alertsSnap = await getDocs(alertsQ);
+
+            alertsSnap.docs.forEach(async (alertDoc) => {
+              const aData = alertDoc.data();
+              const target = Number(aData.targetPrice || initialProductPrice);
+
+              if (newPriceNum <= target) {
+                // Update alert status
+                await updateDoc(doc(db, 'price_alerts', alertDoc.id), {
+                  status: 'triggered',
+                  notifiedPrice: newPriceNum,
+                  notifiedAt: serverTimestamp()
+                });
+
+                // Create user notification
+                await addDoc(collection(db, 'notifications'), {
+                  userId: aData.userId || null,
+                  userEmail: aData.userEmail || null,
+                  userPhone: aData.userPhone || null,
+                  type: 'price_drop',
+                  title: `🔥 মূল্য হ্রাস! ${payload.name}`,
+                  message: `আপনার পছন্দের "${payload.name}" এর দাম ৳${initialProductPrice} থেকে কমে এখন মাত্র ৳${newPriceNum} (-${dropPercentage}% ছাড়)! স্টক শেষ হওয়ার আগেই অর্ডার করুন।`,
+                  productId: id,
+                  productName: payload.name,
+                  productImage: payload.images?.[0] || '',
+                  oldPrice: initialProductPrice,
+                  newPrice: newPriceNum,
+                  discountPercentage: dropPercentage,
+                  url: `/product/${id}`,
+                  read: false,
+                  createdAt: serverTimestamp()
+                });
+              }
+            });
+
+            // Also call tracking API
+            fetch('/api/price-alerts/track-price-changes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                productId: id,
+                productName: payload.name,
+                oldPrice: initialProductPrice,
+                newPrice: newPriceNum,
+                productImage: payload.images?.[0] || ''
+              })
+            }).catch(() => {});
+          } catch (notifErr) {
+            console.warn("Could not dispatch price alert notifications:", notifErr);
+          }
+        }
       } else {
         const newDocRef = doc(collection(db, 'products'));
         await setDoc(newDocRef, {
@@ -292,42 +294,6 @@ export default function ProductForm() {
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">{isEditing ? 'Edit Product' : 'Add New Product'}</h1>
-      </div>
-
-      {/* MASTER AI AUTO FILL BANNER CARD */}
-      <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white p-5 rounded-3xl shadow-lg border border-amber-400 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-100 shrink-0 border border-white/30">
-            <Sparkles size={26} />
-          </div>
-          <div>
-            <h2 className="text-base sm:text-lg font-black tracking-tight">
-              ১-ক্লিকে এআই অটো ফিল (All-in-One Master Auto Fill)
-            </h2>
-            <p className="text-xs text-amber-100 mt-0.5">
-              ছবি আপলোড করুন বা নাম লিখুন — এআই স্বয়ংক্রিয়ভাবে নাম, বর্ণনা, ক্যাটাগরি, সাইজ ও দাম পূরণ করে দেবে।
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleMasterAiAutoFill}
-          disabled={autoFilling}
-          className="w-full md:w-auto bg-white hover:bg-amber-50 text-amber-900 font-extrabold px-6 py-3 rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm shrink-0 cursor-pointer disabled:opacity-50"
-        >
-          {autoFilling ? (
-            <>
-              <Loader2 size={18} className="animate-spin text-amber-700" />
-              <span>এআই তথ্য জেনারেট করছে...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles size={18} className="text-amber-600" />
-              <span>✨ অল-ইন-ওয়ান অটো ফিল করুন</span>
-            </>
-          )}
-        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 w-full">

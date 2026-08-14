@@ -128,15 +128,20 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
           </h3>
         </Link>
 
-        {/* Rating Stars Badge */}
-        <div className="flex items-center space-x-1 mb-2.5">
-          <div className="flex items-center text-amber-400">
-            <Star size={12} className="fill-amber-400 text-amber-400" />
-          </div>
-          <span className="text-[11px] font-bold text-neutral-800">5.0</span>
-          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded-md border border-emerald-100/80">
-            ✓ Verified
-          </span>
+        {/* Rating or Quality Badge */}
+        <div className="flex items-center space-x-1.5 mb-2.5">
+          {product.rating && product.rating > 0 ? (
+            <div className="flex items-center space-x-1">
+              <div className="flex items-center text-amber-400">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+              </div>
+              <span className="text-[11px] font-bold text-neutral-800">{product.rating.toFixed(1)}</span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-neutral-500 font-medium bg-neutral-100 px-2 py-0.5 rounded-md">
+              {language === 'bn' ? 'প্রিমিয়াম কোয়ালিটি' : 'Premium Quality'}
+            </span>
+          )}
         </div>
 
         {/* Price & Fly-To-Cart Action Button */}
