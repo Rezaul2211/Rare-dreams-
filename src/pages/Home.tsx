@@ -593,14 +593,16 @@ export default function Home() {
               const isOldUnsplash = b.image === legacyUrl1 || b.image === legacyUrl2;
               const finalImage = (!b.image || isOldUnsplash) ? def.image : b.image;
 
+              const isBadText = b.title === 'New Season Collection' || b.title === 'Winter Essentials' || b.tag === 'NEW COLLECTION 2025' || (b.title === 'Redefine Your' && b.tag === 'NEW COLLECTION 2025');
+
               return {
                 ...def,
                 ...b,
                 image: finalImage,
-                title: b.title || def.title,
-                titleAccent: b.titleAccent || def.titleAccent,
-                subtitle: b.subtitle || def.subtitle,
-                tag: b.tag || def.tag,
+                title: isBadText ? def.title : (b.title || def.title),
+                titleAccent: isBadText ? def.titleAccent : (b.titleAccent || def.titleAccent),
+                subtitle: isBadText ? def.subtitle : (b.subtitle || def.subtitle),
+                tag: isBadText ? def.tag : (b.tag || def.tag),
                 theme: b.theme || def.theme,
                 tagColor: b.tagColor || def.tagColor,
                 titleColor: b.titleColor || def.titleColor,
@@ -755,30 +757,30 @@ export default function Home() {
                 />
 
                 {/* Banner Content */}
-                <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-10 md:px-14 z-20 max-w-[85%] sm:max-w-[72%]">
+                <div className="absolute inset-0 flex flex-col justify-center px-5 sm:px-10 md:px-14 z-20 max-w-[65%] xs:max-w-[60%] sm:max-w-[55%] md:max-w-[50%]">
                   {slide.tag && (
-                    <div className="flex flex-col items-start mb-1.5 sm:mb-2.5">
+                    <div className="flex flex-col items-start mb-1.5 sm:mb-3">
                       <span 
-                        className="text-[7.5px] xs:text-[9.5px] sm:text-xs font-bold tracking-[0.2em] uppercase block leading-none"
+                        className="text-[9px] xs:text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase block leading-none"
                         style={{ color: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
                       >
-                        {slide.tag.replace('2025', '2026')}
+                        {slide.tag}
                       </span>
                       <div 
-                        className="w-5 sm:w-8 h-[1.5px] mt-1 sm:mt-1.5 opacity-85"
+                        className="w-6 sm:w-8 h-[1.5px] mt-1 sm:mt-2 opacity-85"
                         style={{ backgroundColor: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
                       />
                     </div>
                   )}
                   
                   <h1 
-                    className="text-sm xs:text-lg sm:text-3xl md:text-4xl font-bold font-serif leading-[1.2] sm:leading-[1.25] mb-1.5 sm:mb-3 tracking-tight"
+                    className="text-xl xs:text-2xl sm:text-4xl md:text-5xl font-bold font-serif leading-[1.1] mb-1.5 sm:mb-4 tracking-tight"
                     style={{ color: slide.titleColor || (slide.theme === 'dark' ? '#FFFFFF' : '#1C1917') }}
                   >
                     {slide.title}
                     {slide.titleAccent && (
                       <span 
-                        className="block italic font-normal mt-0.5 sm:mt-1"
+                        className="block font-normal mt-0.5 sm:mt-1"
                         style={{ color: slide.accentColor || (slide.theme === 'dark' ? '#C69A4C' : '#556B4E') }}
                       >
                         {slide.titleAccent}
@@ -788,24 +790,24 @@ export default function Home() {
 
                   {slide.subtitle && (
                     <p 
-                      className="text-[8px] xs:text-[10.5px] sm:text-xs md:text-sm font-normal mb-2 sm:mb-4 leading-relaxed whitespace-pre-line hidden xs:block"
+                      className="text-[10px] xs:text-[11px] sm:text-sm md:text-base font-normal mb-2.5 sm:mb-5 leading-relaxed whitespace-pre-line block"
                       style={{ color: slide.subtitleColor || (slide.theme === 'dark' ? '#D4D4D8' : '#4A5545') }}
                     >
                       {slide.subtitle}
                     </p>
                   )}
 
-                  <div className="pt-0.5 sm:pt-1">
+                  <div className="pt-0.5 sm:pt-2">
                     <Link
                       to={slide.link || '/shop'}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 xs:px-4 xs:py-2 sm:px-6 sm:py-2.5 rounded-full text-[8.5px] xs:text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 xs:px-5 xs:py-2 sm:px-8 sm:py-3 rounded-full text-[10px] xs:text-[11px] sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
                       style={{
                         backgroundColor: slide.buttonBg || '#FFFFFF',
                         color: slide.buttonText || '#000000',
                       }}
                     >
                       <span>SHOP NOW</span>
-                      <ArrowRight size={11} className="sm:w-3.5 sm:h-3.5" />
+                      <ArrowRight size={12} className="sm:w-4 sm:h-4" />
                     </Link>
                   </div>
                 </div>

@@ -42,12 +42,28 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
     tagColor: '#C69A4C',
     titleColor: '#FFFFFF',
     accentColor: '#C69A4C',
-    subtitleColor: '#D4D4D8',
+    subtitleColor: '#F4F4F5',
     buttonBg: '#FFFFFF',
     buttonText: '#0A0A0A'
   },
   {
     id: 2,
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
+    tag: 'NEW COLLECTION 2026',
+    title: 'Redefine Your',
+    titleAccent: 'Every Occasion',
+    subtitle: 'Versatile styles for every moment.\nCrafted for comfort. Designed for you.',
+    link: '/category/Women',
+    theme: 'olive',
+    tagColor: '#556B4E',
+    titleColor: '#1C1917',
+    accentColor: '#556B4E',
+    subtitleColor: '#2D3748',
+    buttonBg: '#4E6247',
+    buttonText: '#FFFFFF'
+  },
+  {
+    id: 3,
     image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=2070&auto=format&fit=crop',
     tag: 'LUXURY ACCESSORIES',
     title: 'The Finest Details',
@@ -55,27 +71,11 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
     subtitle: 'Premium accessories to\ncomplete your style.',
     link: '/category/Accessories',
     theme: 'pink',
-    tagColor: '#B46573',
+    tagColor: '#B76E79',
     titleColor: '#1C1917',
-    accentColor: '#B46573',
-    subtitleColor: '#57534E',
-    buttonBg: '#B46573',
-    buttonText: '#FFFFFF'
-  },
-  {
-    id: 3,
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
-    tag: 'NEW COLLECTION 2025',
-    title: 'Redefine Your',
-    titleAccent: 'Every Occasion',
-    subtitle: 'Versatile styles for every moment.\nCrafted for comfort. Designed for you.',
-    link: '/category/Women',
-    theme: 'olive',
-    tagColor: '#556B4E',
-    titleColor: '#242D20',
-    accentColor: '#556B4E',
-    subtitleColor: '#4A5545',
-    buttonBg: '#4E6247',
+    accentColor: '#B76E79',
+    subtitleColor: '#374151',
+    buttonBg: '#B36270',
     buttonText: '#FFFFFF'
   }
 ];
@@ -124,7 +124,18 @@ export default function AdminSettings() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.banners && Array.isArray(data.banners) && data.banners.length > 0) {
-            setBanners(data.banners);
+            const merged = data.banners.map((b: any, idx: number) => {
+              const def = DEFAULT_HERO_SLIDES[idx] || DEFAULT_HERO_SLIDES[0];
+              const isBadText = b.title === 'New Season Collection' || b.title === 'Winter Essentials' || b.tag === 'NEW COLLECTION 2025' || (b.title === 'Redefine Your' && b.tag === 'NEW COLLECTION 2025');
+              return {
+                ...b,
+                title: isBadText ? def.title : b.title,
+                titleAccent: isBadText ? def.titleAccent : b.titleAccent,
+                subtitle: isBadText ? def.subtitle : b.subtitle,
+                tag: isBadText ? def.tag : b.tag,
+              };
+            });
+            setBanners(merged);
           }
         }
       } catch {
