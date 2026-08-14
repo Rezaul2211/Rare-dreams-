@@ -9,6 +9,7 @@ import { useWishlistStore } from '../store/useWishlistStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import { trackViewContent, trackAddToCart } from '../lib/pixel';
 import { ChevronRight, Share2, MessageCircle, Zap, HeadphonesIcon, Heart, Sparkles, X, Loader2, Ruler, CheckCircle2, Star, Video, Play, Bell, BellRing } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, RotateCcw, Truck } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LazyImage } from '../components/LazyImage';
 import { ProductDetailSkeleton } from '../components/ProductDetailSkeleton';
@@ -258,373 +259,268 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 w-full">
-      <SEO 
-        title={`${product.name} - ৳${product.price.toFixed(0)}`}
-        description={product.description?.substring(0, 160) || `Buy ${product.name} online at Rare Dreams. Category: ${product.category}. Premium quality and fast nationwide delivery.`}
-        image={product.images?.[0]}
-        type="product"
-        price={product.price}
-        comparePrice={product.comparePrice}
-        currency="BDT"
-        rating={product.rating || 5.0}
-        reviewCount={reviewSummary.totalCount || product.reviewsCount || 10}
-        sku={product.id}
-        category={product.category}
-        inStock={product.stock ? product.stock > 0 : true}
-        keywords={`${product.name}, ${product.category}, ${product.subcategory || ''}, ${product.name} price in Bangladesh, buy ${product.name} online, Rare Dreams, online shopping Bangladesh`}
-        breadcrumbs={[
-          { name: 'Home', url: window.location.origin },
-          { name: product.category, url: `${window.location.origin}/category/${encodeURIComponent(product.category)}` },
-          { name: product.name, url: window.location.href }
-        ]}
-      />
+    <div className="min-h-screen bg-[#F9F9F9] pb-20">
+      <div className="max-w-7xl mx-auto px-4 py-6 w-full">
+        <SEO 
+          title={`${product.name} - ৳${product.price.toFixed(0)}`}
+          description={product.description?.substring(0, 160) || `Buy ${product.name} online.`}
+          image={product.images?.[0]}
+          type="product"
+          price={product.price}
+          comparePrice={product.comparePrice}
+          currency="BDT"
+          rating={product.rating || 5.0}
+          reviewCount={reviewSummary.totalCount || product.reviewsCount || 10}
+          sku={product.id}
+          category={product.category}
+          inStock={product.stock ? product.stock > 0 : true}
+          keywords={`${product.name}, ${product.category}`}
+          breadcrumbs={[
+            { name: 'Home', url: window.location.origin },
+            { name: product.category, url: `${window.location.origin}/category/${encodeURIComponent(product.category)}` },
+            { name: product.name, url: window.location.href }
+          ]}
+        />
 
-      {/* Breadcrumbs */}
-      <div className="flex items-center space-x-2 text-xs font-medium uppercase tracking-wider text-neutral-500 mb-8">
-        <span className="hover:text-black cursor-pointer" onClick={() => navigate('/')}>Home</span>
-        <ChevronRight size={14} />
-        <span className="hover:text-black cursor-pointer" onClick={() => navigate(`/category/${product.category}`)}>{product.category}</span>
-        <ChevronRight size={14} />
-        <span className="text-black">{product.name}</span>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
-        {/* Images & Video Gallery */}
-        <div className="w-full lg:w-1/2 flex flex-col">
-          {/* Main Viewer */}
-          <div className="w-full relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm mb-4 group bg-neutral-900">
-            {/* Wishlist Heart Button */}
-            <button 
-              type="button"
-              onClick={() => product && toggleWishlist(product.id)}
-              aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
-              className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all cursor-pointer ${
-                favorited 
-                  ? 'bg-white text-red-500 scale-110 ring-1 ring-red-100' 
-                  : 'bg-white/90 backdrop-blur-xs text-neutral-600 hover:text-red-500 hover:bg-white hover:scale-110'
-              }`}
-            >
-              <Heart 
-                size={20} 
-                strokeWidth={favorited ? 0 : 2} 
-                className={favorited ? "text-red-500 fill-red-500" : "text-neutral-600 hover:text-red-500"} 
-              />
-            </button>
-
-            {/* Discount Badge on Product Detail Image */}
-            {discountPct && discountPct > 0 ? (
-              <div className="absolute top-4 left-4 z-10 bg-[#EF4444] text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md border border-white/20 tracking-tight">
-                -{discountPct}% OFF
-              </div>
-            ) : product.isFlashSale ? (
-              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1">
-                <span>⚡</span>
-                <span>FLASH SALE</span>
-              </div>
-            ) : null}
-
-            {selectedMedia === 'video' && product.videoUrl ? (
-              <div className="w-full h-full flex items-center justify-center bg-black">
-                {product.videoUrl.includes('youtube.com') || product.videoUrl.includes('youtu.be') ? (
-                  <iframe 
-                    src={
-                      product.videoUrl.includes('youtu.be/')
-                        ? `https://www.youtube.com/embed/${product.videoUrl.split('youtu.be/')[1]?.split('?')[0]}?autoplay=1&rel=0`
-                        : product.videoUrl.includes('v=')
-                        ? `https://www.youtube.com/embed/${product.videoUrl.split('v=')[1]?.split('&')[0]}?autoplay=1&rel=0`
-                        : product.videoUrl
-                    } 
-                    className="w-full h-full border-0"
-                    title={product.name}
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                  />
-                ) : (
-                  <video 
-                    src={product.videoUrl} 
-                    controls 
-                    autoPlay 
-                    className="w-full h-full object-contain bg-black" 
-                  />
-                )}
-              </div>
-            ) : product.images && product.images.length > 0 ? (
-              <LazyImage 
-                src={product.images[typeof selectedMedia === 'number' ? selectedMedia : 0] || product.images[0]} 
-                alt={product.name}
-                className="w-full h-full object-cover object-center"
-                containerClassName="w-full h-full bg-neutral-100"
-              />
-            ) : (
-              <div className="w-full h-full bg-neutral-100 flex items-center justify-center text-neutral-400">No image available</div>
-            )}
-          </div>
-          
-          {/* Thumbnails below (Images + Video) */}
-          {((product.images && product.images.length > 0) || product.videoUrl) && (
-            <div className="flex space-x-3 overflow-x-auto pb-2 hide-scrollbar">
-              {/* Image Thumbnails */}
-              {product.images?.map((img, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setSelectedMedia(idx)}
-                  className={clsx(
-                    "w-20 h-24 shrink-0 rounded-2xl overflow-hidden transition-all shadow-xs border-2 cursor-pointer relative",
-                    selectedMedia === idx ? "border-amber-500 ring-2 ring-amber-400/50" : "border-neutral-200 opacity-75 hover:opacity-100"
-                  )}
-                >
-                  <LazyImage src={img} alt="" className="w-full h-full object-cover" containerClassName="w-full h-full" />
-                  {idx === 0 && (
-                    <span className="absolute bottom-1 left-1 bg-black/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
-                      Main
-                    </span>
-                  )}
-                </button>
-              ))}
-
-              {/* Video Thumbnail Button */}
-              {product.videoUrl && (
-                <button
-                  onClick={() => setSelectedMedia('video')}
-                  className={clsx(
-                    "w-20 h-24 shrink-0 rounded-2xl overflow-hidden transition-all shadow-xs border-2 cursor-pointer relative bg-neutral-900 flex flex-col items-center justify-center text-white",
-                    selectedMedia === 'video' ? "border-amber-500 ring-2 ring-amber-400/50" : "border-neutral-800 opacity-80 hover:opacity-100"
-                  )}
-                >
-                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center shadow-md border border-white/20 mb-1">
-                    <Play size={18} className="fill-white text-white ml-0.5" />
-                  </div>
-                  <span className="text-[10px] font-black tracking-wider uppercase text-amber-300">
-                    Video
-                  </span>
-                </button>
-              )}
-            </div>
-          )}
+        {/* Breadcrumbs */}
+        <div className="flex items-center space-x-1.5 text-[13px] font-medium text-neutral-500 mb-5">
+          <span className="hover:text-black cursor-pointer" onClick={() => navigate('/')}>Home</span>
+          <ChevronRight size={14} />
+          <span className="hover:text-black cursor-pointer" onClick={() => navigate(`/category/${product.category}`)}>{product.category}</span>
+          <ChevronRight size={14} />
+          <span className="text-amber-700">{product.name}</span>
         </div>
 
-        {/* Info */}
-        <div className="w-full lg:w-1/2 flex flex-col pt-2">
-          <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-6 mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 mb-2">{product.name}</h1>
-            
-            {/* Genuine Star Rating Badge Header */}
-            <a 
-              href="#customer-reviews"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="inline-flex items-center space-x-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/80 px-3 py-1.5 rounded-xl transition-all mb-3 w-max cursor-pointer group"
-            >
-              {reviewSummary.totalCount > 0 ? (
-                <>
-                  <div className="flex items-center space-x-0.5 text-amber-500">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star 
-                        key={s} 
-                        size={14} 
-                        className={s <= Math.round(reviewSummary.avgRating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} 
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs font-black text-neutral-900">{reviewSummary.avgRating}</span>
-                  <span className="text-neutral-300">•</span>
-                  <span className="text-xs font-bold text-neutral-700 underline underline-offset-2 group-hover:text-black">
-                    {`${reviewSummary.totalCount} Reviews`}
-                  </span>
-                </>
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
+          {/* Left Column: Images */}
+          <div className="w-full lg:w-1/2 flex flex-col">
+            {/* Main Viewer */}
+            <div className="w-full relative aspect-[4/3] sm:aspect-video lg:aspect-[4/3] rounded-3xl overflow-hidden mb-4 bg-neutral-100">
+              {/* Wishlist Heart Button */}
+              <button 
+                type="button"
+                onClick={() => product && toggleWishlist(product.id)}
+                className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer bg-white shadow-sm border border-black/5`}
+              >
+                <Heart 
+                  size={20} 
+                  className={favorited ? "text-black fill-black" : "text-neutral-900"} 
+                />
+              </button>
+
+              {product.images && product.images.length > 0 ? (
+                <LazyImage 
+                  src={product.images[typeof selectedMedia === 'number' ? selectedMedia : 0] || product.images[0]} 
+                  alt={product.name}
+                  className="w-full h-full object-cover object-center"
+                  containerClassName="w-full h-full"
+                />
               ) : (
-                <div className="flex items-center space-x-1.5 text-xs text-neutral-500 font-medium">
-                  <Star size={13} className="text-neutral-300 fill-neutral-200" />
-                  <span>{'No reviews yet • Be the first'}</span>
+                <div className="w-full h-full flex items-center justify-center text-neutral-400">No image available</div>
+              )}
+
+              {/* Image Counter */}
+              {product.images && product.images.length > 0 && (
+                <div className="absolute bottom-4 right-4 z-10 bg-black/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                  {(typeof selectedMedia === 'number' ? selectedMedia + 1 : 1)}/{product.images.length}
                 </div>
               )}
-            </a>
-
-            <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-500 mb-4">
-              <span>{'Category'}: <span className="font-medium text-neutral-900">{translateCategory(product.category, language)}</span></span>
-              <span>{'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${product.stockQuantity && product.stockQuantity > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                {product.stockQuantity && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
-              </span>
             </div>
             
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900">৳ {product.price.toFixed(2)}</span>
-                {product.comparePrice && product.comparePrice > product.price && (
-                  <span className="text-lg text-neutral-400 line-through">৳ {product.comparePrice.toFixed(2)}</span>
-                )}
-                {product.isFlashSale ? (
-                  <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                    ⚡ {'Flash Sale'}
-                  </span>
-                ) : discountPct && discountPct > 0 ? (
-                  <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                    {`Save ${discountPct}%`}
-                  </span>
-                ) : null}
-              </div>
-
-              {/* 1-Click Simple Price Drop Subscription Button */}
-              <div>
-                <button
-                  type="button"
-                  disabled={togglingAlert}
-                  onClick={async () => {
-                    if (!product) return;
-                    setTogglingAlert(true);
-                    await togglePriceDropAlert({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      images: product.images
-                    });
-                    setTogglingAlert(false);
-                  }}
-                  className={clsx(
-                    "inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs border cursor-pointer active:scale-95",
-                    isProductSubscribed(product.id)
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-                      : "bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400",
-                    togglingAlert && "opacity-70 cursor-wait"
-                  )}
-                  title={'Get email notification when price drops'}
-                >
-                  <Bell 
-                    size={14} 
+            {/* Thumbnails */}
+            {((product.images && product.images.length > 0)) && (
+              <div className="flex space-x-3 overflow-x-auto hide-scrollbar justify-center sm:justify-start">
+                {product.images?.map((img, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setSelectedMedia(idx)}
                     className={clsx(
-                      isProductSubscribed(product.id) ? "text-emerald-600 fill-emerald-600" : "text-neutral-500"
-                    )} 
-                  />
-                  <span>
-                    {isProductSubscribed(product.id)
-                      ? ('✓ Alert Active')
-                      : ('Alert on Price Drop')}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Short Description Box */}
-            <div className="bg-neutral-50 rounded-2xl p-4 text-xs sm:text-sm text-neutral-600 leading-relaxed mb-6 border border-neutral-200/70 shadow-2xs">
-              {product.description?.substring(0, 160)}...
-            </div>
-
-            <div className="space-y-6 mb-6">
-              {/* Colors */}
-            {product.colorOptions && product.colorOptions.length > 0 && (
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{'Color:'} <span className="text-black">{selectedColor}</span></span>
-                </div>
-                <div className="flex flex-wrap gap-2.5">
-                  {product.colorOptions.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={clsx(
-                        "px-5 py-2.5 text-xs font-bold rounded-2xl transition-all border shadow-2xs cursor-pointer",
-                        selectedColor === color 
-                          ? "border-black bg-neutral-900 text-white shadow-xs ring-2 ring-black/5" 
-                          : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
-                      )}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sizes */}
-            {product.sizeOptions && product.sizeOptions.length > 0 && (
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{'Size:'} <span className="text-black">{selectedSize}</span></span>
-                  <button
-                    onClick={() => setIsSizeModalOpen(true)}
-                    className="inline-flex items-center space-x-1 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer shadow-2xs"
+                      "w-20 h-20 shrink-0 rounded-2xl overflow-hidden transition-all border-2 cursor-pointer",
+                      selectedMedia === idx ? "border-[#B48538]" : "border-transparent opacity-80 hover:opacity-100"
+                    )}
                   >
-                    <Sparkles size={13} className="text-amber-600 animate-pulse" />
-                    <span>{'AI Size Helper'}</span>
+                    <LazyImage src={img} alt="" className="w-full h-full object-cover" containerClassName="w-full h-full" />
                   </button>
-                </div>
-                <div className="flex flex-wrap gap-2.5">
-                  {product.sizeOptions.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={clsx(
-                        "min-w-12 h-12 px-3.5 flex items-center justify-center text-xs font-bold rounded-2xl transition-all border shadow-2xs cursor-pointer",
-                        selectedSize === size 
-                          ? "border-black bg-neutral-900 text-white shadow-xs ring-2 ring-black/5" 
-                          : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
-                      )}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
             )}
+          </div>
 
-              {/* Quantity & Buttons Row */}
-              <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <div className="flex items-center border border-neutral-200/90 rounded-2xl h-12 w-32 shrink-0 overflow-hidden bg-white shadow-2xs">
+          {/* Right Column: Details */}
+          <div className="w-full lg:w-1/2">
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] p-5 sm:p-7 shadow-sm border border-neutral-100 space-y-6">
+              
+              {/* Title & Status */}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-bold text-neutral-900 mb-2">
+                  {product.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-medium text-neutral-600">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+                    <span className="text-[#22C55E]">In Stock</span>
+                  </div>
+                  <span className="text-neutral-300">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-neutral-400">👁️</span>
+                    <span>12 people are viewing this right now</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5 text-[#EAB308]">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} size={16} className={star <= Math.round(product.rating || 4.8) ? "fill-[#EAB308]" : "text-neutral-200 fill-neutral-200"} />
+                  ))}
+                </div>
+                <div className="text-sm font-bold text-neutral-900 ml-1">
+                  {product.rating || "4.8"}
+                  <span className="text-[#B48538] ml-1 font-medium">({reviewSummary.totalCount || product.reviewsCount || 128} reviews)</span>
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="flex items-end gap-3 pt-1">
+                <span className="text-3xl font-bold text-neutral-900 tracking-tight">৳ {product.price.toFixed(2)}</span>
+                {product.comparePrice && product.comparePrice > product.price && (
+                  <>
+                    <span className="text-lg text-neutral-400 line-through mb-1 font-medium">৳ {product.comparePrice.toFixed(2)}</span>
+                    <span className="bg-[#FFF8ED] text-[#B48538] text-xs font-bold px-2.5 py-1 rounded-full mb-1 border border-[#F3E8D6]">
+                      SAVE {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Trust Badges */}
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1">
+                <div className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 rounded-full px-3 py-1.5 shrink-0">
+                  <CheckCircle2 size={14} className="text-neutral-600" />
+                  <span className="text-xs font-medium text-neutral-600">100% Original</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 rounded-full px-3 py-1.5 shrink-0">
+                  <RotateCcw size={14} className="text-neutral-600" />
+                  <span className="text-xs font-medium text-neutral-600">7 Days Return</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 rounded-full px-3 py-1.5 shrink-0">
+                  <Truck size={14} className="text-neutral-600" />
+                  <span className="text-xs font-medium text-neutral-600">Cash on Delivery</span>
+                </div>
+              </div>
+
+              <div className="h-px bg-neutral-100 w-full my-4"></div>
+
+              {/* Color Selection */}
+              {(product.colorOptions && product.colorOptions.length > 0) ? (
+                <div className="space-y-3">
+                  <div className="text-sm">
+                    <span className="font-bold text-neutral-900">Color: </span>
+                    <span className="text-neutral-600">{selectedColor}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {product.colorOptions.map((color) => {
+                      // Map common colors to hex for display
+                      const colorMap: Record<string, string> = {
+                        'black': '#000000',
+                        'white': '#FFFFFF',
+                        'blue': '#1E3A8A',
+                        'navy': '#1E3A8A',
+                        'brown': '#78350F',
+                        'olive': '#4D7C0F',
+                        'green': '#15803D',
+                        'red': '#B91C1C',
+                        'gray': '#4B5563',
+                      };
+                      const hex = colorMap[color.toLowerCase()] || color;
+                      
+                      return (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={clsx(
+                            "w-8 h-8 rounded-full p-0.5 transition-all cursor-pointer flex items-center justify-center",
+                            selectedColor === color ? "border-2 border-black" : "border border-transparent"
+                          )}
+                        >
+                          <span 
+                            className="w-full h-full rounded-full border border-neutral-200 block"
+                            style={{ backgroundColor: hex }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Size Selection */}
+              {(product.sizeOptions && product.sizeOptions.length > 0) ? (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">
+                      <span className="font-bold text-neutral-900">Size: </span>
+                      <span className="text-neutral-600">{selectedSize}</span>
+                    </div>
+                    <button onClick={() => setIsSizeModalOpen(true)} className="flex items-center gap-1.5 text-xs font-medium text-[#B48538] hover:underline cursor-pointer">
+                      <Ruler size={14} />
+                      Size Guide
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {product.sizeOptions.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={clsx(
+                          "min-w-12 h-10 px-3 flex items-center justify-center text-sm font-medium rounded-lg transition-all cursor-pointer",
+                          selectedSize === size 
+                            ? "border-2 border-[#B48538] text-[#B48538] bg-[#FFF8ED]" 
+                            : "border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                        )}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Quantity */}
+              <div className="pt-2">
+                <div className="text-sm font-bold text-neutral-900 mb-3">Quantity</div>
+                <div className="flex items-center border border-neutral-200 rounded-lg h-11 w-32 bg-white">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-bold text-neutral-700 cursor-pointer"
-                  >-</button>
-                  <span className="flex-1 text-center font-bold text-sm border-x border-neutral-100">{quantity}</span>
+                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-medium text-neutral-600 cursor-pointer h-full"
+                  >−</button>
+                  <span className="flex-1 text-center font-medium text-sm border-x border-neutral-200 h-full flex items-center justify-center">{quantity}</span>
                   <button 
-                    onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
-                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-bold text-neutral-700 cursor-pointer"
+                    onClick={() => setQuantity(Math.min(product.stockQuantity || 10, quantity + 1))}
+                    className="flex-1 flex justify-center items-center hover:bg-neutral-50 transition-colors text-lg font-medium text-neutral-600 cursor-pointer h-full"
                   >+</button>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-2 gap-3 pt-3">
                 <button 
-                  onClick={(e) => handleAddToCart(e)}
+                  onClick={handleAddToCart}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-white border-2 border-neutral-900 text-neutral-900 rounded-2xl py-3.5 text-xs sm:text-sm font-extrabold shadow-2xs hover:bg-neutral-100 active:scale-95 transition-all disabled:opacity-50 cursor-pointer uppercase tracking-wider"
+                  className="w-full bg-white border border-neutral-900 text-neutral-900 rounded-xl py-3.5 text-sm font-bold hover:bg-neutral-50 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {t('product.add_to_cart')} 🛍️
+                  <ShoppingBag size={18} />
+                  Add to Cart
                 </button>
                 <button 
-                  onClick={(e) => handleBuyNow(e)}
+                  onClick={handleBuyNow}
                   disabled={product.stockQuantity === 0}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-950 rounded-2xl py-3.5 text-xs sm:text-sm font-black shadow-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider border border-amber-400"
+                  className="w-full bg-[#B48538] hover:bg-[#9c722e] text-white rounded-xl py-3.5 text-sm font-bold shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Zap size={16} className="mr-1.5 fill-neutral-950 text-neutral-950" /> {t('product.order_now')}
+                  <Zap size={18} className="fill-white" />
+                  Order Now
                 </button>
-              </div>
-
-              {/* Social Share */}
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs text-neutral-500 font-medium">{'Share Product:'}</span>
-                  <button 
-                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
-                    className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity font-bold text-xs cursor-pointer shadow-2xs"
-                  >
-                    f
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      alert('Product link copied to clipboard!');
-                    }}
-                    className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-black transition-colors font-bold text-xs cursor-pointer shadow-2xs"
-                    title="Copy Link"
-                  >
-                    <Share2 size={14} />
-                  </button>
-                </div>
               </div>
 
               {/* WhatsApp Button */}
@@ -632,251 +528,208 @@ export default function ProductDetail() {
                 href={`https://wa.me/8801700000000?text=Hi%20Rare%20Dreams!%20I'm%20interested%20in%20${encodeURIComponent(product.name)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer"
+                className="w-full bg-[#F0FDF4] border border-[#DCFCE7] hover:bg-[#DCFCE7] text-[#166534] rounded-xl py-3 text-sm font-medium transition-all flex items-center justify-between px-4 cursor-pointer"
               >
-                <MessageCircle size={18} className="mr-2 fill-white text-[#25D366]" />
-                <span>{'WhatsApp Support'}</span>
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={18} className="fill-[#166534]" />
+                  <span>Need help? Chat with us on <strong>WhatsApp</strong></span>
+                </div>
+                <ChevronRight size={16} />
               </a>
-            </div>
-          </div>
 
-          {/* Description & Contact Tabs */}
-          <div className="bg-white rounded-3xl shadow-2xs border border-neutral-200/80 overflow-hidden mb-8">
-            <div className="flex border-b border-neutral-200 bg-neutral-50/50">
-              <button 
-                onClick={() => setActiveTab('description')}
-                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === 'description' 
-                    ? 'border-b-2 border-black text-black bg-white' 
-                    : 'text-neutral-400 hover:text-black'
-                }`}
-              >
-                {'Description'}
-              </button>
-              <button 
-                onClick={() => setActiveTab('contact')}
-                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === 'contact' 
-                    ? 'border-b-2 border-black text-black bg-white' 
-                    : 'text-neutral-400 hover:text-black'
-                }`}
-              >
-                {'Contact & Support'}
-              </button>
-            </div>
-
-            <div className="p-6">
-              {activeTab === 'description' ? (
-                <div className="prose prose-sm prose-neutral max-w-none space-y-4">
-                  <p className="text-neutral-700 leading-relaxed text-sm">
-                    {product.description}
-                  </p>
-                  {product.material && (
-                    <div className="pt-2">
-                      <p className="font-bold text-xs uppercase tracking-wider text-neutral-900 mb-1">Material & Care Instructions:</p>
-                      <p className="text-neutral-600 text-xs bg-neutral-50 p-3 rounded-xl border border-neutral-200/60 inline-block">{product.material}</p>
+              {/* Tabs Section */}
+              <div className="pt-6">
+                <div className="flex border-b border-neutral-200">
+                  <button 
+                    onClick={() => setActiveTab('description')}
+                    className={clsx(
+                      "flex-1 py-3 text-xs sm:text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2 border-b-2",
+                      activeTab === 'description' ? "border-[#B48538] text-[#B48538]" : "border-transparent text-neutral-500 hover:text-neutral-800"
+                    )}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Description
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('contact')}
+                    className={clsx(
+                      "flex-1 py-3 text-xs sm:text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2 border-b-2",
+                      activeTab === 'contact' ? "border-[#B48538] text-[#B48538]" : "border-transparent text-neutral-500 hover:text-neutral-800"
+                    )}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="6.5"></line></svg>
+                    Material & Care
+                  </button>
+                  <button 
+                    onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="flex-1 py-3 text-xs sm:text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 border-b-2 border-transparent text-neutral-500 hover:text-neutral-800"
+                  >
+                    <Star size={16} />
+                    Reviews (128)
+                  </button>
+                </div>
+                
+                <div className="py-4">
+                  {activeTab === 'description' ? (
+                    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-100 flex items-start justify-between cursor-pointer">
+                      <p className="text-sm text-neutral-600 leading-relaxed pr-4">
+                        {product.description || "This is a premium product. Crafted with high quality materials for maximum comfort and durability."}
+                      </p>
+                      <ChevronRight size={18} className="text-neutral-400 rotate-90 shrink-0 mt-1" />
+                    </div>
+                  ) : (
+                    <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-100">
+                      <p className="text-sm text-neutral-600 leading-relaxed">
+                        {product.material || "Dry clean only. Do not bleach. Iron on low heat."}
+                      </p>
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="space-y-4 text-xs sm:text-sm">
-                  <p className="text-neutral-600 leading-relaxed font-medium">
-                    Have any questions or need custom sizing help? Our support team is available 7 days a week.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <a 
-                      href="tel:01700000000" 
-                      className="flex items-center space-x-3 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200/80 hover:bg-neutral-100 transition-colors"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center shrink-0">
-                        <HeadphonesIcon size={18} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-neutral-400 block">Phone Support</span>
-                        <span className="font-bold text-neutral-900">+880 1700-000000</span>
-                      </div>
-                    </a>
-
-                    <a 
-                      href="https://wa.me/8801700000000" 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="flex items-center space-x-3 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                        <MessageCircle size={18} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-emerald-800 block">WhatsApp Chat</span>
-                        <span className="font-bold text-emerald-950">+880 1700-000000</span>
-                      </div>
-                    </a>
-                  </div>
-
-                  <div className="bg-neutral-50 p-3.5 rounded-2xl border border-neutral-200/80 space-y-1">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase block">Operating Hours</span>
-                    <p className="text-xs font-bold text-neutral-900">10:00 AM - 10:00 PM (Daily)</p>
-                    <p className="text-[11px] text-neutral-500">Fast delivery within 24-48 hours in Dhaka, and 2-3 days nationwide.</p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Customer Product Reviews & Ratings */}
-      <ProductReviews 
-        productId={product.id} 
-        productName={product.name} 
-        onRatingUpdate={(avg, count) => setReviewSummary({ avgRating: avg, totalCount: count })}
-      />
-
-      {/* Recommended Products: You May Also Like */}
-      <section className="mt-16 pt-12 border-t border-neutral-200/80">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-2">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
-              You May Also Like
-            </h2>
-            <p className="text-xs text-neutral-500 mt-1">
-              Handpicked items from our <span className="font-bold text-neutral-800">{product.category}</span> collection
-            </p>
+      {/* Global Features Section */}
+      <div className="border-y border-neutral-200 bg-white py-6 my-8">
+        <div className="max-w-7xl mx-auto px-4 w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-3">
+              <Truck size={24} strokeWidth={1.5} className="text-neutral-700" />
+              <div>
+                <div className="text-sm font-bold text-neutral-900">Free Delivery</div>
+                <div className="text-xs text-neutral-500">On orders over ৳1499</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <ShieldCheck size={24} strokeWidth={1.5} className="text-neutral-700" />
+              <div>
+                <div className="text-sm font-bold text-neutral-900">Secure Payment</div>
+                <div className="text-xs text-neutral-500">100% secure checkout</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <RotateCcw size={24} strokeWidth={1.5} className="text-neutral-700" />
+              <div>
+                <div className="text-sm font-bold text-neutral-900">Easy Return</div>
+                <div className="text-xs text-neutral-500">7 days return & refund</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <HeadphonesIcon size={24} strokeWidth={1.5} className="text-neutral-700" />
+              <div>
+                <div className="text-sm font-bold text-neutral-900">24/7 Support</div>
+                <div className="text-xs text-neutral-500">We are here to help</div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {loadingRecommended ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            {[...Array(4)].map((_, i) => (
-              <ProductSkeleton key={i} index={i} />
-            ))}
+      <div className="max-w-7xl mx-auto px-4 w-full space-y-12">
+        {/* Reviews Section */}
+        <div id="reviews-section">
+          <ProductReviews 
+            productId={product.id} 
+            productName={product.name} 
+            onRatingUpdate={(avg, count) => setReviewSummary({ avgRating: avg, totalCount: count })}
+          />
+        </div>
+
+        {/* You May Also Like */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-neutral-900">You May Also Like</h2>
+            <button className="text-sm font-bold text-[#B48538] hover:underline cursor-pointer">View All</button>
           </div>
-        ) : recommendedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            {recommendedProducts.map((rec, index) => (
-              <ProductCard key={rec.id} product={rec} index={index} />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-neutral-50 rounded-2xl p-8 text-center border border-neutral-200/60">
-            <p className="text-xs font-bold text-neutral-500">No other products in this category yet.</p>
-          </div>
-        )}
-      </section>
+          {loadingRecommended ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <ProductSkeleton key={i} index={i} />
+              ))}
+            </div>
+          ) : recommendedProducts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {recommendedProducts.map((rec, index) => (
+                <ProductCard key={rec.id} product={rec} index={index} />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      </div>
 
       {/* AI SIZE RECOMMENDER MODAL */}
       {isSizeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-neutral-200 relative overflow-hidden">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative">
             <button
               onClick={() => setIsSizeModalOpen(false)}
               className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-black rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
-
-            <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-1 rounded-full w-max text-xs font-bold uppercase tracking-wider mb-3">
-              <Sparkles size={14} className="text-amber-600" />
-              <span>{'AI Smart Size Recommender'}</span>
+            <div className="flex items-center space-x-2 text-[#B48538] mb-3">
+              <Ruler size={18} />
+              <span className="text-sm font-bold uppercase tracking-wider">Size Guide</span>
             </div>
-
-            <h3 className="text-xl font-black text-neutral-900 tracking-tight">
-              {`Find Perfect Size for ${product.name}`}
-            </h3>
-            <p className="text-xs text-neutral-500 mt-1 mb-5">
-              {"Enter child's age & measurements. Our AI will calculate the ideal size for max comfort."}
-            </p>
-
+            <h3 className="text-xl font-bold text-neutral-900 mb-2">Find Your Perfect Size</h3>
+            <p className="text-sm text-neutral-500 mb-5">Enter your measurements and let our AI calculate the perfect fit for you.</p>
+            
             <form onSubmit={handleGetAiSizeRecommendation} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {"Child's Age *"}
-                </label>
+                <label className="block text-xs font-bold text-neutral-700 uppercase mb-1">Age *</label>
                 <input
                   type="text"
                   required
-                  placeholder={'e.g., 2.5 Years, 5 Years, 6 Months'}
+                  placeholder="e.g., 25 Years"
                   value={childAge}
                   onChange={(e) => setChildAge(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#B48538]"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    {'Height (Optional)'}
-                  </label>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase mb-1">Height (Optional)</label>
                   <input
                     type="text"
-                    placeholder={'e.g. 95 cm or 3 ft'}
+                    placeholder="e.g. 5 ft 8 in"
                     value={childHeight}
                     onChange={(e) => setChildHeight(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#B48538]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    {'Weight (Optional)'}
-                  </label>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase mb-1">Weight (Optional)</label>
                   <input
                     type="text"
-                    placeholder={'e.g. 14 kg'}
+                    placeholder="e.g. 70 kg"
                     value={childWeight}
                     onChange={(e) => setChildWeight(e.target.value)}
-                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#B48538]"
                   />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {'Fit Preference'}
-                </label>
-                <select
-                  value={fitPreference}
-                  onChange={(e) => setFitPreference(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
-                >
-                  <option value="Comfortable Regular Fit">{'Comfortable Regular Fit'}</option>
-                  <option value="Slightly Loose for Growth">{'Slightly Loose (Recommended for Growing Kids)'}</option>
-                  <option value="Snug Tailored Fit">{'Snug Tailored Fit'}</option>
-                </select>
-              </div>
-
               <button
                 type="submit"
                 disabled={sizeLoading}
-                className="w-full bg-black text-white py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md disabled:opacity-50 mt-2"
+                className="w-full bg-[#B48538] hover:bg-[#9c722e] text-white py-3.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer mt-2"
               >
                 {sizeLoading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>{'Calculating Size...'}</span>
-                  </>
+                  <><Loader2 size={16} className="animate-spin" /><span>Calculating...</span></>
                 ) : (
-                  <>
-                    <Ruler size={16} />
-                    <span>{'Calculate Recommended Size'}</span>
-                  </>
+                  <span>Calculate Recommended Size</span>
                 )}
               </button>
             </form>
 
-            {/* AI Recommendation Output Box */}
             {sizeRecommendation && (
-              <div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 animate-in fade-in slide-in-from-bottom-2">
-                <div className="flex items-center space-x-2 text-emerald-900 font-extrabold text-sm">
-                  <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                  <span>{'Recommended Size:'} <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
+              <div className="mt-5 p-4 bg-[#FFF8ED] border border-[#F3E8D6] rounded-xl">
+                <div className="flex items-center space-x-2 text-[#B48538] font-bold text-sm mb-1">
+                  <CheckCircle2 size={18} />
+                  <span>Recommended Size: {sizeRecommendation.size}</span>
                 </div>
-                <p className="text-xs text-emerald-800 font-medium leading-relaxed">
-                  {sizeRecommendation.explanation}
-                </p>
-                <p className="text-[10px] text-emerald-600 font-bold uppercase pt-1">
-                  ✓ {`Size "${sizeRecommendation.size}" has been automatically selected for you!`}
-                </p>
+                <p className="text-sm text-neutral-700">{sizeRecommendation.explanation}</p>
               </div>
             )}
           </div>
@@ -885,4 +738,3 @@ export default function ProductDetail() {
     </div>
   );
 }
-
