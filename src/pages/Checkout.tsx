@@ -20,7 +20,8 @@ import {
   Truck, 
   ShoppingBag,
   RotateCcw,
-  MapPin
+  MapPin,
+  AlertCircle
 } from 'lucide-react';
 
 interface DeliveryOption {
@@ -74,14 +75,37 @@ export default function Checkout() {
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   const [isLocating, setIsLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<{type: 'error'|'success'|'info'|'warning', text: string} | null>(null);
 
-  const handleAutoLocate = () => {
+  const handleAutoLocate = async () => {
+    setIsLocating(true);
+    setLocationMessage(null);
+
+    const fallbackToIP = async (reason: string) => {
+      try {
+        setLocationMessage({ type: 'info', text: 'Getting approximate area...' });
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        
+        if (data && data.city) {
+          const approxAddress = `${data.city}, ${data.region || ''}, ${data.country_name || ''}`.replace(/, ,/g, ',');
+          setFormData(prev => ({ ...prev, address: approxAddress }));
+          setLocationMessage({ type: 'warning', text: `${reason}. We found your approximate area. Please add your House/Flat number manually.` });
+        } else {
+          setLocationMessage({ type: 'error', text: `${reason}, and approximate location also failed. Please type manually.` });
+        }
+      } catch (ipErr) {
+        setLocationMessage({ type: 'error', text: 'Could not detect location. Please type manually.' });
+      } finally {
+        setIsLocating(false);
+      }
+    };
+
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      await fallbackToIP("Browser doesn't support GPS");
       return;
     }
 
-    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
@@ -95,28 +119,23 @@ export default function Checkout() {
           
           if (data && data.display_name) {
             setFormData(prev => ({ ...prev, address: data.display_name }));
+            setLocationMessage({ type: 'success', text: 'Exact location found!' });
+            setTimeout(() => setLocationMessage(null), 4000);
           } else {
-            alert("Could not determine your address.");
+            await fallbackToIP("Exact address not found from GPS");
           }
-        } catch (error) {
-          console.error("Error getting location:", error);
-          alert("Failed to get your address. Please enter it manually.");
-        } finally {
           setIsLocating(false);
+        } catch (error) {
+          await fallbackToIP("Network error getting exact address");
         }
       },
-      (error) => {
-        console.error("Geolocation error:", error.code, error.message);
-        
-        let errorMessage = "Failed to get location.";
-        if (error.code === 1) errorMessage = "Location access denied. Please allow location permissions in your browser settings.";
-        else if (error.code === 2) errorMessage = "Location position unavailable.";
-        else if (error.code === 3) errorMessage = "Location request timed out.";
-        
-        alert(errorMessage);
-        setIsLocating(false);
+      async (error) => {
+        console.warn("Geolocation error:", error.code, error.message);
+        let reason = "Location permission blocked by device/browser";
+        if (error.code === 3) reason = "Location request timed out";
+        await fallbackToIP(reason);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
@@ -556,6 +575,17 @@ export default function Checkout() {
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400 resize-none" 
                 />
+                {locationMessage && (
+                  <div className={`mt-2 p-2.5 rounded-xl flex items-start space-x-2 text-xs font-medium animate-in fade-in slide-in-from-top-1 ${
+                    locationMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' :
+                    locationMessage.type === 'warning' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                    locationMessage.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' :
+                    'bg-blue-50 text-blue-700 border border-blue-100'
+                  }`}>
+                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                    <span>{locationMessage.text}</span>
+                  </div>
+                )}
               </div>
 
               {/* Field: Email (Optional) */}
