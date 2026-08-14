@@ -1,0 +1,42 @@
+import re
+
+with open('src/components/WhatsAppSupportWidget.tsx', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+content = content.replace("হ্যালো! রেয়ার ড্রিমস (Rare Dreams) এআই কাস্টমার কেয়ারে আপনাকে স্বাগতম। সাইজ, ডেলিভারি বা পোশাক সংক্রান্ত যেকোনো প্রশ্ন করতে পারেন!", "Hello! Welcome to Rare Dreams AI Customer Care. Ask any questions about size, delivery or our collection!")
+content = content.replace("আপনার ব্রাউজারে ভয়েস ইনপুট সাপোর্ট নেই। Google Chrome ব্রাউজার ব্যবহার করুন।", "Your browser does not support voice input. Please use Google Chrome.")
+content = content.replace("মাইক্রোফোন পারমিশন এলাউ করা হয়নি। ব্রাউজার এড্রেস বারের লক (🔒) আইকনে ট্যাপ করে পারমিশন এলাউ করুন।", "Microphone permission denied. Please allow it from the browser settings (🔒).")
+content = content.replace("কোনো কথা শোনা যায়নি। আবার চেষ্টা করুন।", "No speech detected. Please try again.")
+content = content.replace("ইন্টারনেট কানেকশন চেক করুন।", "Please check your internet connection.")
+content = content.replace("`ভয়েস ইনপুট এরর: ${event.error}`", "`Voice input error: ${event.error}`")
+content = content.replace("ভয়েস ইনপুট চালু করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।", "Failed to start voice input. Please try again.")
+content = content.replace("isProductPage ? `\\n\\nপ্রোডাক্ট লিংক: ${currentUrl}` : ''", "isProductPage ? `\\n\\nProduct Link: ${currentUrl}` : ''")
+content = content.replace("হ্যালো রেয়ার ড্রিমস! আমি এই প্রোডাক্টটি সম্পর্কে জানতে ও অর্ডার করতে চাই:\\n${currentUrl}", "Hello Rare Dreams! I want to know more about this product and place an order:\\n${currentUrl}")
+content = content.replace("হ্যালো রেয়ার ড্রিমস! আপনাদের কালেকশন ও অর্ডার সম্পর্কে সাহায্য চাই।", "Hello Rare Dreams! I need help with your collection and ordering.")
+content = content.replace("অনুগ্রহ করে সরাসরি হোয়াটসঅ্যাপ ট্যাবে গিয়ে আমাদের টিমের সাথে কথা বলুন!", "Please switch to the WhatsApp tab to chat directly with our team!")
+content = content.replace("ক্যাশ অন ডেলিভারি কি এভেলেবল আছে?", "Is Cash on Delivery available?")
+content = content.replace("ডেলিভারি চার্জ কত টাকা?", "What is the delivery charge?")
+content = content.replace("বাচ্চার সঠিক সাইজ কিভাবে নির্বাচন করবো?", "How do I select the right size for my child?")
+content = content.replace("পণ্য ৭ দিনের মধ্যে পরিবর্তন করার নিয়ম কি?", "What is the 7-day exchange policy?")
+content = content.replace("প্রশ্ন নির্বাচন করুন (টেক্সট বক্সে জমা হবে):", "Select a question (will be added to text box):")
+content = content.replace("আপনার মেসেজ লিখুন বা এডিট করুন:", "Write or edit your message:")
+content = content.replace("speechLang === 'bn-BD' ? 'ভয়েস: বাংলা 🇧🇩' : 'Voice: English 🇺🇸'", "'Voice: English 🇺🇸'")
+content = content.replace("ঠিক আছে", "OK")
+content = content.replace("speechLang === 'bn-BD' ? '🎙️ শুনছি... বলুন...' : '🎙️ Listening... Speak...'", "'🎙️ Listening... Speak...'")
+content = content.replace("এখানে লিখুন...", "Type here...")
+content = content.replace("isListening && activeVoiceTarget === 'wa' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে লিখুন'", "isListening && activeVoiceTarget === 'wa' ? 'Stop voice input' : 'Use voice input'")
+content = content.replace("বাটন এ চাপলে সরাসরি হোয়াটসঅ্যাপ অ্যাপ খুলবে।", "Clicking this button will open WhatsApp directly.")
+content = content.replace("চিন্তা করা হচ্ছে", "Thinking...")
+content = content.replace('["ডেলিভারি চার্জ?", "সাইজ চার্ট", "রিটার্ন সুবিধা"]', '["Delivery Charge?", "Size Chart", "Return Policy"]')
+content = content.replace("সরাসরি হিউম্যান সাপোর্ট চান?", "Need direct human support?")
+content = content.replace("হোয়াটসঅ্যাপে যান →", "Go to WhatsApp →")
+content = content.replace("এখানে প্রশ্নটি লিখুন...", "Type your question here...")
+content = content.replace("speechLang === 'bn-BD' ? 'বাংলা ভয়েস (Click for English)' : 'English Voice (Click for বাংলা)'", "'English Voice'")
+content = content.replace("speechLang === 'bn-BD' ? 'বাংলা' : 'ENG'", "'ENG'")
+content = content.replace("isListening && activeVoiceTarget === 'ai' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে প্রশ্ন করুন'", "isListening && activeVoiceTarget === 'ai' ? 'Stop voice input' : 'Ask using voice'")
+
+content = re.sub(r"language === 'bn'\s*\?\s*'[^']*'\s*:\s*('[^']*')", r"\1", content)
+content = re.sub(r"language === 'bn'\s*\?\s*`[^`]*`\s*:\s*(`[^`]*`)", r"\1", content)
+
+with open('src/components/WhatsAppSupportWidget.tsx', 'w', encoding='utf-8') as f:
+    f.write(content)

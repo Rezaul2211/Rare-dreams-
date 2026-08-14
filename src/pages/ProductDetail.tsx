@@ -26,7 +26,6 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, totalCount: 0 });
-  const [alertFeedback, setAlertFeedback] = useState<string | null>(null);
   const [togglingAlert, setTogglingAlert] = useState(false);
   
   const [selectedMedia, setSelectedMedia] = useState<number | 'video'>(0);
@@ -50,7 +49,7 @@ export default function ProductDetail() {
   const handleGetAiSizeRecommendation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!childAge) {
-      alert(language === 'bn' ? "অনুগ্রহ করে বাচ্চার বয়স লিখুন" : "Please enter child's age");
+      alert("Please enter child's age");
       return;
     }
     setSizeLoading(true);
@@ -73,7 +72,7 @@ export default function ProductDetail() {
       if (data.recommendedSize) {
         setSizeRecommendation({
           size: data.recommendedSize,
-          explanation: data.explanation || (language === 'bn' ? "বাচ্চার বয়স ও স্বাচ্ছন্দ্য অনুযায়ী পারফেক্ট সাইজ।" : "Optimal fit based on age and comfort preference.")
+          explanation: data.explanation || ("Optimal fit based on age and comfort preference.")
         });
         setSelectedSize(data.recommendedSize);
       } else {
@@ -82,9 +81,7 @@ export default function ProductDetail() {
     } catch (err) {
       console.warn("Using smart client fallback for size recommendation:", err);
       const fallbackSize = available[0] || 'M';
-      const explanationText = language === 'bn' 
-        ? `বাচ্চার বয়স (${childAge}) বিবেচনা করে দীর্ঘমেয়াদী ব্যবহার ও সর্বোচ্চ আরামের জন্য '${fallbackSize}' সাইজটি বেছে নেওয়ার পরামর্শ দেওয়া হচ্ছে।`
-        : `Based on child age (${childAge}), size '${fallbackSize}' is recommended for maximum comfort and room to grow.`;
+      const explanationText = `Based on child age (${childAge}), size '${fallbackSize}' is recommended for maximum comfort and room to grow.`;
       
       setSizeRecommendation({
         size: fallbackSize,
@@ -226,11 +223,11 @@ export default function ProductDetail() {
     if (product.stockQuantity === 0) return;
 
     if (product.sizeOptions?.length && !selectedSize) {
-      alert(language === 'bn' ? 'দয়া করে একটি সাইজ সিলেক্ট করুন' : 'Please select a size');
+      alert('Please select a size');
       return;
     }
     if (product.colorOptions?.length && !selectedColor) {
-      alert(language === 'bn' ? 'দয়া করে একটি কালার সিলেক্ট করুন' : 'Please select a color');
+      alert('Please select a color');
       return;
     }
 
@@ -435,20 +432,23 @@ export default function ProductDetail() {
                   <span className="text-xs font-black text-neutral-900">{reviewSummary.avgRating}</span>
                   <span className="text-neutral-300">•</span>
                   <span className="text-xs font-bold text-neutral-700 underline underline-offset-2 group-hover:text-black">
-                    {language === 'bn' ? `${reviewSummary.totalCount} টি রিভিউ` : `${reviewSummary.totalCount} Reviews`}
+                    {`${reviewSummary.totalCount} Reviews`}
                   </span>
                 </>
               ) : (
                 <div className="flex items-center space-x-1.5 text-xs text-neutral-500 font-medium">
                   <Star size={13} className="text-neutral-300 fill-neutral-200" />
-                  <span>{language === 'bn' ? 'কোনো রিভিউ নেই • প্রথম রিভিউ দিন' : 'No reviews yet • Be the first'}</span>
+                  <span>{'No reviews yet • Be the first'}</span>
                 </div>
               )}
             </a>
 
-            <div className="flex items-center text-sm text-neutral-500 mb-4 space-x-4">
-              <span>{language === 'bn' ? 'ক্যাটাগরি' : 'Category'}: <span className="font-medium text-neutral-900">{translateCategory(product.category, language)}</span></span>
-              <span>{language === 'bn' ? 'ব্র্যান্ড' : 'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
+            <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-500 mb-4">
+              <span>{'Category'}: <span className="font-medium text-neutral-900">{translateCategory(product.category, language)}</span></span>
+              <span>{'Brand'}: <span className="font-medium text-neutral-900">Rare Dreams</span></span>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${product.stockQuantity && product.stockQuantity > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                {product.stockQuantity && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
+              </span>
             </div>
             
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -459,40 +459,39 @@ export default function ProductDetail() {
                 )}
                 {product.isFlashSale ? (
                   <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                    ⚡ {language === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}
+                    ⚡ {'Flash Sale'}
                   </span>
                 ) : discountPct && discountPct > 0 ? (
                   <span className="bg-red-100 text-red-700 text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                    {language === 'bn' ? `${discountPct}% ছাড়` : `Save ${discountPct}%`}
+                    {`Save ${discountPct}%`}
                   </span>
                 ) : null}
               </div>
 
               {/* 1-Click Simple Price Drop Subscription Button */}
-              <div className="relative">
+              <div>
                 <button
                   type="button"
                   disabled={togglingAlert}
                   onClick={async () => {
                     if (!product) return;
                     setTogglingAlert(true);
-                    const res = await togglePriceDropAlert({
+                    await togglePriceDropAlert({
                       id: product.id,
                       name: product.name,
                       price: product.price,
                       images: product.images
                     });
                     setTogglingAlert(false);
-                    setAlertFeedback(res.message);
-                    setTimeout(() => setAlertFeedback(null), 3000);
                   }}
                   className={clsx(
                     "inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs border cursor-pointer active:scale-95",
                     isProductSubscribed(product.id)
                       ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
-                      : "bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400"
+                      : "bg-white text-neutral-800 border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400",
+                    togglingAlert && "opacity-70 cursor-wait"
                   )}
-                  title={language === 'bn' ? 'দাম কমলে ইমেইল নোটিফিকেশন পান' : 'Get email notification when price drops'}
+                  title={'Get email notification when price drops'}
                 >
                   <Bell 
                     size={14} 
@@ -502,18 +501,10 @@ export default function ProductDetail() {
                   />
                   <span>
                     {isProductSubscribed(product.id)
-                      ? (language === 'bn' ? '✓ দাম কমলে অ্যালার্ট পাবেন' : '✓ Alert Active')
-                      : (language === 'bn' ? 'দাম কমলে অ্যালার্ট দিন' : 'Alert on Price Drop')}
+                      ? ('✓ Alert Active')
+                      : ('Alert on Price Drop')}
                   </span>
                 </button>
-
-                {/* Micro Inline Feedback */}
-                {alertFeedback && (
-                  <div className="absolute right-0 sm:left-0 top-full mt-1.5 z-30 bg-neutral-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-neutral-700 whitespace-nowrap animate-in fade-in slide-in-from-top-1 flex items-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                    <span>{alertFeedback}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -527,7 +518,7 @@ export default function ProductDetail() {
             {product.colorOptions && product.colorOptions.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{language === 'bn' ? 'কালার:' : 'Color:'} <span className="text-black">{selectedColor}</span></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{'Color:'} <span className="text-black">{selectedColor}</span></span>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {product.colorOptions.map((color) => (
@@ -552,13 +543,13 @@ export default function ProductDetail() {
             {product.sizeOptions && product.sizeOptions.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{language === 'bn' ? 'সাইজ:' : 'Size:'} <span className="text-black">{selectedSize}</span></span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">{'Size:'} <span className="text-black">{selectedSize}</span></span>
                   <button
                     onClick={() => setIsSizeModalOpen(true)}
                     className="inline-flex items-center space-x-1 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer shadow-2xs"
                   >
                     <Sparkles size={13} className="text-amber-600 animate-pulse" />
-                    <span>{language === 'bn' ? 'AI সাইজ হেল্পার' : 'AI Size Helper'}</span>
+                    <span>{'AI Size Helper'}</span>
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
@@ -616,7 +607,7 @@ export default function ProductDetail() {
               {/* Social Share */}
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center space-x-3">
-                  <span className="text-xs text-neutral-500 font-medium">{language === 'bn' ? ' শেয়ার করুন:' : 'Share Product:'}</span>
+                  <span className="text-xs text-neutral-500 font-medium">{'Share Product:'}</span>
                   <button 
                     onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
                     className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity font-bold text-xs cursor-pointer shadow-2xs"
@@ -626,7 +617,7 @@ export default function ProductDetail() {
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
-                      alert(language === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Product link copied to clipboard!');
+                      alert('Product link copied to clipboard!');
                     }}
                     className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-black transition-colors font-bold text-xs cursor-pointer shadow-2xs"
                     title="Copy Link"
@@ -644,7 +635,7 @@ export default function ProductDetail() {
                 className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl py-3.5 text-xs sm:text-sm font-bold shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center justify-center mt-3 cursor-pointer"
               >
                 <MessageCircle size={18} className="mr-2 fill-white text-[#25D366]" />
-                <span>{language === 'bn' ? 'হোয়াটসঅ্যাপে সরাসরি হেল্প নিন' : 'WhatsApp Support'}</span>
+                <span>{'WhatsApp Support'}</span>
               </a>
             </div>
           </div>
@@ -660,7 +651,7 @@ export default function ProductDetail() {
                     : 'text-neutral-400 hover:text-black'
                 }`}
               >
-                {language === 'bn' ? 'বিবরণ' : 'Description'}
+                {'Description'}
               </button>
               <button 
                 onClick={() => setActiveTab('contact')}
@@ -670,7 +661,7 @@ export default function ProductDetail() {
                     : 'text-neutral-400 hover:text-black'
                 }`}
               >
-                {language === 'bn' ? 'যোগাযোগ ও সাপোর্ট' : 'Contact & Support'}
+                {'Contact & Support'}
               </button>
             </div>
 
@@ -787,25 +778,25 @@ export default function ProductDetail() {
 
             <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-1 rounded-full w-max text-xs font-bold uppercase tracking-wider mb-3">
               <Sparkles size={14} className="text-amber-600" />
-              <span>{language === 'bn' ? 'AI স্মার্ট সাইজ হেল্পার' : 'AI Smart Size Recommender'}</span>
+              <span>{'AI Smart Size Recommender'}</span>
             </div>
 
             <h3 className="text-xl font-black text-neutral-900 tracking-tight">
-              {language === 'bn' ? `${product.name}-এর সঠিক সাইজ খুঁজুন` : `Find Perfect Size for ${product.name}`}
+              {`Find Perfect Size for ${product.name}`}
             </h3>
             <p className="text-xs text-neutral-500 mt-1 mb-5">
-              {language === 'bn' ? 'বাচ্চার বয়স ও উচ্চতা দিন। আমাদের AI সেরা সাইজটি সিলেক্ট করে দিবে।' : "Enter child's age & measurements. Our AI will calculate the ideal size for max comfort."}
+              {"Enter child's age & measurements. Our AI will calculate the ideal size for max comfort."}
             </p>
 
             <form onSubmit={handleGetAiSizeRecommendation} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {language === 'bn' ? 'বাচ্চার বয়স *' : "Child's Age *"}
+                  {"Child's Age *"}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder={language === 'bn' ? 'যেমন: ২.৫ বছর, ৫ বছর, ৬ মাস' : 'e.g., 2.5 Years, 5 Years, 6 Months'}
+                  placeholder={'e.g., 2.5 Years, 5 Years, 6 Months'}
                   value={childAge}
                   onChange={(e) => setChildAge(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -815,11 +806,11 @@ export default function ProductDetail() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    {language === 'bn' ? 'উচ্চতা (ঐচ্ছিক)' : 'Height (Optional)'}
+                    {'Height (Optional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder={language === 'bn' ? 'যেমন: ৯৫ সেমি বা ৩ ফুট' : 'e.g. 95 cm or 3 ft'}
+                    placeholder={'e.g. 95 cm or 3 ft'}
                     value={childHeight}
                     onChange={(e) => setChildHeight(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -827,11 +818,11 @@ export default function ProductDetail() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                    {language === 'bn' ? 'ওজন (ঐচ্ছিক)' : 'Weight (Optional)'}
+                    {'Weight (Optional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder={language === 'bn' ? 'যেমন: ১৪ কেজি' : 'e.g. 14 kg'}
+                    placeholder={'e.g. 14 kg'}
                     value={childWeight}
                     onChange={(e) => setChildWeight(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
@@ -841,16 +832,16 @@ export default function ProductDetail() {
 
               <div>
                 <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {language === 'bn' ? 'ফিটিং পছন্দ' : 'Fit Preference'}
+                  {'Fit Preference'}
                 </label>
                 <select
                   value={fitPreference}
                   onChange={(e) => setFitPreference(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2.5 text-xs font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-black"
                 >
-                  <option value="Comfortable Regular Fit">{language === 'bn' ? 'আরামদায়ক রেগুলার ফিট' : 'Comfortable Regular Fit'}</option>
-                  <option value="Slightly Loose for Growth">{language === 'bn' ? 'সামান্য লুজ (বাচ্চার বৃদ্ধির জন্য ভালো)' : 'Slightly Loose (Recommended for Growing Kids)'}</option>
-                  <option value="Snug Tailored Fit">{language === 'bn' ? 'ফিটেড টেলরড ফিট' : 'Snug Tailored Fit'}</option>
+                  <option value="Comfortable Regular Fit">{'Comfortable Regular Fit'}</option>
+                  <option value="Slightly Loose for Growth">{'Slightly Loose (Recommended for Growing Kids)'}</option>
+                  <option value="Snug Tailored Fit">{'Snug Tailored Fit'}</option>
                 </select>
               </div>
 
@@ -862,12 +853,12 @@ export default function ProductDetail() {
                 {sizeLoading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>{language === 'bn' ? 'হিসাব করা হচ্ছে...' : 'Calculating Size...'}</span>
+                    <span>{'Calculating Size...'}</span>
                   </>
                 ) : (
                   <>
                     <Ruler size={16} />
-                    <span>{language === 'bn' ? 'সঠিক সাইজ হিসাব করুন' : 'Calculate Recommended Size'}</span>
+                    <span>{'Calculate Recommended Size'}</span>
                   </>
                 )}
               </button>
@@ -878,13 +869,13 @@ export default function ProductDetail() {
               <div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2 animate-in fade-in slide-in-from-bottom-2">
                 <div className="flex items-center space-x-2 text-emerald-900 font-extrabold text-sm">
                   <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                  <span>{language === 'bn' ? 'পরামর্শকৃত সাইজ:' : 'Recommended Size:'} <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
+                  <span>{'Recommended Size:'} <span className="bg-emerald-900 text-white px-2.5 py-0.5 rounded-lg text-xs ml-1">{sizeRecommendation.size}</span></span>
                 </div>
                 <p className="text-xs text-emerald-800 font-medium leading-relaxed">
                   {sizeRecommendation.explanation}
                 </p>
                 <p className="text-[10px] text-emerald-600 font-bold uppercase pt-1">
-                  ✓ {language === 'bn' ? `সাইজ "${sizeRecommendation.size}" আপনার জন্য সিলেক্ট করা হয়েছে!` : `Size "${sizeRecommendation.size}" has been automatically selected for you!`}
+                  ✓ {`Size "${sizeRecommendation.size}" has been automatically selected for you!`}
                 </p>
               </div>
             )}

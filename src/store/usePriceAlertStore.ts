@@ -245,14 +245,14 @@ export const usePriceAlertStore = create<PriceAlertState>((set, get) => ({
   },
 
   togglePriceDropAlert: async (product) => {
-    const { alerts, isProductSubscribed, subscribeToPriceDrop, unsubscribeFromPriceDrop } = get();
+    const { alerts, subscribeToPriceDrop, unsubscribeFromPriceDrop } = get();
     const existingAlert = alerts.find(a => a.productId === product.id && a.status === 'active');
 
     if (existingAlert) {
       await unsubscribeFromPriceDrop(existingAlert.id);
       return {
         subscribed: false,
-        message: 'নোটিফিকেশন বন্ধ করা হয়েছে'
+        message: 'unsubscribed'
       };
     } else {
       const email = auth.currentUser?.email || (auth.currentUser?.uid ? `${auth.currentUser.uid}@raredreams.app` : 'guest@raredreams.app');
@@ -271,7 +271,7 @@ export const usePriceAlertStore = create<PriceAlertState>((set, get) => ({
 
       return {
         subscribed: res.success,
-        message: res.success ? 'দাম কমলে সাথে সাথে নোটিফিকেশন পাবেন!' : res.message
+        message: res.success ? 'subscribed' : res.message
       };
     }
   },

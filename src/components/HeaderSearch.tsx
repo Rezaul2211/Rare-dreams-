@@ -189,7 +189,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                     </span>
                     {filteredProducts.length > 0 && (
                       <span className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
-                        <Sparkles size={10} /> {language === 'bn' ? 'তাৎক্ষণিক রেজাল্ট' : 'Instant Results'}
+                        <Sparkles size={10} /> Instant Results
                       </span>
                     )}
                   </div>
@@ -252,7 +252,7 @@ export function HeaderSearch({ isMobileModalOpen, onCloseMobileModal }: HeaderSe
                     <div className="py-8 text-center px-4">
                       <p className="text-xs font-bold text-neutral-700">{t('nav.no_results')}</p>
                       <p className="text-[11px] text-neutral-400 mt-1">
-                        {language === 'bn' ? 'পাঞ্জাবি, ফ্রক, বেবি ড্রেস বা ক্যাটাগরি লিখে চেষ্টা করুন' : 'Try searching for dress, party wear or category'}
+                        Try searching for dress, party wear, footwear or category
                       </p>
                     </div>
                   )}

@@ -53,11 +53,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   // Form states (start blank)
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
-  const [userName, setUserName] = useState('');
-  const [userPhone, setUserPhone] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [orderId, setOrderId] = useState('');
-  const [comment, setComment] = useState('');
+          const [comment, setComment] = useState('');
   const [reviewImage, setReviewImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -132,14 +128,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     };
   }, [productId]);
 
-  // Pre-fill user details if logged in
-  useEffect(() => {
-    if (user) {
-      if (user.displayName && !userName) setUserName(user.displayName);
-      if (user.phoneNumber && !userPhone) setUserPhone(user.phoneNumber);
-      if (user.email && !userEmail) setUserEmail(user.email);
-    }
-  }, [user]);
+
 
   // Compress image upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,7 +136,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert(language === 'bn' ? 'ছবি ৫ মেগাবাইটের চেয়ে ছোট হতে হবে' : 'Image size must be less than 5MB');
+      alert('Image size must be less than 5MB');
       return;
     }
 
@@ -188,45 +177,43 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   // Check verified purchase against Firestore Orders specifically for this product
   const checkVerifiedCustomer = async (): Promise<boolean> => {
     try {
+      if (!user) return false;
       // Store Admin is always allowed
       if (user?.email === 'xmrezaul.karim998@gmail.com' || user?.role === 'admin') return true;
 
-      const cleanPhone = userPhone.trim().replace(/\D/g, '');
-      const cleanEmail = userEmail.trim().toLowerCase();
-      const cleanOrder = orderId.trim().toUpperCase();
-
       const ordersRef = collection(db, 'orders');
-      const snap = await getDocs(ordersRef);
+      const q = query(ordersRef, where('userId', '==', user.uid));
+      const snap = await getDocs(q);
 
       let found = false;
       snap.forEach((docSnap) => {
         const o = docSnap.data();
-        const oPhone = (o.phone || '').replace(/\D/g, '');
-        const oEmail = (o.email || '').toLowerCase();
-        const oId = docSnap.id.toUpperCase();
-        const oUserId = o.userId;
-
-        // Check if customer matches this order
-        const isCustomerMatch = 
-          (user?.uid && oUserId === user.uid) ||
-          (cleanOrder && cleanOrder.length >= 3 && oId.includes(cleanOrder)) ||
-          (cleanPhone && cleanPhone.length >= 8 && oPhone.includes(cleanPhone)) ||
-          (cleanEmail && oEmail && oEmail === cleanEmail);
-
-        if (isCustomerMatch) {
-          // Check if this order contains the item
-          const orderProducts = o.products || o.items || [];
-          const containsItem = orderProducts.some((item: any) => 
-            item.id === productId || 
-            item.productId === productId ||
-            (item.name && item.name.toLowerCase().includes(productName.toLowerCase()))
-          );
-
-          if (containsItem) {
-            found = true;
-          }
-        }
+        const orderProducts = o.products || o.items || [];
+        const containsItem = orderProducts.some((item: any) => 
+          item.id === productId || 
+          item.productId === productId ||
+          (item.name && item.name.toLowerCase().includes(productName.toLowerCase()))
+        );
+        if (containsItem) found = true;
       });
+      
+      // Fallback: Check if they bought as guest with same email
+      if (!found && user.email) {
+        const snap2 = await getDocs(collection(db, 'orders'));
+        snap2.forEach((docSnap) => {
+           const o = docSnap.data();
+           if (o.email && o.email.toLowerCase() === user.email.toLowerCase()) {
+              const orderProducts = o.products || o.items || [];
+              const containsItem = orderProducts.some((item: any) => 
+                item.id === productId || 
+                item.productId === productId ||
+                (item.name && item.name.toLowerCase().includes(productName.toLowerCase()))
+              );
+              if (containsItem) found = true;
+           }
+        });
+      }
+
       return found;
     } catch (err) {
       console.warn("Verified buyer check failed:", err);
@@ -239,12 +226,13 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
     e.preventDefault();
     setVerificationError(null);
 
-    if (!userName.trim()) {
-      alert(language === 'bn' ? 'অনুগ্রহ করে আপনার নাম দিন' : 'Please enter your name');
+    if (!user) {
+      alert('Please log in to submit a review.');
       return;
     }
+
     if (!comment.trim()) {
-      alert(language === 'bn' ? 'অনুগ্রহ করে মতামত লিখুন' : 'Please enter your comment');
+      alert('Please enter your comment');
       return;
     }
 
@@ -253,9 +241,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       const isVerified = await checkVerifiedCustomer();
 
       if (!isVerified) {
-        const msg = language === 'bn' 
-          ? 'দুঃখিত! শুধুমাত্র যেসকল ক্রেতা এই পণ্যটি সফলভাবে ক্রয় করেছেন (Verified Buyer) তারাই রিভিউ জমা দিতে পারবেন। অনুগ্রহ করে ক্রয়ের সময় ব্যবহৃত মোবাইল নম্বর বা অর্ডার নম্বর দিয়ে চেষ্টা করুন।'
-          : 'Sorry! Only verified customers who purchased this product can leave a review. Please enter the phone number or Order ID used during purchase.';
+        const msg = 'Sorry! Only verified customers who purchased this product can leave a review.';
         setVerificationError(msg);
         setSubmitting(false);
         return;
@@ -263,10 +249,10 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
 
       const newReviewData = {
         productId,
-        userId: user?.uid || null,
-        userName: userName.trim(),
-        userPhone: userPhone.trim() ? `${userPhone.slice(0, 3)}****${userPhone.slice(-4)}` : '',
-        userEmail: userEmail.trim(),
+        userId: user.uid,
+        userName: user.displayName || user.email.split('@')[0] || 'Verified Customer',
+        userPhone: user.phoneNumber || '',
+        userEmail: user.email || '',
         rating,
         comment: comment.trim(),
         images: reviewImage ? [reviewImage] : [],
@@ -282,13 +268,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       setSubmitSuccess(true);
       setComment('');
       setReviewImage(null);
-      setOrderId('');
-      setShowForm(false);
+            setShowForm(false);
 
       setTimeout(() => setSubmitSuccess(false), 4000);
     } catch (err) {
       console.error("Error adding review:", err);
-      setVerificationError(language === 'bn' ? 'রিভিউ জমা দিতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' : 'Failed to submit review. Please try again.');
+      setVerificationError('Failed to submit review. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -374,11 +359,11 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   });
 
   const ratingLabels: Record<number, string> = {
-    5: language === 'bn' ? 'অসাধারণ (৫/৫)' : 'Excellent (5/5)',
-    4: language === 'bn' ? 'খুব ভালো (৪/৫)' : 'Very Good (4/5)',
-    3: language === 'bn' ? 'মোটামুটি (৩/৫)' : 'Good (3/5)',
-    2: language === 'bn' ? 'চলনসই (২/৫)' : 'Fair (2/5)',
-    1: language === 'bn' ? 'খারাপ (১/৫)' : 'Poor (1/5)',
+    5: 'Excellent (5/5)',
+    4: 'Very Good (4/5)',
+    3: 'Good (3/5)',
+    2: 'Fair (2/5)',
+    1: 'Poor (1/5)',
   };
 
   return (
@@ -387,7 +372,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       <div className="flex items-center justify-between bg-neutral-50 px-4 py-3 rounded-2xl border border-neutral-200/80 mb-5">
         <div className="flex items-center space-x-2.5">
           <span className="text-xs sm:text-sm font-black text-neutral-900">
-            {language === 'bn' ? 'কাস্টমার রিভিউ' : 'Reviews'} ({totalCount})
+            {'Reviews'} ({totalCount})
           </span>
           <span className="text-neutral-300">•</span>
           <div className="flex items-center space-x-1 text-xs font-bold text-neutral-800 bg-white px-2 py-0.5 rounded-lg border border-neutral-200/60 shadow-2xs">
@@ -396,19 +381,23 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
           </div>
           <span className="hidden sm:inline-flex items-center space-x-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
             <ShieldCheck size={12} className="text-emerald-600" />
-            <span>{language === 'bn' ? 'যাচাইকৃত বায়ার' : 'Verified Buyer Only'}</span>
+            <span>{'Verified Buyer Only'}</span>
           </span>
         </div>
 
         <button
           onClick={() => {
+            if (!user) {
+              alert('Please log in first to write a review.');
+              return;
+            }
             setShowForm(!showForm);
             setVerificationError(null);
           }}
           className="inline-flex items-center space-x-1.5 bg-neutral-900 hover:bg-black text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
         >
           <MessageSquare size={13} />
-          <span>{showForm ? (language === 'bn' ? 'বন্ধ করুন' : 'Close') : (language === 'bn' ? 'রিভিউ দিন' : 'Write Review')}</span>
+          <span>{showForm ? ('Close') : ('Write Review')}</span>
         </button>
       </div>
 
@@ -417,8 +406,8 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200/90 rounded-2xl flex items-center space-x-3 text-emerald-900 animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wide">{language === 'bn' ? 'ধন্যবাদ! আপনার রিভিউ সফলভাবে প্রকাশিত হয়েছে' : 'Thank You! Your review has been published'}</h4>
-            <p className="text-xs text-emerald-700 font-medium">{language === 'bn' ? 'আপনার মতামত অন্যান্য ক্রেতাদের সাহায্য করবে।' : 'Your feedback will help other shoppers make informed choices.'}</p>
+            <h4 className="font-bold text-xs uppercase tracking-wide">{'Thank You! Your review has been published'}</h4>
+            <p className="text-xs text-emerald-700 font-medium">{'Your feedback will help other shoppers make informed choices.'}</p>
           </div>
         </div>
       )}
@@ -435,11 +424,11 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
 
           <div className="flex items-center space-x-2 text-amber-800 text-xs font-extrabold uppercase tracking-wider mb-1">
             <Sparkles size={16} className="text-amber-600" />
-            <span>{language === 'bn' ? 'রিভিউ ও মতামত' : 'Write a Review'}</span>
+            <span>{'Write a Review'}</span>
           </div>
 
           <h3 className="text-lg font-black text-neutral-900 tracking-tight mb-4">
-            {language === 'bn' ? `${productName}-এর অভিজ্ঞতা লিখুন` : `Review ${productName}`}
+            {`Review ${productName}`}
           </h3>
 
           {/* Verification Warning Error if not a verified buyer */}
@@ -454,7 +443,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             {/* Interactive Rating Stars */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-2">
-                {language === 'bn' ? 'রেটিং দিন *' : 'Your Rating *'}
+                {'Your Rating *'}
               </label>
               <div className="flex items-center space-x-2">
                 <div className="flex items-center space-x-1 bg-white px-3.5 py-2 rounded-2xl border border-neutral-300 shadow-2xs">
@@ -484,65 +473,17 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
               </div>
             </div>
 
-            {/* Inputs Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {language === 'bn' ? 'আপনার নাম *' : 'Your Name *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoComplete="off"
-                  placeholder={language === 'bn' ? 'যেমন: রহিম আহমেদ' : 'e.g. Rahim Ahmed'}
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {language === 'bn' ? 'মোবাইল নম্বর (যাচাইয়ের জন্য)' : 'Phone Number (For Order Match)'}
-                </label>
-                <input
-                  type="tel"
-                  autoComplete="off"
-                  placeholder={language === 'bn' ? '০১৭XXXXXXXX' : '017XXXXXXXX'}
-                  value={userPhone}
-                  onChange={(e) => setUserPhone(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                  {language === 'bn' ? 'অর্ডার নম্বর (ঐচ্ছিক)' : 'Order ID (Optional)'}
-                </label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  placeholder={language === 'bn' ? 'যেমন: ORD-8392' : 'e.g. ORD-8392'}
-                  value={orderId}
-                  onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-            </div>
-
             {/* Comment Textarea */}
             <div>
               <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                {language === 'bn' ? 'মতামত বা মন্তব্য লিখুন *' : 'Your Review / Comment *'}
+                {'Your Review / Comment *'}
               </label>
               <textarea
                 required
                 autoComplete="off"
                 rows={3}
                 placeholder={
-                  language === 'bn'
-                    ? 'পণ্যটির ফিটিং, কাপড়ের কোয়ালিটি এবং ব্যবহার অভিজ্ঞতা সম্পর্কে লিখুন...'
-                    : 'Write about fabric quality, fitting, delivery experience...'
+                  'Write about fabric quality, fitting, delivery experience...'
                 }
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -553,7 +494,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             {/* Photo Upload Attachment */}
             <div>
               <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2">
-                {language === 'bn' ? 'পণ্য বা ডেলিভারির ছবি যোগ করুন (ঐচ্ছিক)' : 'Attach Product Photo (Optional)'}
+                {'Attach Product Photo (Optional)'}
               </label>
 
               {reviewImage ? (
@@ -570,7 +511,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
               ) : (
                 <label className="inline-flex items-center space-x-2 bg-white border border-dashed border-neutral-400 hover:border-black px-4 py-2.5 rounded-2xl text-xs font-bold text-neutral-700 cursor-pointer transition-colors shadow-2xs">
                   <Upload size={16} className="text-amber-600" />
-                  <span>{language === 'bn' ? 'ছবি সিলেক্ট করুন' : 'Upload Review Photo'}</span>
+                  <span>{'Upload Review Photo'}</span>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
               )}
@@ -586,12 +527,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                 {submitting ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>{language === 'bn' ? 'জমা হচ্ছে...' : 'Submitting...'}</span>
+                    <span>{'Submitting...'}</span>
                   </>
                 ) : (
                   <>
                     <Send size={15} />
-                    <span>{language === 'bn' ? 'রিভিউ পাবলিশ করুন' : 'Submit Review'}</span>
+                    <span>{'Submit Review'}</span>
                   </>
                 )}
               </button>
@@ -606,7 +547,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mr-1 hidden sm:inline-block">
             <Filter size={12} className="inline mr-1" />
-            {language === 'bn' ? 'ফিল্টার:' : 'Filter:'}
+            {'Filter:'}
           </span>
 
           <button
@@ -617,7 +558,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                 : 'bg-white text-neutral-700 hover:bg-neutral-200 border border-neutral-200'
             }`}
           >
-            {language === 'bn' ? `সব (${totalCount})` : `All (${totalCount})`}
+            {`All (${totalCount})`}
           </button>
 
           <button
@@ -629,7 +570,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             }`}
           >
             <CheckCircle2 size={13} />
-            <span>{language === 'bn' ? 'যাচাইকৃত ক্রেতা' : 'Verified Only'}</span>
+            <span>{'Verified Only'}</span>
           </button>
 
           <button
@@ -641,7 +582,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             }`}
           >
             <ImageIcon size={13} />
-            <span>{language === 'bn' ? 'ছবিসহ রিভিউ' : 'With Photos'}</span>
+            <span>{'With Photos'}</span>
           </button>
 
           {[5, 4, 3].map((s) => (
@@ -662,16 +603,16 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         {/* Sort Dropdown */}
         <div className="flex items-center space-x-2">
           <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline-block">
-            {language === 'bn' ? 'সাজান:' : 'Sort:'}
+            {'Sort:'}
           </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="bg-white border border-neutral-300 rounded-xl px-3 py-1.5 text-xs font-bold text-neutral-800 outline-none focus:ring-1 focus:ring-black cursor-pointer shadow-2xs"
           >
-            <option value="recent">{language === 'bn' ? 'সর্বশেষ রিভিউ' : 'Most Recent'}</option>
-            <option value="highest">{language === 'bn' ? 'সর্বোচ্চ রেটিং' : 'Highest Rating'}</option>
-            <option value="lowest">{language === 'bn' ? 'সর্বনিম্ন রেটিং' : 'Lowest Rating'}</option>
+            <option value="recent">{'Most Recent'}</option>
+            <option value="highest">{'Highest Rating'}</option>
+            <option value="lowest">{'Lowest Rating'}</option>
           </select>
         </div>
       </div>
@@ -685,16 +626,22 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
         <div className="bg-white rounded-3xl p-10 text-center border border-neutral-200/80 shadow-2xs">
           <MessageSquare size={36} className="text-neutral-300 mx-auto mb-3" />
           <h4 className="text-sm font-bold text-neutral-800 uppercase tracking-wide">
-            {language === 'bn' ? 'কোনো রিভিউ পাওয়া যায়নি' : 'No Reviews Found'}
+            {'No Reviews Found'}
           </h4>
           <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
-            {language === 'bn' ? 'প্রথম রিভিউদাতা হয়ে আপনার মতামত শেয়ার করুন!' : 'Be the first to share your experience with this product!'}
+            {'Be the first to share your experience with this product!'}
           </p>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              if (!user) {
+                alert('Please log in first to write a review.');
+                return;
+              }
+              setShowForm(true);
+            }}
             className="mt-4 inline-flex items-center space-x-2 bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
           >
-            <span>{language === 'bn' ? 'প্রথম রিভিউ দিন' : 'Write First Review'}</span>
+            <span>{'Write First Review'}</span>
           </button>
         </div>
       ) : (
@@ -718,7 +665,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                       {rev.isVerifiedPurchase && (
                         <span className="inline-flex items-center space-x-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
                           <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
-                          <span>{language === 'bn' ? 'যাচাইকৃত ক্রেতা' : 'Verified Buyer'}</span>
+                          <span>{'Verified Buyer'}</span>
                         </span>
                       )}
                     </div>
@@ -793,8 +740,8 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                   <ThumbsUp size={13} className={votedReviews[rev.id] ? 'text-amber-600 fill-amber-600' : ''} />
                   <span>
                     {votedReviews[rev.id] 
-                      ? (language === 'bn' ? 'ধন্যবাদ!' : 'Helpful!') 
-                      : (language === 'bn' ? 'উপকারী' : 'Helpful')}
+                      ? ('Helpful!') 
+                      : ('Helpful')}
                   </span>
                   {(rev.helpfulCount || 0) > 0 && (
                     <span className="bg-white px-1.5 py-0.5 rounded-md text-[10px] font-black border border-neutral-200">

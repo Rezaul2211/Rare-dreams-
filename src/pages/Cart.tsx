@@ -46,7 +46,7 @@ export default function Cart() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900">{t('cart.title')}</h1>
-          <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mt-1">{items.length} {language === 'bn' ? 'টি আইটেম শপিং ব্যাগে রয়েছে' : (items.length === 1 ? 'item in your cart' : 'items in your cart')}</p>
+          <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mt-1">{items.length} {items.length === 1 ? 'item in your cart' : 'items in your cart'}</p>
         </div>
         <Link 
           to="/shop"
@@ -78,8 +78,8 @@ export default function Cart() {
                       <Link to={`/product/${item.id}`} className="hover:text-neutral-600 transition-colors">{item.name}</Link>
                     </h3>
                     <div className="text-xs text-neutral-500 font-medium space-x-3 mt-1 flex items-center">
-                      {item.selectedSize && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">{language === 'bn' ? 'সাইজ:' : 'Size:'} {item.selectedSize}</span>}
-                      {item.selectedColor && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">{language === 'bn' ? 'কালার:' : 'Color:'} {item.selectedColor}</span>}
+                      {item.selectedSize && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">{'Size:'} {item.selectedSize}</span>}
+                      {item.selectedColor && <span className="bg-neutral-100 px-2 py-0.5 rounded-md text-[11px] font-bold">{'Color:'} {item.selectedColor}</span>}
                     </div>
                   </div>
 
@@ -122,8 +122,8 @@ export default function Cart() {
               <Truck size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">{language === 'bn' ? 'দ্রুত সারা দেশব্যাপী হোম ডেলিভারি' : 'Fast Nationwide Delivery'}</p>
-              <p className="text-xs text-neutral-500 mt-0.5">{language === 'bn' ? 'ক্যাশ অন ডেলিভারিতে বাংলাদেশের যেকোনো প্রান্তে ক্যাশ অন ডেলিভারি সার্ভিস।' : 'Express delivery across all cities in Bangladesh.'}</p>
+              <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">{'Fast Nationwide Delivery'}</p>
+              <p className="text-xs text-neutral-500 mt-0.5">{'Express delivery across all cities in Bangladesh.'}</p>
             </div>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function Cart() {
               </div>
               <div className="flex justify-between items-center text-neutral-600">
                 <span>{t('cart.shipping')}</span>
-                <span className="font-bold text-neutral-900 text-xs">{language === 'bn' ? 'চেকআউটে হিসাব করা হবে' : 'Calculated at checkout'}</span>
+                <span className="font-bold text-neutral-900 text-xs">{'Calculated at checkout'}</span>
               </div>
             </div>
             
@@ -149,7 +149,7 @@ export default function Cart() {
                 <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 block">{t('cart.total')}</span>
                 <span className="text-2xl font-black text-neutral-900">৳ {total.toFixed(2)}</span>
               </div>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">{language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash / BKash on Delivery'}</span>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">{'Cash / BKash on Delivery'}</span>
             </div>
 
             <button 
@@ -162,7 +162,7 @@ export default function Cart() {
             
             <div className="flex items-center justify-center space-x-2 mt-6 text-neutral-400 text-[11px] font-medium">
               <ShieldCheck size={14} className="text-emerald-500" />
-              <span>{language === 'bn' ? '১০০% নিরাপদ ও সুরক্ষিত কেনাকাটা' : 'Safe & Secure 100% Guaranteed'}</span>
+              <span>{'Safe & Secure 100% Guaranteed'}</span>
             </div>
           </div>
         </div>

@@ -237,8 +237,8 @@ export default function ProductForm() {
                   userEmail: aData.userEmail || null,
                   userPhone: aData.userPhone || null,
                   type: 'price_drop',
-                  title: `🔥 মূল্য হ্রাস! ${payload.name}`,
-                  message: `আপনার পছন্দের "${payload.name}" এর দাম ৳${initialProductPrice} থেকে কমে এখন মাত্র ৳${newPriceNum} (-${dropPercentage}% ছাড়)! স্টক শেষ হওয়ার আগেই অর্ডার করুন।`,
+                  title: `🔥 Price Drop! ${payload.name}`,
+                  message: `The price of "${payload.name}" has dropped from ৳${initialProductPrice} to just ৳${newPriceNum} (-${dropPercentage}% off)! Order before stock runs out.`,
                   productId: id,
                   productName: payload.name,
                   productImage: payload.images?.[0] || '',
@@ -312,7 +312,7 @@ export default function ProductForm() {
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                  placeholder="e.g. ছেলেদের প্রিমিয়াম কটন কাপ্তান সেট"
+                  placeholder="e.g. Premium Cotton Kaftan Set for Boys"
                 />
               </div>
 
@@ -336,15 +336,15 @@ export default function ProductForm() {
                 <div>
                   <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
                     <ImageIcon size={20} className="text-amber-600" />
-                    <span>Product Images (প্রোডাক্ট এর ছবিসমূহ)</span>
+                    <span>Product Images</span>
                   </h2>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    মেইন ছবি সহ আরো ৩-৫টি ছবি আপলোড করুন। প্রথম ছবিটি কভার/মেইন ছবি হিসেবে দেখাবে।
+                    Upload 3-5 images including the main image. The first one will be used as the cover/main image.
                   </p>
                 </div>
                 {formData.images && formData.images.length > 0 && (
                   <span className="text-xs font-black bg-amber-100 text-amber-900 px-3 py-1 rounded-full w-max">
-                    {formData.images.length}টি ছবি যুক্ত হয়েছে
+                    {formData.images.length} images added
                   </span>
                 )}
               </div>
@@ -365,7 +365,7 @@ export default function ProductForm() {
                   </div>
                   <div className="text-center px-2">
                     <span className="text-sm font-extrabold text-neutral-900 underline decoration-2 block">
-                      ডিভাইস থেকে একাধিক ছবি একসাথে সিলেক্ট করুন
+                      Select multiple images from your device
                     </span>
                     <p className="text-xs text-neutral-500 mt-0.5">Select 1 or multiple JPG, PNG, WEBP images from Gallery</p>
                   </div>
@@ -374,7 +374,7 @@ export default function ProductForm() {
 
               {/* URL Option as alternative */}
               <div className="pt-1 w-full">
-                <label className="block text-xs font-semibold text-neutral-500 mb-1">অথবা ওয়েব ইউআরএল (Image URL) দিন:</label>
+                <label className="block text-xs font-semibold text-neutral-500 mb-1">Or provide a Web URL (Image URL):</label>
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <input
                     type="url"
@@ -437,10 +437,10 @@ export default function ProductForm() {
               <div>
                 <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
                   <Video size={20} className="text-red-500" />
-                  <span>Product Video (প্রোডাক্ট ভিডিও)</span>
+                  <span>Product Video</span>
                 </h2>
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  ইউটিউব (YouTube Link / Shorts), ফেসবুক ভিডিও লিঙ্ক অথবা সরাসরি ভিডিও ফাইল আপলোড করুন।
+                  Upload a YouTube Link, Facebook Video Link, or upload a video file directly.
                 </p>
               </div>
 

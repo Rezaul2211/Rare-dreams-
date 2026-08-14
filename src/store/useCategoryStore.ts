@@ -50,10 +50,10 @@ interface CategoryState {
 export function sortCategoriesByStandardOrder(list: CategoryItem[]): CategoryItem[] {
   const getOrderIndex = (title: string) => {
     const lower = title.toLowerCase().trim();
-    if (lower.includes('women') || lower.includes('মহিলা') || lower.includes('নারী') || lower.includes('মেয়ে')) return 1;
-    if (lower.includes('men') || lower.includes('পুরুষ') || lower.includes('ছেলে')) return 0;
-    if (lower.includes('baby') || lower.includes('kid') || lower.includes('বাচ্চা') || lower.includes('শিশু')) return 2;
-    if (lower.includes('foot') || lower.includes('shoe') || lower.includes('জুতা') || lower.includes('স্যান্ডেল') || lower.includes('জুতো')) return 3;
+    if (lower.includes('women')) return 1;
+    if (lower.includes('men')) return 0;
+    if (lower.includes('baby') || lower.includes('kid')) return 2;
+    if (lower.includes('foot') || lower.includes('shoe')) return 3;
     return 4;
   };
 

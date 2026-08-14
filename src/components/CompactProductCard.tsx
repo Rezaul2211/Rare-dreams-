@@ -88,23 +88,21 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = React.memo(
           </h3>
         </Link>
 
-        {/* Rating & Category inline */}
+        {/* Stock & Rating/Category inline */}
         <div className="flex items-center justify-between my-0.5">
+          <span className={`text-[6px] sm:text-[8px] font-bold uppercase tracking-wider ${product.stockQuantity && product.stockQuantity > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {product.stockQuantity && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
+          </span>
           {product.rating && product.rating > 0 ? (
             <div className="flex items-center space-x-0.5">
               <Star size={7} className="fill-amber-400 text-amber-400 shrink-0" />
               <span className="text-[7px] sm:text-[9px] font-bold text-neutral-800">{product.rating.toFixed(1)}</span>
             </div>
-          ) : (
-            <span className="text-[6px] sm:text-[8px] font-bold text-emerald-600 uppercase tracking-wider">
-              {product.stockQuantity && product.stockQuantity > 0 ? (language === 'bn' ? 'স্টকে আছে' : 'In Stock') : ''}
-            </span>
-          )}
-          {product.category && (
+          ) : product.category ? (
             <span className="text-[6px] sm:text-[8px] font-bold text-neutral-400 uppercase tracking-wider line-clamp-1">
-              {translateCategory(product.category, language)}
+              {translateCategory(product.category)}
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Price */}

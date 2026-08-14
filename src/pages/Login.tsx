@@ -162,7 +162,7 @@ export default function Login() {
 
           if (uData) {
             if (uData.password && uData.password !== password && role !== 'admin') {
-              setError('ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড প্রদান করুন। (Invalid Password)');
+              setError('Incorrect password! Please provide the correct password.');
               setLoading(false);
               return;
             }
@@ -240,7 +240,7 @@ export default function Login() {
 
           if (authErr.code === 'auth/email-already-in-use' || existingData) {
             if (existingData && existingData.password && existingData.password !== password && role !== 'admin') {
-              setError('এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে। পাসওয়ার্ড ভুল হয়েছে, দয়া করে "Sign In" এ গিয়ে সঠিক পাসওয়ার্ড দিয়ে লগইন করুন।');
+              setError('Account already exists. Please go to "Sign In" and enter the correct password.');
               setLoading(false);
               return;
             }
@@ -281,11 +281,11 @@ export default function Login() {
     } catch (err: any) {
       console.error("Auth error:", err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে। দয়া করে পরীক্ষা করে আবার চেষ্টা করুন।');
+        setError('Incorrect email or password. Please check and try again.');
       } else if (err.code === 'auth/email-already-in-use') {
-        setError('এই ইমেইল দিয়ে ইতিপূর্বে অ্যাকাউন্ট খোলা হয়েছে। "Sign In" এ গিয়ে পাসওয়ার্ড দিন।');
+        setError('Account already exists. Please go to "Sign In" and enter your password.');
       } else {
-        setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে। অনুগ্রহ করে "Sign In" বা "Create Account" দিয়ে আবার চেষ্টা করুন।');
+        setError('Login error. Please try again with "Sign In" or "Create Account".');
       }
     } finally {
       setLoading(false);
@@ -312,13 +312,13 @@ export default function Login() {
               onClick={() => { setIsResetMode(false); setError(''); setMessage(''); }}
               className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black mb-6 transition-colors"
             >
-              <ArrowLeft size={16} className="mr-1" /> {language === 'bn' ? 'লগইনে ফিরে যান' : 'Back to Sign In'}
+              <ArrowLeft size={16} className="mr-1" /> {'Back to Sign In'}
             </button>
 
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold uppercase tracking-tight mb-2">{language === 'bn' ? 'পাসওয়ার্ড রিসেট করুন' : 'Reset Password'}</h2>
+              <h2 className="text-2xl font-bold uppercase tracking-tight mb-2">{'Reset Password'}</h2>
               <p className="text-neutral-500 text-xs leading-relaxed">
-                {language === 'bn' ? 'আপনার ইমেইল দিন এবং আমরা পাসওয়ার্ড রিসেট করার লিঙ্ক পাঠাবো।' : 'Enter your email address and we will send you a link to reset your password.'}
+                {'Enter your email address and we will send you a link to reset your password.'}
               </p>
             </div>
 
@@ -336,10 +336,10 @@ export default function Login() {
                   <span className="font-semibold">{message}</span>
                 </div>
                 <div className="mt-1 pt-2 border-t border-emerald-200/60 text-[11px] text-emerald-900 leading-relaxed">
-                  <strong>💡 ইমেইল খুঁজে পাচ্ছেন না?</strong>
+                  <strong>💡 Can't find the email?</strong>
                   <ul className="list-disc ml-4 mt-1 space-y-0.5">
-                    <li>আপনার জিমেইলের <strong>Spam / Junk / Promotions</strong> ফোল্ডার চেক করুন।</li>
-                    <li>অথবা পাসওয়ার্ড ভুলে গিয়ে থাকলে নিচে নতুন পাসওয়ার্ড দিয়ে রিসেট করুন।</li>
+                    <li>Check your <strong>Spam / Junk / Promotions</strong> folders.</li>
+                    <li>Or reset your password below if you forgot it.</li>
                   </ul>
                 </div>
               </div>
@@ -348,7 +348,7 @@ export default function Login() {
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  {language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}
+                  {'Email Address'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -368,7 +368,7 @@ export default function Login() {
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  {language === 'bn' ? 'নতুন পাসওয়ার্ড (সরাসরি রিসেট)' : 'New Password (Direct Reset)'}
+                  {'New Password (Direct Reset)'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -380,7 +380,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-                    placeholder={language === 'bn' ? 'নতুন পাসওয়ার্ড লিখুন' : 'Enter new password (optional)'}
+                    placeholder={'Enter new password (optional)'}
                   />
                 </div>
               </div>
@@ -390,7 +390,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full bg-black text-white rounded-xl py-3.5 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70 cursor-pointer"
               >
-                {loading ? (language === 'bn' ? 'প্রসেসিং হচ্ছে...' : 'Processing...') : (password ? (language === 'bn' ? 'রিসেট ও সাইন ইন করুন' : 'Reset & Sign In Now') : (language === 'bn' ? 'রিসেট লিংক পাঠান' : 'Send Reset Link'))}
+                {loading ? ('Processing...') : (password ? ('Reset & Sign In Now') : ('Send Reset Link'))}
               </button>
             </form>
           </div>
@@ -398,12 +398,12 @@ export default function Login() {
           <>
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold uppercase tracking-tighter mb-3 font-display">
-                {isLogin ? (language === 'bn' ? 'পুনরায় স্বাগতম' : 'Welcome Back') : (language === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Join Us')}
+                {isLogin ? ('Welcome Back') : ('Join Us')}
               </h2>
               <p className="text-neutral-500 text-sm max-w-[280px] mx-auto leading-relaxed">
                 {isLogin 
-                  ? (language === 'bn' ? 'আপনার অ্যাকাউন্টে লগইন করুন ও কেনাকাটা চালিয়ে যান।' : 'Enter your credentials to access your account.') 
-                  : (language === 'bn' ? 'অর্ডার ট্র্যাক করতে ও ফেভারিট সেভ করতে নতুন অ্যাকাউন্ট খুলুন।' : 'Create an account to track orders and save favorite items.')}
+                  ? ('Enter your credentials to access your account.') 
+                  : ('Create an account to track orders and save favorite items.')}
               </p>
             </div>
             
@@ -431,7 +431,7 @@ export default function Login() {
                     className="overflow-hidden"
                   >
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                      {language === 'bn' ? 'সম্পূর্ণ নাম' : 'Full Name'}
+                      {'Full Name'}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -444,7 +444,7 @@ export default function Login() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-11 pr-4 py-3.5 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-                        placeholder={language === 'bn' ? 'আপনার নাম' : 'Jane Doe'}
+                        placeholder={'Jane Doe'}
                       />
                     </div>
                   </motion.div>
@@ -453,7 +453,7 @@ export default function Login() {
               
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 ml-1">
-                  {language === 'bn' ? 'ইমেইল অ্যাড্রেস' : 'Email Address'}
+                  {'Email Address'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400">
@@ -474,7 +474,7 @@ export default function Login() {
               <div>
                 <div className="flex justify-between items-center mb-2 ml-1">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                    {language === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
+                    {'Password'}
                   </label>
                   {isLogin && (
                     <button 
@@ -482,7 +482,7 @@ export default function Login() {
                       onClick={() => { setIsResetMode(true); setError(''); setMessage(''); }}
                       className="text-[11px] font-semibold text-neutral-500 hover:text-black transition-colors underline"
                     >
-                      {language === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
+                      {'Forgot Password?'}
                     </button>
                   )}
                 </div>
@@ -509,7 +509,7 @@ export default function Login() {
                   className="w-full relative overflow-hidden bg-black text-white rounded-xl py-4 text-sm font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-70 group cursor-pointer"
                 >
                   <span className={`relative z-10 flex items-center justify-center gap-2 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-                    {isLogin ? (language === 'bn' ? 'সাইন ইন করুন' : 'Sign In') : (language === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account')}
+                    {isLogin ? ('Sign In') : ('Create Account')}
                   </span>
                   {loading && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -523,8 +523,8 @@ export default function Login() {
             <div className="mt-8 pt-8 border-t border-neutral-100 text-center">
               <p className="text-sm text-neutral-500 mb-4">
                 {isLogin 
-                  ? (language === 'bn' ? 'অ্যাকাউন্ট নেই?' : "Don't have an account?") 
-                  : (language === 'bn' ? 'ইতিপূর্বে অ্যাকাউন্ট রয়েছে?' : "Already have an account?")}
+                  ? ("Don't have an account?") 
+                  : ("Already have an account?")}
               </p>
               <button
                 onClick={() => {
@@ -534,7 +534,7 @@ export default function Login() {
                 }}
                 className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 transition-colors inline-flex items-center gap-2 cursor-pointer"
               >
-                {isLogin ? (language === 'bn' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'Create Account') : (language === 'bn' ? 'সাইন ইন করুন' : 'Sign In')}
+                {isLogin ? ('Create Account') : ('Sign In')}
                 <span aria-hidden="true">→</span>
               </button>
             </div>

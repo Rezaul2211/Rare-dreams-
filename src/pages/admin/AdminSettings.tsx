@@ -673,13 +673,13 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* SECTION 4: SEO & GOOGLE SEARCH RANKING (গুগল সার্চ ও এসইও সেটিংস) */}
+      {/* SECTION 4: SEO & GOOGLE SEARCH RANKING (Google Search & SEO Settings) */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
         <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
               <Search size={20} className="text-blue-600" />
-              <span>Google Search & SEO Indexing (সার্চ ইঞ্জিন র‍্যাঙ্কিং)</span>
+              <span>Google Search & SEO Indexing (Search Engine Ranking)</span>
             </h2>
             <p className="text-xs text-neutral-500 mt-1">
               Configure meta tags, structured product schemas, and Google Search Console verification so your products appear directly on Google search results.
@@ -694,7 +694,7 @@ export default function AdminSettings() {
         <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-2">
           <div className="flex items-center space-x-2 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
             <Globe size={14} className="text-neutral-400" />
-            <span>Google Search Preview (গুগলে যেভাবে শো করবে)</span>
+            <span>Google Search Preview (Google Search Preview)</span>
           </div>
           <div className="bg-white p-4 rounded-xl border border-neutral-200/90 shadow-2xs space-y-1">
             <div className="flex items-center space-x-1.5 text-xs text-neutral-600 font-mono truncate">
@@ -716,7 +716,7 @@ export default function AdminSettings() {
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1">
-                Website Meta Title (সাইটের মূল শিরোনাম)
+                Website Meta Title (Main Site Title)
               </label>
               <input
                 type="text"
@@ -730,7 +730,7 @@ export default function AdminSettings() {
 
             <div>
               <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1">
-                Canonical Domain URL (মূল ডোমেইন)
+                Canonical Domain URL (Main Domain)
               </label>
               <input
                 type="url"
@@ -744,7 +744,7 @@ export default function AdminSettings() {
 
             <div>
               <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1">
-                Google Search Console Verification Token (গুগল ভেরিফিকেশন কোড)
+                Google Search Console Verification Token (Google Verification Code)
               </label>
               <input
                 type="text"
@@ -753,14 +753,14 @@ export default function AdminSettings() {
                 placeholder="e.g. AbC123dEf_xYz789..."
                 className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-[10px] text-neutral-400 mt-1 block">Google Search Console থেকে পাওয়া HTML tag-এর content কোড</span>
+              <span className="text-[10px] text-neutral-400 mt-1 block">Content code from HTML tag provided by Google Search Console</span>
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1">
-                Meta Description (সার্চ রেজাল্ট ডেসক্রিপশন)
+                Meta Description (Search Result Description)
               </label>
               <textarea
                 rows={3}
@@ -779,13 +779,13 @@ export default function AdminSettings() {
 
             <div>
               <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1">
-                Target SEO Keywords (বাংলা ও ইংরেজি কি-ওয়ার্ড)
+                Target SEO Keywords (Target Keywords)
               </label>
               <textarea
                 rows={3}
                 value={storeForm.metaKeywords || ''}
                 onChange={(e) => handleStoreFormChange('metaKeywords', e.target.value)}
-                placeholder="Rare Dreams, বাচ্চাদের ড্রেস, ছেলেদের পাঞ্জাবি, লেহেঙ্গা, baby clothes Bangladesh, footwear Dhaka, online shopping BD, cash on delivery"
+                placeholder="Rare Dreams, baby clothes Bangladesh, boys punjabi, girls dress, footwear Dhaka, online shopping BD, cash on delivery"
                 className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
               <span className="text-[10px] text-neutral-400 mt-0.5 block">Comma-separated search terms that customers use on Google</span>
@@ -797,7 +797,7 @@ export default function AdminSettings() {
         <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 space-y-3">
           <h4 className="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
             <Globe size={15} className="text-blue-600" />
-            <span>Search Engine Crawling URLs (গুগল বট ইন্ডেক্সিং লিংক)</span>
+            <span>Search Engine Crawling URLs (Google Bot Indexing Links)</span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="bg-white p-3 rounded-xl border border-blue-200 flex items-center justify-between">

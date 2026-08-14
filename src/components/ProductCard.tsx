@@ -128,20 +128,17 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
           </h3>
         </Link>
 
-        {/* Rating or Quality Badge */}
-        <div className="flex items-center space-x-1.5 mb-2.5">
+        {/* Stock & Rating/Badge */}
+        <div className="flex items-center justify-between mb-2.5">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${product.stockQuantity && product.stockQuantity > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {product.stockQuantity && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
+          </span>
           {product.rating && product.rating > 0 ? (
             <div className="flex items-center space-x-1">
-              <div className="flex items-center text-amber-400">
-                <Star size={12} className="fill-amber-400 text-amber-400" />
-              </div>
+              <Star size={12} className="fill-amber-400 text-amber-400" />
               <span className="text-[11px] font-bold text-neutral-800">{product.rating.toFixed(1)}</span>
             </div>
-          ) : (
-            <span className="text-[10px] text-neutral-500 font-medium bg-neutral-100 px-2 py-0.5 rounded-md">
-              {language === 'bn' ? 'প্রিমিয়াম কোয়ালিটি' : 'Premium Quality'}
-            </span>
-          )}
+          ) : null}
         </div>
 
         {/* Price & Fly-To-Cart Action Button */}

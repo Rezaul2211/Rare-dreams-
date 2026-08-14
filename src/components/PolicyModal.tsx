@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShieldCheck, FileText, RefreshCw, Lock, Award, CheckCircle } from 'lucide-react';
+import { X, RefreshCw, Lock, Award, CheckCircle, FileText } from 'lucide-react';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 
 interface PolicyModalProps {
@@ -17,7 +17,7 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
       <div className="bg-white rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-5 border border-neutral-100 relative max-h-[85vh] overflow-y-auto font-sans">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 p-1 rounded-full hover:bg-neutral-100 transition-colors"
+          className="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 p-1 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -30,29 +30,29 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
               </div>
               <div>
                 <h3 className="text-base font-bold text-neutral-900">Return & Replacement Policy</h3>
-                <p className="text-xs text-neutral-400 font-medium">৭ দিনের সহজ রিটার্ন ও রিপ্লেসমেন্ট গ্যারান্টি</p>
+                <p className="text-xs text-neutral-400 font-medium">7 Days Easy Return & Replacement Guarantee</p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs text-neutral-700 leading-relaxed">
               <p className="font-medium">
-                রেয়ার ড্রিমস (Rare Dreams) থেকে কেনা যেকোনো পণ্য আপনার হাতে পৌঁছানোর পর কোনো সমস্যা বা পছন্দ না হলে খুব সহজেই পরিবর্তন অথবা রিটার্ন করতে পারবেন।
+                If you encounter any sizing issues, defects, or simply change your mind after receiving your Rare Dreams order, you can easily exchange or return the product.
               </p>
 
               <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-100 space-y-2">
-                <h4 className="font-bold text-emerald-900 text-xs">রিটার্ন পাওয়ার শর্তাবলী:</h4>
+                <h4 className="font-bold text-emerald-900 text-xs">Terms & Conditions for Returns:</h4>
                 <ul className="space-y-1.5 list-disc pl-4 text-emerald-950">
-                  <li>পণ্য হাতে পাওয়ার <strong>৭ দিনের মধ্যে</strong> আমাদের হেল্পলাইনে অবহিত করতে হবে।</li>
-                  <li>পোশাক বা পণ্যের আন-প্যাকড অরিজিনাল ট্যাগ ও ব্যাগ অক্ষত থাকতে হবে।</li>
-                  <li>ব্যবহার করা বা ধোয়া পোশাক রিটার্নের আওতায় পড়বে না।</li>
-                  <li>সাইজজনিত সমস্যা থাকলে একদম ফ্রী-তে হোম ডেলিভারিতে এক্সচেঞ্জ দেওয়া হয়।</li>
+                  <li>Notify our customer helpline within <strong>7 days</strong> of package delivery.</li>
+                  <li>Original brand tags, barcode, and packaging must remain intact and unworn.</li>
+                  <li>Washed, altered, or used items are not eligible for replacement.</li>
+                  <li>For size mismatch issues, free doorstep exchange is provided promptly.</li>
                 </ul>
               </div>
 
               <div className="space-y-1">
-                <h4 className="font-bold text-neutral-900">রিটার্ন প্রক্রিয়া:</h4>
+                <h4 className="font-bold text-neutral-900">Return Process:</h4>
                 <p>
-                  আমাদের হোয়াটসঅ্যাপ হেল্পলাইনে (<span className="font-bold font-mono">{config.whatsappNumber}</span>) আপনার অর্ডার আইডি ও রিটার্নের ছবি পাঠালে আমাদের প্রতিনিধি আপনার বাসা থেকে পিকআপের ব্যবস্থা করবে।
+                  Send your Order ID and photo of the item to our WhatsApp Helpline (<span className="font-bold font-mono">{config.whatsappNumber}</span>). Our support team will arrange a doorstep pickup.
                 </p>
               </div>
             </div>
@@ -67,13 +67,13 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
               </div>
               <div>
                 <h3 className="text-base font-bold text-neutral-900">Business Verification & License</h3>
-                <p className="text-xs text-neutral-400 font-medium">সরকারি ট্রেড লাইসেন্স ও ই-কমার্স অনুমোদন</p>
+                <p className="text-xs text-neutral-400 font-medium">Official Government Trade License & E-Commerce Registration</p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs text-neutral-700 leading-relaxed">
               <p className="font-medium">
-                রেয়ার ড্রিমস একটি ১০০% সরকারি ট্রেড লাইসেন্স প্রাপ্ত ও ই-কমার্স অ্যাসোসিয়েশন নিবন্ধিত প্রিমিয়াম ব্র্যান্ড।
+                Rare Dreams is an officially registered, licensed brand complying with national digital commerce regulations.
               </p>
 
               <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-2.5 font-mono">
@@ -97,7 +97,7 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
 
               <div className="flex items-center space-x-2 text-emerald-700 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
                 <CheckCircle size={18} className="shrink-0" />
-                <span className="font-medium">সকল ডিজিটাল লেনদেন ও বিকাশ/নগদ মার্চেন্ট ভেরিফাইড।</span>
+                <span className="font-medium text-xs">All digital payments and bKash/Nagad merchant accounts are fully verified.</span>
               </div>
             </div>
           </div>
@@ -111,16 +111,16 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
               </div>
               <div>
                 <h3 className="text-base font-bold text-neutral-900">Privacy Policy</h3>
-                <p className="text-xs text-neutral-400 font-medium">আপনার ব্যক্তিগত তথ্যের গোপনীয়তা সুরক্ষা</p>
+                <p className="text-xs text-neutral-400 font-medium">Customer Data Protection & Privacy</p>
               </div>
             </div>
 
             <div className="space-y-2.5 text-xs text-neutral-700 leading-relaxed">
               <p>
-                রেয়ার ড্রিমস গ্রাহকের ব্যক্তিগত তথ্যের সর্বোচ্চ সুরক্ষা সুনিশ্চিত করে। আপনার নাম, মোবাইল নাম্বার এবং ডেলিভারি ঠিকানা শুধুমাত্র আপনার অর্ডার সম্পন্ন করার কাজে ব্যবহৃত হয়।
+                Rare Dreams ensures the highest standards of data security and customer privacy. Your name, contact number, and shipping address are strictly used for order processing and delivery fulfillment.
               </p>
               <p>
-                কোনো অবস্থাতেই গ্রাহকের কোনো তথ্য তৃতীয় কোনো ব্যক্তি বা থার্ড পার্টি প্রতিষ্ঠানের কাছে বিক্রি বা শেয়ার করা হয় না।
+                We never sell, rent, or share personal user data with third-party advertising networks or external vendors.
               </p>
             </div>
           </div>
@@ -134,19 +134,19 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
               </div>
               <div>
                 <h3 className="text-base font-bold text-neutral-900">Terms of Service</h3>
-                <p className="text-xs text-neutral-400 font-medium">শর্তাবলী ও নির্দেশিকা</p>
+                <p className="text-xs text-neutral-400 font-medium">Store Guidelines & Ordering Terms</p>
               </div>
             </div>
 
             <div className="space-y-2.5 text-xs text-neutral-700 leading-relaxed">
               <p>
-                ১. ওয়েবসাইট থেকে অর্ডার করার সময় সঠিক ঠিকানা ও ফোন নাম্বার প্রদান করুন।
+                1. Please ensure that you provide an accurate shipping address and active 11-digit mobile number during checkout.
               </p>
               <p>
-                ২. ক্যাশ অন ডেলিভারিতে অর্ডার করার ক্ষেত্রে ডেলিভারি ম্যানের সামনে প্যাকেট চেক করে নেয়ার সুযোগ রয়েছে।
+                2. For Cash on Delivery orders, customers are welcome to inspect outer packaging in presence of the courier rider upon delivery.
               </p>
               <p>
-                ৩. স্টক সাপেক্ষে প্রডাক্ট ডেলিভারি প্রদান করা হবে।
+                3. Products are dispatched subject to real-time inventory availability.
               </p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function PolicyModal({ type, onClose }: PolicyModalProps) {
         <div className="pt-2 text-right">
           <button
             onClick={onClose}
-            className="bg-neutral-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-neutral-800 transition-colors"
+            className="bg-neutral-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             Close Window
           </button>

@@ -26,7 +26,7 @@ export async function sendAiMessage({
   const trimmed = message.trim();
   if (!trimmed) {
     return {
-      reply: "অনুগ্রহ করে আপনার প্রশ্নটি লিখুন।",
+      reply: "Please enter your message or question.",
       provider: 'fallback'
     };
   }
@@ -76,25 +76,25 @@ export async function sendAiMessage({
 }
 
 /**
- * Smart Bengali client-side fallback knowledge base
+ * Smart English client-side fallback knowledge base
  * Used when network or server is offline
  */
 function getClientSmartFallback(query: string): string {
   const q = query.toLowerCase();
 
-  if (q.includes('তুমি কে') || q.includes('কে তুমি') || q.includes('who are you') || q.includes('identity')) {
-    return "আমি রেয়ার ড্রিমস (Rare Dreams) এর অফিশিয়াল এআই অ্যাসিস্ট্যান্ট & পার্সোনাল শপিং কনসালট্যান্ট! 🌟\n\nআমি আপনাকে বাচ্চার পোশাকের সাইজ সিলেক্ট, লেটেস্ট কালেকশন, ডেলিভারি বা প্রোডাক্ট সংক্রান্ত যেকোনো প্রশ্নে সাহায্য করতে পারি।";
-  } else if (q.includes('হাই') || q.includes('হ্যালো') || q.includes('hello') || q.includes('hi') || q.includes('সালাম')) {
-    return "আসসালামু আলাইকুম! রেয়ার ড্রিমসে (Rare Dreams) আপনাকে স্বাগতম। 🌸\n\nআজকে আপনাকে কীভাবে সাহায্য করতে পারি? যেকোনো প্রোডাক্ট, সাইজ বা ডেলিভারি সম্পর্কে জানতে আমাকে বলুন!";
-  } else if (q.includes(' size') || q.includes('সাইজ') || q.includes('মাপ')) {
-    return "আমাদের প্রতিটি পোশাকের সঙ্গে একুরেট সাইজ চার্ট দেয়া আছে। বাচ্চার বর্তমান বয়স ও উচ্চতা জানালে আমরা সঠিক সাইজ সিলেক্টে সাহায্য করবো!";
-  } else if (q.includes('return') || q.includes('রিটার্ন') || q.includes('চেঞ্জ') || q.includes('বদলা')) {
-    return "পণ্য হাতে পাওয়ার পর পছন্দ না হলে বা সাইজ না মিললে ৭ দিনের সহজ ও ফ্রি রিপ্লেসমেন্ট গ্যারান্টি পাবেন!";
-  } else if (q.includes('delivery') || q.includes('ডেলিভারি') || q.includes('চার্জ')) {
-    return "ঢাকা সিটিতে ১-২ দিন (চার্জ ৳৬০) এবং ঢাকার বাইরে ২-৪ দিনে (চার্জ ৳১২০) ক্যাশ অন ডেলিভারিতে প্রিমিয়াম ড্রেস পাঠানো হয়। 🚚";
-  } else if (q.includes('location') || q.includes('শো-রুম') || q.includes('ঠিকানা')) {
-    return "আমাদের শো-রুম / অফিস ঠিকানা: লেভেল ৪, ব্লক বি, যমুনা ফিউচার পার্ক, ঢাকা। ট্রেড লাইসেন্স নং: TRAD/DNCC/012984/2026।";
+  if (q.includes('who are you') || q.includes('identity')) {
+    return "I am Rare Dreams Official AI Shopping Consultant! 🌟\n\nI can assist you with sizing recommendations, latest premium collections, shipping details, or product questions.";
+  } else if (q.includes('hello') || q.includes('hi') || q.includes('hey')) {
+    return "Hello! Welcome to Rare Dreams. 🌸\n\nHow can I help you today? Ask me about sizes, new arrivals, or delivery terms!";
+  } else if (q.includes('size') || q.includes('fit') || q.includes('chart')) {
+    return "Each product features an accurate size guide chart. Please share your child's age or height and we will help you find the ideal fit!";
+  } else if (q.includes('return') || q.includes('exchange') || q.includes('refund')) {
+    return "We offer a 7-day hassle-free replacement policy if you are not completely satisfied with your order or need another size!";
+  } else if (q.includes('delivery') || q.includes('shipping') || q.includes('charge')) {
+    return "Delivery is 1-2 days inside Dhaka (৳60) and 2-4 days outside Dhaka (৳120). Free shipping is automatically applied on orders over ৳2000! 🚚";
+  } else if (q.includes('location') || q.includes('showroom') || q.includes('address')) {
+    return "Our showroom address: Level 4, Block B, Jamuna Future Park, Dhaka. Trade License: TRAD/DNCC/012984/2026.";
   }
 
-  return "ধন্যবাদ রেয়ার ড্রিমসে (Rare Dreams) যোগাযোগ করার জন্য! আমাদের কালেকশন, ডেলিভারি বা অর্ডারে যেকোনো সহযোগিতার জন্য সরাসরি হোয়াটসঅ্যাপেও মেসেজ করতে পারেন।";
+  return "Thank you for reaching out to Rare Dreams! You can also contact our team directly via WhatsApp for instant live support.";
 }

@@ -34,25 +34,25 @@ interface DeliveryOption {
 const DELIVERY_OPTIONS: DeliveryOption[] = [
   {
     id: 'inside_dhaka',
-    labelBn: 'ঢাকা সিটির ভেতরে',
+    labelBn: 'Inside Dhaka City',
     labelEn: 'Inside Dhaka City',
-    subLabelBn: 'হোম ডেলিভারি (১-২ দিন)',
+    subLabelBn: 'Home Delivery (1-2 Days)',
     subLabelEn: 'Home Delivery (1-2 days)',
     cost: 60,
   },
   {
     id: 'dhaka_suburbs',
-    labelBn: 'ঢাকা সিটির বাহিরে / সাব-ঢাকা',
+    labelBn: 'Sub-Dhaka Area',
     labelEn: 'Dhaka Suburbs / Outskirts',
-    subLabelBn: 'সাভার, গাজীপুর, কেরানীগঞ্জ, ইত্যাদি (২-৩ দিন)',
+    subLabelBn: 'Savar, Gazipur, Keraniganj, etc. (2-3 Days)',
     subLabelEn: 'Savar, Gazipur, Keraniganj, etc (2-3 days)',
     cost: 80,
   },
   {
     id: 'outside_dhaka',
-    labelBn: 'ঢাকা জেলার বাহিরে / সারা বাংলাদেশ',
+    labelBn: 'Outside Dhaka / Nationwide',
     labelEn: 'Outside Dhaka / Whole Bangladesh',
-    subLabelBn: 'কুরিয়ার হোম ডেলিভারি (২-৪ দিন)',
+    subLabelBn: 'Courier Delivery (2-4 Days)',
     subLabelEn: 'Courier Home Delivery (2-4 days)',
     cost: 120,
   },
@@ -115,7 +115,7 @@ export default function Checkout() {
           <CheckCircle2 size={36} />
         </div>
         <h2 className="text-xl md:text-2xl font-black uppercase text-neutral-900 tracking-tight">
-          {language === 'bn' ? 'অর্ডারটি সফলভাবে জমা নেওয়া হচ্ছে...' : 'Placing your order successfully...'}
+          {'Placing your order successfully...'}
         </h2>
         <p className="text-xs text-neutral-500">
           Order placed! Redirecting to confirmation page...
@@ -140,17 +140,17 @@ export default function Checkout() {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert(language === 'bn' ? 'অনুগ্রহ করে আপনার নাম লিখুন।' : 'Please enter your name.');
+      alert('Please enter your name.');
       return;
     }
 
     if (!formData.phone.trim()) {
-      alert(language === 'bn' ? 'অনুগ্রহ করে আপনার ১১ ডিজিট মোবাইল নম্বর লিখুন।' : 'Please enter your mobile phone number.');
+      alert('Please enter your mobile phone number.');
       return;
     }
 
     if (!formData.address.trim()) {
-      alert(language === 'bn' ? 'অনুগ্রহ করে ডেলিভারি ঠিকানা (বাসা নম্বর, গ্রাম/মহল্লা, উপজেলা, জেলা) লিখুন।' : 'Please enter your delivery address.');
+      alert('Please enter your delivery address.');
       return;
     }
 
@@ -256,7 +256,7 @@ export default function Checkout() {
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg animate-pulse ${
               formData.paymentMethod === 'bKash' ? 'bg-[#D12053]' : 'bg-[#F7921E]'
             }`}>
-              {formData.paymentMethod === 'bKash' ? 'bK' : 'নগদ'}
+              {formData.paymentMethod === 'bKash' ? 'bK' : 'Nagad'}
             </div>
             <div>
               <h3 className="font-black text-lg text-neutral-900 uppercase tracking-tight">Connecting to Gateway...</h3>
@@ -278,7 +278,7 @@ export default function Checkout() {
             }`}>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center font-black text-lg">
-                  {formData.paymentMethod === 'bKash' ? 'bK' : 'নগদ'}
+                  {formData.paymentMethod === 'bKash' ? 'bK' : 'Nagad'}
                 </div>
                 <div>
                   <h3 className="font-black text-base uppercase tracking-wider leading-none">
@@ -339,8 +339,8 @@ export default function Checkout() {
                 </div>
 
                 <div className="text-[11px] text-neutral-600 leading-relaxed pt-1 space-y-0.5">
-                  <p>১. আপনার {formData.paymentMethod === 'bKash' ? 'বিকাশ' : 'নগদ'} অ্যাপ খুলে উপরের নম্বরে <strong className="text-black font-bold">Send Money</strong> করুন।</p>
-                  <p>২. টাকা পাঠানোর পর নিচের ঘরে আপনার নম্বর ও TrxID লিখে সাবমিট করুন।</p>
+                  <p>1. Open your {formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} app and <strong className="text-black font-bold">Send Money</strong> to the number above.</p>
+                  <p>2. Enter your account number and TrxID below after sending.</p>
                 </div>
               </div>
 
@@ -348,7 +348,7 @@ export default function Checkout() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1">
-                    আপনার {formData.paymentMethod === 'bKash' ? 'বিকাশ' : 'নগদ'} মোবাইল নম্বর *
+                    Your {formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} Number *
                   </label>
                   <input
                     type="tel"
@@ -430,19 +430,15 @@ export default function Checkout() {
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <CheckCircle2 size={13} className="text-emerald-600" />
-                <span>{language === 'bn' ? 'নিরাপদ ও দ্রুত চেকআউট' : 'Fast & Secure Checkout'}</span>
+                <span>{'Fast & Secure Checkout'}</span>
               </span>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
-              {language === 'bn' 
-                ? 'আপনার অর্ডার সম্পন্ন করুন' 
-                : 'Complete Your Order'}
+              {'Complete Your Order'}
             </h1>
             <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
-              {language === 'bn' 
-                ? 'অর্ডার করতে অনুগ্রহ করে নিচের তথ্যগুলো পূরণ করুন' 
-                : 'Please fill in your details below to complete your order'}
+              {'Please fill in your details below to complete your order'}
             </p>
           </div>
 
@@ -455,12 +451,12 @@ export default function Checkout() {
               {/* Field: Name */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
-                  {language === 'bn' ? 'নাম' : 'Your Name'} <span className="text-red-500">*</span>
+                  {'Your Name'} <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 
                   name="name" 
-                  placeholder={language === 'bn' ? 'আপনার নাম' : 'Enter your full name'} 
+                  placeholder={'Enter your full name'} 
                   required 
                   autoComplete="off"
                   value={formData.name} 
@@ -472,12 +468,12 @@ export default function Checkout() {
               {/* Field: Mobile Number */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
-                  {language === 'bn' ? 'মোবাইল নাম্বার' : 'Mobile Number'} <span className="text-red-500">*</span>
+                  {'Mobile Number'} <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="tel" 
                   name="phone" 
-                  placeholder={language === 'bn' ? '১১ ডিজিট মোবাইল নাম্বার (যেমন: 017XXXXXXXX)' : '11-digit mobile number (e.g. 017XXXXXXXX)'} 
+                  placeholder={'11-digit mobile number (e.g. 017XXXXXXXX)'} 
                   required 
                   autoComplete="off"
                   value={formData.phone} 
@@ -489,12 +485,12 @@ export default function Checkout() {
               {/* Field: Full Address */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
-                  {language === 'bn' ? 'ঠিকানা' : 'Full Delivery Address'} <span className="text-red-500">*</span>
+                  {'Full Delivery Address'} <span className="text-red-500">*</span>
                 </label>
                 <textarea 
                   name="address" 
                   rows={2}
-                  placeholder={language === 'bn' ? 'বাসা নম্বর, গ্রাম/মহল্লা, উপজেলা, জেলা' : 'House/Flat No, Area, Thana/Upazila, District'} 
+                  placeholder={'House/Flat No, Area, Thana/Upazila, District'} 
                   required 
                   autoComplete="off"
                   value={formData.address} 
@@ -506,12 +502,12 @@ export default function Checkout() {
               {/* Field: Email (Optional) */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
-                  {language === 'bn' ? 'ইমেইল (অপশনাল)' : 'Email Address (Optional)'}
+                  {'Email Address (Optional)'}
                 </label>
                 <input 
                   type="email" 
                   name="email" 
-                  placeholder={language === 'bn' ? 'আপনার ইমেইল (অপশনাল)' : 'Your email address (optional)'} 
+                  placeholder={'Your email address (optional)'} 
                   autoComplete="off"
                   value={formData.email} 
                   onChange={handleChange} 
@@ -522,12 +518,12 @@ export default function Checkout() {
               {/* Field: Order Note (Optional) */}
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-neutral-900 mb-1.5">
-                  {language === 'bn' ? 'অর্ডার নোট' : 'Order Note (Optional)'}
+                  {'Order Note (Optional)'}
                 </label>
                 <input 
                   type="text" 
                   name="orderNotes" 
-                  placeholder={language === 'bn' ? 'স্পেশাল কিছু বলতে চাইলে লিখুন (অপশনাল)' : 'Special instructions or delivery notes (optional)'} 
+                  placeholder={'Special instructions or delivery notes (optional)'} 
                   autoComplete="off"
                   value={formData.orderNotes} 
                   onChange={handleChange} 
@@ -540,8 +536,8 @@ export default function Checkout() {
             {/* 2. Delivery Location Selection */}
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-3">
               <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-neutral-900 mb-1 flex items-center justify-between">
-                <span>{language === 'bn' ? 'ডেলিভারি এরিয়া' : 'Delivery Area'}</span>
-                <span className="text-xs font-semibold text-neutral-400 lowercase">{language === 'bn' ? 'একটি সিলেক্ট করুন' : 'select one'}</span>
+                <span>{'Delivery Area'}</span>
+                <span className="text-xs font-semibold text-neutral-400 lowercase">{'select one'}</span>
               </label>
 
               <div className="space-y-2.5">
@@ -565,10 +561,10 @@ export default function Checkout() {
                         </div>
                         <div>
                           <p className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-neutral-950 font-black' : 'text-neutral-800'}`}>
-                            {language === 'bn' ? opt.labelBn : opt.labelEn}
+                            {opt.labelEn}
                           </p>
                           <p className="text-[11px] text-neutral-500 font-medium">
-                            {language === 'bn' ? opt.subLabelBn : opt.subLabelEn}
+                            {opt.subLabelEn}
                           </p>
                         </div>
                       </div>
@@ -587,7 +583,7 @@ export default function Checkout() {
             {/* 3. Payment Method Selection */}
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-3">
               <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-neutral-900 mb-1">
-                {language === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
+                {'Payment Method'}
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -602,7 +598,7 @@ export default function Checkout() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-extrabold text-xs sm:text-sm">
-                      {language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}
+                      {'Cash on Delivery'}
                     </span>
                     <input 
                       type="radio" 
@@ -614,7 +610,7 @@ export default function Checkout() {
                     />
                   </div>
                   <span className={`text-[11px] ${formData.paymentMethod === 'cod' ? 'text-neutral-300' : 'text-neutral-500'}`}>
-                    {language === 'bn' ? 'পণ্য হাতে পেয়ে টাকা পরিশোধ' : 'Pay when product arrives'}
+                    {'Pay when product arrives'}
                   </span>
                 </label>
 
@@ -628,7 +624,7 @@ export default function Checkout() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-extrabold text-xs sm:text-sm">bKash (বিকাশ)</span>
+                    <span className="font-extrabold text-xs sm:text-sm">bKash</span>
                     <input 
                       type="radio" 
                       name="paymentMethod" 
@@ -653,7 +649,7 @@ export default function Checkout() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-extrabold text-xs sm:text-sm">Nagad (নগদ)</span>
+                    <span className="font-extrabold text-xs sm:text-sm">Nagad</span>
                     <input 
                       type="radio" 
                       name="paymentMethod" 
@@ -673,9 +669,7 @@ export default function Checkout() {
                 <div className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex items-center space-x-2 mt-2">
                   <Smartphone size={16} className={formData.paymentMethod === 'bKash' ? 'text-[#D12053]' : 'text-[#F7921E]'} />
                   <span>
-                    {language === 'bn' 
-                      ? 'অর্ডার বাটনে ক্লিক করার পর পেমেন্ট গেটওয়ে চালু হবে।' 
-                      : `Clicking confirm will launch the ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} payment portal.`}
+                    {`Clicking confirm will launch the ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} payment portal.`}
                   </span>
                 </div>
               )}
@@ -691,24 +685,22 @@ export default function Checkout() {
                 {isConnectingGateway ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    <span>{language === 'bn' ? 'গেটওয়ে যুক্ত হচ্ছে...' : 'Connecting Gateway...'}</span>
+                    <span>{'Connecting Gateway...'}</span>
                   </>
                 ) : loading ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    <span>{language === 'bn' ? 'অর্ডার জমা হচ্ছে...' : 'Confirming Order...'}</span>
+                    <span>{'Confirming Order...'}</span>
                   </>
                 ) : (
                   <span>
-                    {language === 'bn' ? `অর্ডার কনফার্ম করুন ${total.toFixed(0)} TK` : `Confirm Order ${total.toFixed(0)} TK`}
+                    {`Confirm Order ${total.toFixed(0)} TK`}
                   </span>
                 )}
               </button>
 
               <p className="text-center text-xs text-neutral-600 font-medium leading-relaxed px-2">
-                {language === 'bn' 
-                  ? 'আমাদের একজন কাস্টমার প্রতিনিধি আপনাকে কল করে আবার কনফার্ম হবে।' 
-                  : 'Our customer representative will call you shortly to confirm your order.'}
+                {'Our customer representative will call you shortly to confirm your order.'}
               </p>
             </div>
 
@@ -722,7 +714,7 @@ export default function Checkout() {
             <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
               <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-neutral-900 flex items-center gap-2">
                 <ShoppingBag size={18} className="text-neutral-700" />
-                <span>{language === 'bn' ? 'অর্ডারের বিবরণ' : 'Order Summary'} ({checkoutItems.length})</span>
+                <span>{'Order Summary'} ({checkoutItems.length})</span>
               </h2>
             </div>
             
@@ -759,14 +751,14 @@ export default function Checkout() {
             {/* Price Calculations */}
             <div className="space-y-2.5 pt-4 border-t border-neutral-100 text-xs sm:text-sm">
               <div className="flex justify-between text-neutral-600">
-                <span>{language === 'bn' ? 'সাবটোটাল (পণ্য মূল্য)' : 'Subtotal'}</span>
+                <span>{'Subtotal'}</span>
                 <span className="font-bold text-neutral-900">৳ {subtotal.toFixed(0)}</span>
               </div>
               <div className="flex justify-between text-neutral-600 items-center">
                 <span>
-                  {language === 'bn' ? 'ডেলিভারি চার্জ' : 'Delivery Charge'}
+                  {'Delivery Charge'}
                   <span className="text-[11px] text-neutral-400 block sm:inline sm:ml-1">
-                    ({language === 'bn' ? selectedDeliveryOption.labelBn : selectedDeliveryOption.labelEn})
+                    ({selectedDeliveryOption.labelEn})
                   </span>
                 </span>
                 <span className="font-bold text-neutral-900">
@@ -779,14 +771,14 @@ export default function Checkout() {
             <div className="flex justify-between items-center pt-4 border-t border-neutral-200">
               <div>
                 <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400 block">
-                  {language === 'bn' ? 'সর্বমোট পরিশোধযোগ্য' : 'Total Payable'}
+                  {'Total Payable'}
                 </span>
                 <span className="text-2xl font-black text-neutral-900">
                   ৳ {total.toFixed(0)}
                 </span>
               </div>
               <span className="text-xs font-black text-neutral-700 bg-neutral-100 px-3 py-1.5 rounded-xl uppercase">
-                {formData.paymentMethod === 'cod' ? (language === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery') : formData.paymentMethod.toUpperCase()}
+                {formData.paymentMethod === 'cod' ? ('Cash on Delivery') : formData.paymentMethod.toUpperCase()}
               </span>
             </div>
 
@@ -801,24 +793,22 @@ export default function Checkout() {
                 {isConnectingGateway ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    <span>{language === 'bn' ? 'গেটওয়ে যুক্ত হচ্ছে...' : 'Connecting Gateway...'}</span>
+                    <span>{'Connecting Gateway...'}</span>
                   </>
                 ) : loading ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    <span>{language === 'bn' ? 'অর্ডার জমা হচ্ছে...' : 'Confirming Order...'}</span>
+                    <span>{'Confirming Order...'}</span>
                   </>
                 ) : (
                   <span>
-                    {language === 'bn' ? `অর্ডার কনফার্ম করুন ${total.toFixed(0)} TK` : `Confirm Order ${total.toFixed(0)} TK`}
+                    {`Confirm Order ${total.toFixed(0)} TK`}
                   </span>
                 )}
               </button>
 
               <p className="text-center text-xs text-neutral-600 font-medium leading-relaxed px-2">
-                {language === 'bn' 
-                  ? 'আমাদের একজন কাস্টমার প্রতিনিধি আপনাকে কল করে আবার কনফার্ম হবে।' 
-                  : 'Our customer representative will call you shortly to confirm your order.'}
+                {'Our customer representative will call you shortly to confirm your order.'}
               </p>
             </div>
 
@@ -826,15 +816,15 @@ export default function Checkout() {
             <div className="pt-3 border-t border-neutral-100 space-y-2 text-[11px] text-neutral-500 font-medium">
               <div className="flex items-center space-x-2 text-neutral-700">
                 <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-                <span>{language === 'bn' ? '১০০% অরিজিনাল ও প্রিমিয়াম কোয়ালিটি নিশ্চিত' : '100% Original & Premium Quality Guarantee'}</span>
+                <span>{'100% Original & Premium Quality Guarantee'}</span>
               </div>
               <div className="flex items-center space-x-2 text-neutral-700">
                 <Truck size={16} className="text-blue-600 shrink-0" />
-                <span>{language === 'bn' ? 'দ্রুত হোম ডেলিভারি ও সহজে ট্র্যাকিং' : 'Fast doorstep delivery with real-time tracking'}</span>
+                <span>{'Fast doorstep delivery with real-time tracking'}</span>
               </div>
               <div className="flex items-center space-x-2 text-neutral-700">
                 <RotateCcw size={16} className="text-amber-600 shrink-0" />
-                <span>{language === 'bn' ? 'পণ্য দেখে পেমেন্ট ও ৭ দিনের সহজ এক্সচেঞ্জ' : 'Pay after check & 7-Day Hassle-Free Exchange'}</span>
+                <span>{'Pay after check & 7-Day Hassle-Free Exchange'}</span>
               </div>
             </div>
 

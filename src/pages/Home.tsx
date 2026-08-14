@@ -147,17 +147,17 @@ export default function Home() {
         const c = p.category.toLowerCase().trim();
         if (c === target) return true;
 
-        if (target.includes('women') || target.includes('মহিলা')) {
-          return c.includes('women') || c.includes('girl') || c.includes('মহিলা') || c.includes('মেয়ে') || c.includes('শাড়ি') || c.includes('থ্রি পিস');
+        if (target.includes('women')) {
+          return c.includes('women') || c.includes('girl');
         }
-        if ((target.includes('men') || target.includes('পুরুষ')) && !target.includes('women')) {
-          return (c.includes('men') && !c.includes('women')) || c.includes('boy') || c.includes('পুরুষ') || c.includes('ছেলে') || c.includes('পাঞ্জাবি');
+        if (target.includes('men') && !target.includes('women')) {
+          return (c.includes('men') && !c.includes('women')) || c.includes('boy');
         }
-        if (target.includes('baby') || target.includes('kid') || target.includes('বাচ্চা')) {
-          return c.includes('baby') || c.includes('kid') || c.includes('বাচ্চা') || c.includes('শিশু') || c.includes('ইনফ্যান্ট');
+        if (target.includes('baby') || target.includes('kid')) {
+          return c.includes('baby') || c.includes('kid');
         }
-        if (target.includes('foot') || target.includes('shoe') || target.includes('জুতা')) {
-          return c.includes('foot') || c.includes('shoe') || c.includes('sneaker') || c.includes('জুতা') || c.includes('স্যান্ডেল') || c.includes('জুতো');
+        if (target.includes('foot') || target.includes('shoe')) {
+          return c.includes('foot') || c.includes('shoe') || c.includes('sneaker');
         }
 
         return c.includes(target) || target.includes(c);
@@ -334,7 +334,7 @@ export default function Home() {
             <NewArrivalsCarousel products={allProducts.slice(0, 12)} />
           ) : (
             <div className="text-center text-neutral-500 py-8 bg-white rounded-2xl border border-neutral-200 text-xs">
-              {language === 'bn' ? 'স্টোরে এখনও কোন পোশাক যুক্ত হয়নি।' : 'No products found in store catalogue yet.'}
+              {'No products found in store catalogue yet.'}
             </div>
           )}
         </section>

@@ -90,7 +90,7 @@ export default function AdminSystem() {
       await assignUserRoleByEmail(cleanEmail, role as any);
       setRoleMessage({ 
         type: 'success', 
-        text: `পারমিশন সফলভাবে দেওয়া হয়েছে! ${cleanEmail} অ্যাকাউন্টটিতে ${role.toUpperCase()} পারমিশন যোগ করা হলো। ইউজার এখন সাইন-ইন করলে সরাসরি অ্যাডমিন প্যানেল পাবে।` 
+        text: `Permission granted successfully! ${role.toUpperCase()} access given to ${cleanEmail}. The user will directly access the admin panel upon login.` 
       });
       setEmail('');
     } catch (error: any) {
@@ -178,11 +178,11 @@ export default function AdminSystem() {
         setStaffUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       }
 
-      setSyncMessage("সমস্ত এআই এপিআই এবং সিস্টেম ডাটা সফলভাবে সিঙ্ক সম্পন্ন হয়েছে!");
+      setSyncMessage("All AI APIs and system data synced successfully!");
       setTimeout(() => setSyncMessage(null), 4000);
     } catch (e: any) {
       console.error("Sync all error:", e);
-      setSyncMessage("ডাটা সিঙ্ক করার সময় সাময়িক ত্রুটি ঘটেছে।");
+      setSyncMessage("Temporary error occurred during data sync.");
     } finally {
       setSyncingAll(false);
     }
@@ -214,7 +214,7 @@ export default function AdminSystem() {
           {syncingAll ? (
             <>
               <Loader2 size={16} className="animate-spin text-amber-400" />
-              <span>তথ্য সিঙ্ক করা হচ্ছে...</span>
+              <span>Syncing data...</span>
             </>
           ) : (
             <>
@@ -305,7 +305,7 @@ export default function AdminSystem() {
           </div>
 
           <div className="text-[10px] text-neutral-400 bg-neutral-950/40 p-3 rounded-2xl border border-neutral-800/60">
-            💡 <strong className="text-white">Dual AI Integration:</strong> উভয় এআই কি একইসাথে সেট করতে পারবেন। গ্রাহকদের সাথে চ্যাটের জন্য Groq ব্যবহার হয় এবং ছবি দেখে অটো ফিল করার জন্য Gemini Vision ব্যবহার হয়।
+            💡 <strong className="text-white">Dual AI Integration:</strong> Both AI keys can be set simultaneously. Groq is used for customer chat, and Gemini Vision for image-based auto-fill.
           </div>
         </div>
 
@@ -348,7 +348,7 @@ export default function AdminSystem() {
           </div>
 
           <p className="text-[10px] text-neutral-500 font-medium bg-neutral-50 p-3 rounded-2xl border border-neutral-200/60">
-            ✅ সমস্ত ছবি হাই-কমপ্রেশন এলগরিদমে জমা হচ্ছে তাই ফ্রী টায়ারেই কয়েক হাজার প্রোডাক্টের ছবি আপলোড করা যাবে।
+            ✅ All images are saved using high-compression algorithms, allowing thousands of product uploads on the free tier.
           </p>
         </div>
 
@@ -466,7 +466,7 @@ export default function AdminSystem() {
             <div className="mt-4 bg-white p-4 rounded-2xl border border-red-100 space-y-2">
               <h3 className="text-xs font-extrabold text-neutral-900">Clear Test Selling History</h3>
               <p className="text-[11px] text-neutral-500 leading-relaxed">
-                পাস্ট টেস্ট অর্ডার এবং ট্রানজ্যাকশন ডাটা মুছে ফেলার জন্য এই অপশনটি কাজ করে। কাস্টমার এবং প্রোডাক্ট তথ্য ঠিক থাকবে।
+                This option deletes past test orders and transaction data. Customer and product data will remain intact.
               </p>
             </div>
           </div>

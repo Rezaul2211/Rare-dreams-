@@ -164,17 +164,6 @@ function LayoutInner() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-neutral-200">
             <div className="px-4 pt-3 pb-6 space-y-2">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-neutral-100">
-                <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Language / ভাষা</span>
-                <button
-                  onClick={toggleLanguage}
-                  className="flex items-center space-x-1.5 px-3 py-1 bg-neutral-100 rounded-full text-xs font-bold text-neutral-800"
-                >
-                  <Globe size={14} className="text-rose-600" />
-                  <span>{language === 'bn' ? 'Switch to English' : 'বাংলায় ভাষা পরিবর্তন'}</span>
-                </button>
-              </div>
-
               <Link to="/shop" className="block px-3 py-2.5 text-sm font-bold border-b border-neutral-100 uppercase tracking-wide" onClick={() => setIsMobileMenuOpen(false)}>
                 {t('nav.shop_all')}
               </Link>

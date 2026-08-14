@@ -38,7 +38,7 @@ export default function WhatsAppSupportWidget() {
     {
       id: 'welcome-1',
       sender: 'ai',
-      text: 'হ্যালো! রেয়ার ড্রিমস (Rare Dreams) এআই কাস্টমার কেয়ারে আপনাকে স্বাগতম। সাইজ, ডেলিভারি বা পোশাক সংক্রান্ত যেকোনো প্রশ্ন করতে পারেন!',
+      text: 'Hello! Welcome to Rare Dreams AI Customer Care. Ask any questions about size, delivery or our collection!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -71,7 +71,7 @@ export default function WhatsAppSupportWidget() {
     setActiveVoiceTarget(targetMode);
 
     if (!SpeechRecognitionClass) {
-      setVoiceError("আপনার ব্রাউজারে ভয়েস ইনপুট সাপোর্ট নেই। Google Chrome ব্রাউজার ব্যবহার করুন।");
+      setVoiceError("Your browser does not support voice input. Please use Google Chrome.");
       return;
     }
 
@@ -107,13 +107,13 @@ export default function WhatsAppSupportWidget() {
         setIsListening(false);
 
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-          setVoiceError("মাইক্রোফোন পারমিশন এলাউ করা হয়নি। ব্রাউজার এড্রেস বারের লক (🔒) আইকনে ট্যাপ করে পারমিশন এলাউ করুন।");
+          setVoiceError("Microphone permission denied. Please allow it from the browser settings (🔒).");
         } else if (event.error === 'no-speech') {
-          setVoiceError("কোনো কথা শোনা যায়নি। আবার চেষ্টা করুন।");
+          setVoiceError("No speech detected. Please try again.");
         } else if (event.error === 'network') {
-          setVoiceError("ইন্টারনেট কানেকশন চেক করুন।");
+          setVoiceError("Please check your internet connection.");
         } else if (event.error !== 'aborted') {
-          setVoiceError(`ভয়েস ইনপুট এরর: ${event.error}`);
+          setVoiceError(`Voice input error: ${event.error}`);
         }
       };
 
@@ -126,7 +126,7 @@ export default function WhatsAppSupportWidget() {
     } catch (err: any) {
       console.error('Speech recognition exception:', err);
       setIsListening(false);
-      setVoiceError("ভয়েস ইনপুট চালু করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      setVoiceError("Failed to start voice input. Please try again.");
     }
   };
 
@@ -152,11 +152,11 @@ export default function WhatsAppSupportWidget() {
     
     let finalMsg = '';
     if (waText.trim()) {
-      finalMsg = `${waText.trim()}${isProductPage ? `\n\nপ্রোডাক্ট লিংক: ${currentUrl}` : ''}`;
+      finalMsg = `${waText.trim()}${isProductPage ? `\n\nProduct Link: ${currentUrl}` : ''}`;
     } else if (isProductPage) {
-      finalMsg = `হ্যালো রেয়ার ড্রিমস! আমি এই প্রোডাক্টটি সম্পর্কে জানতে ও অর্ডার করতে চাই:\n${currentUrl}`;
+      finalMsg = `Hello Rare Dreams! I want to know more about this product and place an order:\n${currentUrl}`;
     } else {
-      finalMsg = 'হ্যালো রেয়ার ড্রিমস! আপনাদের কালেকশন ও অর্ডার সম্পর্কে সাহায্য চাই।';
+      finalMsg = 'Hello Rare Dreams! I need help with your collection and ordering.';
     }
 
     const encoded = encodeURIComponent(finalMsg);
@@ -199,7 +199,7 @@ export default function WhatsAppSupportWidget() {
       const fallbackMsg: ChatMsg = {
         id: 'ai-err-' + Date.now(),
         sender: 'ai',
-        text: 'অনুগ্রহ করে সরাসরি হোয়াটসঅ্যাপ ট্যাবে গিয়ে আমাদের টিমের সাথে কথা বলুন!',
+        text: 'Please switch to the WhatsApp tab to chat directly with our team!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatMessages(prev => [...prev, fallbackMsg]);
@@ -209,10 +209,10 @@ export default function WhatsAppSupportWidget() {
   };
 
   const QUICK_TEMPLATES = [
-    "ক্যাশ অন ডেলিভারি কি এভেলেবল আছে?",
-    "ডেলিভারি চার্জ কত টাকা?",
-    "বাচ্চার সঠিক সাইজ কিভাবে নির্বাচন করবো?",
-    "পণ্য ৭ দিনের মধ্যে পরিবর্তন করার নিয়ম কি?"
+    "Is Cash on Delivery available?",
+    "What is the delivery charge?",
+    "How do I select the right size for my child?",
+    "What is the 7-day exchange policy?"
   ];
 
   return (
@@ -308,7 +308,7 @@ export default function WhatsAppSupportWidget() {
                 {/* Quick Templates */}
                 <div>
                   <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                    প্রশ্ন নির্বাচন করুন (টেক্সট বক্সে জমা হবে):
+                    Select a question (will be added to text box):
                   </label>
                   <div className="space-y-1">
                     {QUICK_TEMPLATES.map((tmpl, idx) => (
@@ -333,14 +333,14 @@ export default function WhatsAppSupportWidget() {
                 <form onSubmit={handleOpenWhatsApp} className="space-y-2 pt-1 border-t border-neutral-100">
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">
-                      আপনার মেসেজ লিখুন বা এডিট করুন:
+                      Write or edit your message:
                     </label>
                     <button
                       type="button"
                       onClick={() => setSpeechLang(prev => prev === 'bn-BD' ? 'en-US' : 'bn-BD')}
                       className="text-[8.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
                     >
-                      {speechLang === 'bn-BD' ? 'ভয়েস: বাংলা 🇧🇩' : 'Voice: English 🇺🇸'}
+                      {'Voice: English 🇺🇸'}
                     </button>
                   </div>
 
@@ -353,7 +353,7 @@ export default function WhatsAppSupportWidget() {
                         onClick={() => setVoiceError(null)}
                         className="font-bold underline text-[8.5px] shrink-0 text-amber-800"
                       >
-                        ঠিক আছে
+                        OK
                       </button>
                     </div>
                   )}
@@ -365,8 +365,8 @@ export default function WhatsAppSupportWidget() {
                       onChange={(e) => setWaText(e.target.value)}
                       placeholder={
                         isListening && activeVoiceTarget === 'wa'
-                          ? (speechLang === 'bn-BD' ? '🎙️ শুনছি... বলুন...' : '🎙️ Listening... Speak...')
-                          : 'এখানে লিখুন...'
+                          ? ('🎙️ Listening... Speak...')
+                          : 'Type here...'
                       }
                       className={`w-full text-xs bg-neutral-50 border rounded-xl p-2.5 pr-16 outline-none transition-all resize-none text-neutral-800 ${
                         isListening && activeVoiceTarget === 'wa'
@@ -378,7 +378,7 @@ export default function WhatsAppSupportWidget() {
                       <button
                         type="button"
                         onClick={() => (isListening && activeVoiceTarget === 'wa' ? stopListening() : startListening('wa'))}
-                        title={isListening && activeVoiceTarget === 'wa' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে লিখুন'}
+                        title={isListening && activeVoiceTarget === 'wa' ? 'Stop voice input' : 'Use voice input'}
                         className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                           isListening && activeVoiceTarget === 'wa'
                             ? 'bg-red-500 text-white animate-pulse shadow-xs'
@@ -398,7 +398,7 @@ export default function WhatsAppSupportWidget() {
                     </div>
                   </div>
                   <p className="text-[9px] text-neutral-400 text-center">
-                    বাটন এ চাপলে সরাসরি হোয়াটসঅ্যাপ অ্যাপ খুলবে।
+                    Clicking this button will open WhatsApp directly.
                   </p>
                 </form>
               </div>
@@ -446,7 +446,7 @@ export default function WhatsAppSupportWidget() {
                         <Brain size={13} className="text-emerald-600 animate-pulse" />
                       </div>
                       <div className="flex items-center space-x-1 font-medium">
-                        <span>চিন্তা করা হচ্ছে</span>
+                        <span>Thinking...</span>
                         <span className="flex space-x-0.5 ml-1">
                           <span className="w-1 h-1 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                           <span className="w-1 h-1 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -461,7 +461,7 @@ export default function WhatsAppSupportWidget() {
 
                 {/* Quick Suggestion Chips */}
                 <div className="px-2 py-1 bg-white border-t border-neutral-200/60 flex items-center gap-1 overflow-x-auto scrollbar-none">
-                  {["ডেলিভারি চার্জ?", "সাইজ চার্ট", "রিটার্ন সুবিধা"].map((chip, idx) => (
+                  {["Delivery Charge?", "Size Chart", "Return Policy"].map((chip, idx) => (
                     <button
                       key={idx}
                       type="button"
@@ -477,14 +477,14 @@ export default function WhatsAppSupportWidget() {
                 <div className="px-2.5 py-1 bg-emerald-50/60 border-t border-emerald-100 flex items-center justify-between text-[9px] font-medium text-emerald-950">
                   <span className="flex items-center gap-1">
                     <HelpCircle size={10} className="text-emerald-600 shrink-0" />
-                    সরাসরি হিউম্যান সাপোর্ট চান?
+                    Need direct human support?
                   </span>
                   <button
                     type="button"
                     onClick={() => setMode('whatsapp')}
                     className="text-emerald-700 font-bold hover:underline"
                   >
-                    হোয়াটসঅ্যাপে যান →
+                    Go to WhatsApp →
                   </button>
                 </div>
 
@@ -497,7 +497,7 @@ export default function WhatsAppSupportWidget() {
                       onClick={() => setVoiceError(null)}
                       className="font-bold underline text-[8.5px] shrink-0 text-amber-800"
                     >
-                      ঠিক আছে
+                      OK
                     </button>
                   </div>
                 )}
@@ -510,8 +510,8 @@ export default function WhatsAppSupportWidget() {
                     onChange={(e) => setAiInput(e.target.value)}
                     placeholder={
                       isListening && activeVoiceTarget === 'ai'
-                        ? (speechLang === 'bn-BD' ? '🎙️ শুনছি... বলুন...' : '🎙️ Listening... Speak...')
-                        : 'এখানে প্রশ্নটি লিখুন...'
+                        ? ('🎙️ Listening... Speak...')
+                        : 'Type your question here...'
                     }
                     className={`flex-1 text-[11px] bg-neutral-100 border px-2.5 py-1.5 rounded-lg outline-none transition-all text-neutral-800 ${
                       isListening && activeVoiceTarget === 'ai'
@@ -524,17 +524,17 @@ export default function WhatsAppSupportWidget() {
                   <button
                     type="button"
                     onClick={() => setSpeechLang(prev => prev === 'bn-BD' ? 'en-US' : 'bn-BD')}
-                    title={speechLang === 'bn-BD' ? 'বাংলা ভয়েস (Click for English)' : 'English Voice (Click for বাংলা)'}
+                    title={'English Voice'}
                     className="px-1.5 py-1 text-[8.5px] font-bold text-neutral-600 hover:text-emerald-800 bg-neutral-100 hover:bg-emerald-50 rounded border border-neutral-200 shrink-0 transition-colors"
                   >
-                    {speechLang === 'bn-BD' ? 'বাংলা' : 'ENG'}
+                    {'ENG'}
                   </button>
 
                   {/* Mic Button */}
                   <button
                     type="button"
                     onClick={() => (isListening && activeVoiceTarget === 'ai' ? stopListening() : startListening('ai'))}
-                    title={isListening && activeVoiceTarget === 'ai' ? 'ভয়েস ইনপুট বন্ধ করুন' : 'ভয়েস দিয়ে প্রশ্ন করুন'}
+                    title={isListening && activeVoiceTarget === 'ai' ? 'Stop voice input' : 'Ask using voice'}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                       isListening && activeVoiceTarget === 'ai'
                         ? 'bg-red-500 text-white animate-pulse shadow-xs'

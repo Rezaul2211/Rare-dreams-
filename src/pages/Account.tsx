@@ -481,7 +481,7 @@ export default function Account() {
               </div>
               <div>
                 <span className="text-base font-bold text-neutral-900 block leading-tight">
-                  {language === 'bn' ? 'মূল্য হ্রাস অ্যালার্ট (Price Drop Alerts)' : 'Price Drop Alerts'}
+                  {'Price Drop Alerts'}
                 </span>
                 <span className="text-xs text-neutral-500 font-medium">
                   {alerts.length} {alerts.length === 1 ? 'active alert' : 'active alerts'}
@@ -1024,7 +1024,7 @@ export default function Account() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-neutral-900">
-                  {language === 'bn' ? 'মূল্য হ্রাস অ্যালার্ট (Price Drop Alerts)' : 'Price Drop Alerts'}
+                  {'Price Drop Alerts'}
                 </h3>
                 <p className="text-xs text-neutral-400 font-medium">
                   {alerts.length} {alerts.length === 1 ? 'active subscription' : 'active subscriptions'}
@@ -1038,19 +1038,17 @@ export default function Account() {
                   <Bell className="mx-auto text-amber-400 stroke-[1.5]" size={40} />
                   <div>
                     <p className="text-xs font-bold text-neutral-700">
-                      {language === 'bn' ? 'কোনো সক্রিয় প্রাইস অ্যালার্ট নেই' : 'No active price drop alerts'}
+                      {'No active price drop alerts'}
                     </p>
                     <p className="text-[11px] text-neutral-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                      {language === 'bn'
-                        ? 'পণ্যের বিস্তারিত পাতায় "Notify Me" চাপুন। দাম কমলেই আমরা আপনাকে সরাসরি জানাবো।'
-                        : 'Click "Notify Me" on any product to track price drops and receive instant alerts.'}
+                      Click "Notify Me" on any product to track price drops and receive instant alerts.
                     </p>
                   </div>
                   <button
                     onClick={() => { setActiveModal(null); navigate('/shop'); }}
                     className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-neutral-800 transition-colors inline-block cursor-pointer"
                   >
-                    {language === 'bn' ? 'দোকান ব্রাউজ করুন' : 'Browse Products'}
+                    {'Browse Products'}
                   </button>
                 </div>
               ) : (
@@ -1079,8 +1077,8 @@ export default function Account() {
                               : 'bg-emerald-100 text-emerald-800'
                           }`}>
                             {alert.status === 'triggered' 
-                              ? (language === 'bn' ? '🔥 দাম কমেছে' : '🔥 Price Dropped')
-                              : (language === 'bn' ? 'অ্যাক্টিভ অ্যালার্ট' : 'Tracking')}
+                              ? ('🔥 Price Dropped')
+                              : ('Tracking')}
                           </span>
                         </div>
                         <h4 className="text-xs font-bold text-neutral-900 truncate group-hover:text-amber-800 transition-colors">
@@ -1102,7 +1100,7 @@ export default function Account() {
                     <div className="flex items-center space-x-2 shrink-0">
                       <button
                         onClick={async () => {
-                          if (window.confirm(language === 'bn' ? 'আপনি কি এই অ্যালার্টটি মুছে ফেলতে চান?' : 'Delete this price alert?')) {
+                          if (window.confirm('Delete this price alert?')) {
                             await unsubscribeFromPriceDrop(alert.id);
                           }
                         }}
