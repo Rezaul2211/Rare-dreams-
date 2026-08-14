@@ -64,32 +64,18 @@ export const FlyToCartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     }
 
-    // 3. Find target cart icon - check header cart and mobile cart
-    let targetX = window.innerWidth - 36;
-    let targetY = 36;
+    // 3. Find target cart icon - ALWAYS target the top header cart bag icon
+    let targetX = window.innerWidth - 32;
+    let targetY = 28;
 
     const headerIcon = document.getElementById('header-cart-icon');
-    const mobileIcon = document.getElementById('mobile-cart-icon');
 
-    const isVisible = (el: HTMLElement | null) => {
-      if (!el) return false;
-      const rect = el.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.bottom <= window.innerHeight;
-    };
-
-    let chosenTarget: HTMLElement | null = null;
-    if (headerIcon && isVisible(headerIcon)) {
-      chosenTarget = headerIcon;
-    } else if (mobileIcon && isVisible(mobileIcon)) {
-      chosenTarget = mobileIcon;
-    } else {
-      chosenTarget = headerIcon || mobileIcon;
-    }
-
-    if (chosenTarget) {
-      const targetRect = chosenTarget.getBoundingClientRect();
-      targetX = targetRect.left + targetRect.width / 2;
-      targetY = targetRect.top + targetRect.height / 2;
+    if (headerIcon) {
+      const targetRect = headerIcon.getBoundingClientRect();
+      if (targetRect.width > 0 && targetRect.height > 0) {
+        targetX = targetRect.left + targetRect.width / 2;
+        targetY = Math.max(16, targetRect.top + targetRect.height / 2);
+      }
     }
 
     const flyId = 'fly_' + Date.now() + '_' + Math.random();

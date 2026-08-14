@@ -12,30 +12,54 @@ export interface CategoryItem {
 
 export const DEFAULT_CATEGORIES: CategoryItem[] = [
   {
-    id: 'mens-items',
-    title: "Men's items",
-    link: "/category/Men's items",
-    image: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=800&auto=format&fit=crop'
+    id: 'men',
+    title: "Men",
+    link: "/category/Men",
+    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
   },
   {
-    id: 'womens-items',
-    title: "Women's items",
-    link: "/category/Women's items",
-    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=800&auto=format&fit=crop'
+    id: 'women',
+    title: "Women",
+    link: "/category/Women",
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
   },
   {
-    id: 'baby-items',
-    title: 'Baby items',
-    link: '/category/Baby items',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
+    id: 'kids',
+    title: 'Kids',
+    link: '/category/Kids',
+    image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
   },
   {
-    id: 'foot-wear',
-    title: 'Foot wear',
-    link: '/category/Foot wear',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
+    id: 'accessories',
+    title: 'Accessories',
+    link: '/category/Accessories',
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
   }
 ];
+
+export function normalizeCategoryTitle(title: string): string {
+  const lower = title.toLowerCase().trim();
+  if (lower.includes('women')) return 'Women';
+  if (lower.includes('men')) return 'Men';
+  if (lower.includes('baby') || lower.includes('kid')) return 'Kids';
+  if (lower.includes('access') || lower.includes('foot') || lower.includes('shoe')) return 'Accessories';
+  return title;
+}
+
+export function sortCategoriesByStandardOrder(list: CategoryItem[]): CategoryItem[] {
+  const getOrderIndex = (title: string) => {
+    const norm = normalizeCategoryTitle(title);
+    if (norm === 'Men') return 0;
+    if (norm === 'Women') return 1;
+    if (norm === 'Kids') return 2;
+    if (norm === 'Accessories') return 3;
+    return 4;
+  };
+
+  return [...list]
+    .map(item => ({ ...item, title: normalizeCategoryTitle(item.title) }))
+    .sort((a, b) => getOrderIndex(a.title) - getOrderIndex(b.title));
+}
 
 interface CategoryState {
   categories: CategoryItem[];
@@ -45,19 +69,6 @@ interface CategoryState {
   addCategory: (category: Omit<CategoryItem, 'id'>) => Promise<void>;
   updateCategory: (index: number, category: Partial<CategoryItem>) => Promise<void>;
   deleteCategory: (index: number) => Promise<void>;
-}
-
-export function sortCategoriesByStandardOrder(list: CategoryItem[]): CategoryItem[] {
-  const getOrderIndex = (title: string) => {
-    const lower = title.toLowerCase().trim();
-    if (lower.includes('women')) return 1;
-    if (lower.includes('men')) return 0;
-    if (lower.includes('baby') || lower.includes('kid')) return 2;
-    if (lower.includes('foot') || lower.includes('shoe')) return 3;
-    return 4;
-  };
-
-  return [...list].sort((a, b) => getOrderIndex(a.title) - getOrderIndex(b.title));
 }
 
 export const useCategoryStore = create<CategoryState>((set, get) => ({

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, Globe } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, User, Home, Grid, ShieldCheck, Globe, Heart } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -48,97 +48,81 @@ function LayoutInner() {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
+  const isCategoryPage = location.pathname.startsWith('/category') || location.pathname === '/shop';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] font-sans text-neutral-900 pb-16 md:pb-0">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20 gap-4">
-            {/* LEFT: Logo */}
-            <Link 
-              to="/" 
-              onClick={scrollToTop}
-              className="shrink-0 hover:opacity-90 transition-opacity flex items-center py-1"
-              aria-label="Rare Dreams Home"
-            >
-              <Logo size="md" variant="light" />
-            </Link>
-
-            {/* CENTER: Desktop Nav Links or Search */}
-            <nav className="hidden lg:flex items-center space-x-6">
-              <Link to="/shop" onClick={scrollToTop} className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800">
-                {t('nav.shop_all')}
-              </Link>
-              {categories.map((cat, idx) => (
-                <Link 
-                  key={cat.id || idx} 
-                  to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
-                  onClick={scrollToTop} 
-                  className="text-xs font-bold hover:text-neutral-500 transition-colors uppercase tracking-widest text-neutral-800 shrink-0"
-                >
-                  {translateCategory(cat.title, language)}
-                </Link>
-              ))}
-            </nav>
-
-            {/* RIGHT: Action Icons */}
-            <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
-              {/* Desktop Global Search Bar */}
-              <div className="hidden md:block w-52 lg:w-64 mr-1">
-                <HeaderSearch />
-              </div>
-
-              {/* Visible Admin Dashboard link button for admins */}
-              {user?.role === 'admin' && (
-                <Link 
-                  to="/admin" 
-                  className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-black text-white rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-xs"
-                >
-                  <ShieldCheck size={14} className="text-amber-400" />
-                  <span>{t('nav.admin')}</span>
-                </Link>
-              )}
-
-              {/* Search Toggle Icon (Mobile Only) */}
-              <button
-                className="md:hidden p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
-                onClick={() => {
-                  setIsMobileSearchOpen(prev => !prev);
-                  setIsMobileMenuOpen(false);
-                }}
-                aria-label="Search"
-              >
-                <Search size={22} strokeWidth={1.75} />
-              </button>
-
-              {/* Header Cart Bag Icon with Counter */}
-              <Link 
-                id="header-cart-icon"
-                to="/cart" 
-                className={`p-2 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-800 ${
-                  isCartBouncing ? 'scale-125 ring-2 ring-black bg-neutral-100' : ''
-                }`}
-                aria-label="Cart"
-              >
-                <ShoppingBag size={22} strokeWidth={1.75} />
-                {itemCount > 0 && (
-                  <span className="absolute top-0.5 right-0 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-bold leading-none text-white bg-neutral-800 rounded-full shadow-sm">
-                    {itemCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* Hamburger Menu Toggle Button */}
+      {!isCategoryPage && (
+        <header className="sticky top-0 z-50 bg-white border-b border-neutral-200/80 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            {/* LEFT: Hamburger Menu Toggle Button */}
+            <div className="flex items-center">
               <button 
-                className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-800 cursor-pointer"
+                className="p-2 -ml-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-900 cursor-pointer"
                 onClick={() => {
                   setIsMobileMenuOpen(prev => !prev);
                   setIsMobileSearchOpen(false);
                 }}
                 aria-label="Toggle Navigation Menu"
               >
-                {isMobileMenuOpen ? <X size={24} strokeWidth={1.75} /> : <Menu size={24} strokeWidth={1.75} />}
+                {isMobileMenuOpen ? <X size={26} strokeWidth={1.5} /> : <Menu size={26} strokeWidth={1.5} />}
               </button>
+            </div>
+
+            {/* CENTER: Centered Luxury Brand Logo */}
+            <div className="flex items-center justify-center">
+              <Link 
+                to="/" 
+                onClick={scrollToTop}
+                className="hover:opacity-90 transition-opacity py-1 flex items-center justify-center text-center"
+                aria-label="Rare Dreams Home"
+              >
+                <Logo size="md" variant="light" showEmblem={false} />
+              </Link>
+            </div>
+
+            {/* RIGHT: Action Icons (Search, Wishlist, Cart) */}
+            <div className="flex items-center space-x-1 sm:space-x-2 shrink-0 -mr-1 sm:mr-0">
+              {/* Search Toggle Icon */}
+              <button
+                className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-900 cursor-pointer"
+                onClick={() => {
+                  setIsMobileSearchOpen(prev => !prev);
+                  setIsMobileMenuOpen(false);
+                }}
+                aria-label="Search"
+              >
+                <Search size={22} strokeWidth={1.5} />
+              </button>
+
+              {/* Wishlist Heart Icon with Counter */}
+              <Link 
+                to="/shop" 
+                className="p-2 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-900"
+                aria-label="Wishlist"
+              >
+                <Heart size={22} strokeWidth={1.5} />
+                <span className="absolute top-0.5 right-0 inline-flex items-center justify-center min-w-[17px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs">
+                  {wishlistCount > 0 ? wishlistCount : 2}
+                </span>
+              </Link>
+
+              {/* Header Cart Bag Icon with Counter */}
+              <Link 
+                id="header-cart-icon"
+                to="/cart" 
+                className={`p-2 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-900 ${
+                  isCartBouncing ? 'scale-125 ring-2 ring-black bg-neutral-100' : ''
+                }`}
+                aria-label="Cart"
+              >
+                <ShoppingBag size={22} strokeWidth={1.5} />
+                <span className="absolute top-0.5 right-0 inline-flex items-center justify-center min-w-[17px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs">
+                  {itemCount > 0 ? itemCount : 3}
+                </span>
+              </Link>
             </div>
           </div>
         </div>
@@ -199,6 +183,7 @@ function LayoutInner() {
           </div>
         )}
       </header>
+      )}
 
       {/* Main Content with smooth page transition */}
       <main className="flex-grow flex flex-col min-h-[60vh] overflow-x-hidden">

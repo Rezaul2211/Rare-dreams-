@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Image, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle, Phone, MessageCircle, Share2, CreditCard, ShieldCheck, FileText, Plus, Trash2, Search, Globe, ExternalLink, Copy } from 'lucide-react';
+import { Image as ImageIcon, Save, Loader2, Sparkles, Upload, Check, RefreshCw, AlertCircle, Phone, MessageCircle, Share2, CreditCard, ShieldCheck, FileText, Plus, Trash2, Search, Globe, ExternalLink, Copy } from 'lucide-react';
 import { useStoreConfigStore, DEFAULT_STORE_CONFIG } from '../../store/useStoreConfigStore';
 import { useCategoryStore, CategoryItem } from '../../store/useCategoryStore';
 import { StoreConfig } from '../../types';
@@ -10,8 +10,17 @@ export interface BannerSlide {
   id: number;
   image: string;
   title: string;
+  titleAccent?: string;
   subtitle: string;
   link: string;
+  tag?: string;
+  theme?: 'dark' | 'pink' | 'olive' | 'light';
+  tagColor?: string;
+  titleColor?: string;
+  accentColor?: string;
+  subtitleColor?: string;
+  buttonBg?: string;
+  buttonText?: string;
 }
 
 export interface CategoryImageSetting {
@@ -23,47 +32,74 @@ export interface CategoryImageSetting {
 export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
   {
     id: 1,
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
-    title: 'New Season Collection',
-    subtitle: 'Discover the latest trends in premium fashion for the modern era.',
-    link: '/shop'
+    image: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=2070&auto=format&fit=crop',
+    tag: 'NEW COLLECTION 2025',
+    title: 'Elevate Your',
+    titleAccent: 'Everyday Style',
+    subtitle: 'Timeless looks. Premium quality.\nMade for you.',
+    link: '/category/Men',
+    theme: 'dark',
+    tagColor: '#C69A4C',
+    titleColor: '#FFFFFF',
+    accentColor: '#C69A4C',
+    subtitleColor: '#D4D4D8',
+    buttonBg: '#FFFFFF',
+    buttonText: '#0A0A0A'
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop',
-    title: 'Winter Essentials',
-    subtitle: 'Stay warm without compromising on style. Explore our new arrivals.',
-    link: '/shop'
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=2070&auto=format&fit=crop',
+    tag: 'LUXURY ACCESSORIES',
+    title: 'The Finest Details',
+    titleAccent: 'Make The Difference',
+    subtitle: 'Premium accessories to\ncomplete your style.',
+    link: '/category/Accessories',
+    theme: 'pink',
+    tagColor: '#B46573',
+    titleColor: '#1C1917',
+    accentColor: '#B46573',
+    subtitleColor: '#57534E',
+    buttonBg: '#B46573',
+    buttonText: '#FFFFFF'
   },
   {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2070&auto=format&fit=crop',
-    title: 'Exclusive Accessories',
-    subtitle: 'Elevate your look with our handpicked accessories.',
-    link: '/category/Accessories'
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
+    tag: 'NEW COLLECTION 2025',
+    title: 'Redefine Your',
+    titleAccent: 'Every Occasion',
+    subtitle: 'Versatile styles for every moment.\nCrafted for comfort. Designed for you.',
+    link: '/category/Women',
+    theme: 'olive',
+    tagColor: '#556B4E',
+    titleColor: '#242D20',
+    accentColor: '#556B4E',
+    subtitleColor: '#4A5545',
+    buttonBg: '#4E6247',
+    buttonText: '#FFFFFF'
   }
 ];
 
 export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
   {
-    title: 'Foot wear',
-    link: '/category/Foot wear',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'
+    title: 'Men',
+    link: '/category/Men',
+    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: "Men's items",
-    link: "/category/Men's items",
-    image: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=800&auto=format&fit=crop'
+    title: 'Women',
+    link: '/category/Women',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: 'Baby items',
-    link: '/category/Baby items',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
+    title: 'Kids',
+    link: '/category/Kids',
+    image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
   },
   {
-    title: "Women's items",
-    link: "/category/Women's items",
-    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?q=80&w=800&auto=format&fit=crop'
+    title: 'Accessories',
+    link: '/category/Accessories',
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
@@ -75,6 +111,7 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<{ type: string; index: number } | null>(null);
 
   const { config, updateConfig } = useStoreConfigStore();
 
@@ -86,7 +123,7 @@ export default function AdminSettings() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.banners && Array.isArray(data.banners)) {
+          if (data.banners && Array.isArray(data.banners) && data.banners.length > 0) {
             setBanners(data.banners);
           }
         }
@@ -100,7 +137,7 @@ export default function AdminSettings() {
   }, []);
 
   useEffect(() => {
-    if (storeCategories) {
+    if (storeCategories && storeCategories.length > 0) {
       setCategories(storeCategories);
     }
   }, [storeCategories]);
@@ -157,57 +194,129 @@ export default function AdminSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size exceeds 10MB limit. Please select a smaller image.");
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File size exceeds 15MB limit. Please select a smaller image.");
       return;
     }
 
+    setUploadingIndex({ type, index });
+
     const reader = new FileReader();
+    reader.onerror = () => {
+      alert("Failed to read image file.");
+      setUploadingIndex(null);
+    };
+
     reader.onload = (event) => {
-      const img = new Image();
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) {
+        setUploadingIndex(null);
+        return;
+      }
+
+      const img = new window.Image();
+      img.onerror = () => {
+        alert("Failed to process image. Please try another image.");
+        setUploadingIndex(null);
+      };
+
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 800;
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round(height * (MAX_WIDTH / width));
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round(width * (MAX_HEIGHT / height));
+              height = MAX_HEIGHT;
+            }
           }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.80);
+
+            if (type === 'banner') {
+              handleBannerChange(index, 'image', compressedBase64);
+            } else {
+              handleCategoryChange(index, 'image', compressedBase64);
+            }
           }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        // Lightweight compressed image (<60KB)
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
-
-        if (type === 'banner') {
-          handleBannerChange(index, 'image', compressedBase64);
-        } else {
-          handleCategoryChange(index, 'image', compressedBase64);
+        } catch (err) {
+          console.error("Canvas processing error:", err);
+          // Fallback to raw data url if canvas fails
+          if (type === 'banner') {
+            handleBannerChange(index, 'image', dataUrl);
+          } else {
+            handleCategoryChange(index, 'image', dataUrl);
+          }
+        } finally {
+          setUploadingIndex(null);
         }
       };
-      img.src = event.target?.result as string;
+
+      img.src = dataUrl;
     };
+
     reader.readAsDataURL(file);
+  };
+
+  const handleResetCategories = () => {
+    if (confirm("Reset categories to standard 4 clean categories (Men, Women, Kids, Accessories)? Old custom categories will be cleared.")) {
+      const standard: CategoryItem[] = [
+        {
+          id: 'men',
+          title: 'Men',
+          link: '/category/Men',
+          image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
+        },
+        {
+          id: 'women',
+          title: 'Women',
+          link: '/category/Women',
+          image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
+        },
+        {
+          id: 'kids',
+          title: 'Kids',
+          link: '/category/Kids',
+          image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
+        },
+        {
+          id: 'accessories',
+          title: 'Accessories',
+          link: '/category/Accessories',
+          image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
+        }
+      ];
+      setCategories(standard);
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
     setSavedSuccess(false);
     try {
-      // 1. Save Homepage Banners & Categories
+      // 1. Immediately cache banners locally for instant 0ms load
+      try {
+        localStorage.setItem('rare_dreams_hero_slides', JSON.stringify(banners));
+      } catch {}
+
+      // 2. Save Homepage Banners & Categories to Firestore
       const docRef = doc(db, 'settings', 'homepage');
       await setDoc(docRef, {
         banners,
@@ -215,10 +324,10 @@ export default function AdminSettings() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      // 2. Save Category Store
+      // 3. Save Category Store
       await saveCategories(categories);
 
-      // 3. Save Store Config (Social links, WhatsApp, Payment numbers, Licenses)
+      // 4. Save Store Config (Social links, WhatsApp, Payment numbers, Licenses)
       await updateConfig(storeForm);
 
       setSavedSuccess(true);
@@ -285,7 +394,7 @@ export default function AdminSettings() {
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
         <div className="border-b border-neutral-100 pb-4">
           <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
-            <Image size={20} className="text-neutral-700" />
+            <ImageIcon size={20} className="text-neutral-700" />
             <span>Home Hero Banner Slides (3 Slides)</span>
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
@@ -341,17 +450,46 @@ export default function AdminSettings() {
                 />
               </div>
 
-              {/* Title Input */}
+              {/* Tag Input */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
-                  Banner Title
+                  Tag / Eyebrow (e.g. NEW COLLECTION 2025)
                 </label>
                 <input
                   type="text"
-                  value={banner.title}
-                  onChange={(e) => handleBannerChange(index, 'title', e.target.value)}
+                  value={banner.tag || ''}
+                  onChange={(e) => handleBannerChange(index, 'tag', e.target.value)}
+                  placeholder="NEW COLLECTION 2025"
                   className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
                 />
+              </div>
+
+              {/* Title Inputs */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                    Main Title (Line 1)
+                  </label>
+                  <input
+                    type="text"
+                    value={banner.title}
+                    onChange={(e) => handleBannerChange(index, 'title', e.target.value)}
+                    placeholder="Elevate Your"
+                    className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                    Accent Title (Line 2)
+                  </label>
+                  <input
+                    type="text"
+                    value={banner.titleAccent || ''}
+                    onChange={(e) => handleBannerChange(index, 'titleAccent', e.target.value)}
+                    placeholder="Everyday Style"
+                    className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-bold text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
               </div>
 
               {/* Subtitle Input */}
@@ -364,6 +502,20 @@ export default function AdminSettings() {
                   value={banner.subtitle}
                   onChange={(e) => handleBannerChange(index, 'subtitle', e.target.value)}
                   className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs text-neutral-700 outline-none focus:ring-2 focus:ring-black resize-none"
+                />
+              </div>
+
+              {/* Link Input */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-neutral-500 mb-1">
+                  Button Link
+                </label>
+                <input
+                  type="text"
+                  value={banner.link || '/shop'}
+                  onChange={(e) => handleBannerChange(index, 'link', e.target.value)}
+                  placeholder="/shop or /category/Men"
+                  className="w-full bg-white border border-neutral-300 px-3 py-2 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-black"
                 />
               </div>
             </div>
@@ -383,14 +535,25 @@ export default function AdminSettings() {
               Add new categories, edit category names, change images, or delete unwanted categories. Changes update live across the website!
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleAddCategory}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer shrink-0 shadow-xs"
-          >
-            <Plus size={16} />
-            <span>Add Category</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleResetCategories}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-neutral-100 text-neutral-700 hover:text-neutral-900 text-xs font-bold uppercase rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer shrink-0 border border-neutral-300"
+              title="Reset to 4 Standard Clean Categories"
+            >
+              <RefreshCw size={14} />
+              <span>Reset to Standard 4</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleAddCategory}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 bg-black text-white text-xs font-bold uppercase rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer shrink-0 shadow-xs"
+            >
+              <Plus size={16} />
+              <span>Add Category</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

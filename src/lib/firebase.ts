@@ -1,52 +1,73 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
+  getAuth, 
+  initializeAuth, 
+  browserLocalPersistence, 
+  browserSessionPersistence, 
+  indexedDBLocalPersistence,
+  inMemoryPersistence 
+} from "firebase/auth";
+import { 
+  getFirestore, 
   initializeFirestore, 
-  persistentLocalCache, 
-  persistentSingleTabManager,
+  memoryLocalCache,
   doc,
   getDocFromServer
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import firebaseConfig from "../../firebase-applet-config.json";
 
-let app: any;
+// Initialize or reuse Firebase App
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+// Initialize Firebase Auth with graceful persistence hierarchy
+let authInstance: any;
 try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error("Firebase init error", error);
+  authInstance = initializeAuth(app, {
+    persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence]
+  });
+} catch {
+  authInstance = getAuth(app);
 }
 
-export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-  console.error("Auth persistence error:", err);
-});
+export const auth = authInstance;
 
 const databaseId = firebaseConfig.firestoreDatabaseId || undefined;
 
+// Initialize Firestore with memory cache or safe fallback to prevent IndexedDB closing/hidden crashes in iframes
 let firestoreDb: any;
 try {
   firestoreDb = initializeFirestore(
     app,
     {
       experimentalForceLongPolling: true,
-      localCache: persistentLocalCache({
-        tabManager: persistentSingleTabManager({})
-      })
+      localCache: memoryLocalCache()
     },
     databaseId
   );
-} catch (e) {
-  console.warn("Initializing Firestore with standard settings fallback:", e);
-  firestoreDb = initializeFirestore(
-    app,
-    {
-      experimentalForceLongPolling: true
-    },
-    databaseId
-  );
+} catch {
+  try {
+    firestoreDb = getFirestore(app, databaseId);
+  } catch (e) {
+    console.warn("Firestore initialization fallback:", e);
+    firestoreDb = getFirestore(app);
+  }
 }
 
 export const db = firestoreDb;
 export const storage = getStorage(app);
+
+// Safe connection test
+async function testConnection() {
+  try {
+    if (db) {
+      await getDocFromServer(doc(db, 'test', 'connection'));
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration.");
+    }
+  }
+}
+testConnection();
 

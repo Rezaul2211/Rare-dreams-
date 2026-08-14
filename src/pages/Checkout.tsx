@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { useLanguageStore } from '../store/useLanguageStore';
 import { trackInitiateCheckout, trackPurchase } from '../lib/pixel';
+import { requestLocationAddress } from '../lib/geolocation';
 import { 
   ShieldCheck, 
   ChevronLeft, 
@@ -77,94 +78,43 @@ export default function Checkout() {
 
 
   const [isLocating, setIsLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [locationMessage, setLocationMessage] = useState<{type: 'error'|'success'|'info'|'warning', text: string} | null>(null);
 
   const handleAutoLocate = async () => {
+    if (isLocating) return;
+
     setIsLocating(true);
+    setLocationStatus('loading');
     setLocationMessage(null);
 
-    const fallbackToIP = async (reason: string, showOverlayWarning = false) => {
-      try {
-        setLocationMessage({ type: 'info', text: 'Getting approximate area...' });
-        
-        let approxAddress = '';
-        
-        try {
-          const res1 = await fetch('https://ipwho.is/');
-          const data1 = await res1.json();
-          if (data1 && data1.success && data1.city) {
-             approxAddress = `${data1.city}, ${data1.region || ''}, ${data1.country || ''}`.replace(/, ,/g, ',');
-          }
-        } catch (e1) {
-          // ignore and try next
-        }
+    try {
+      const result = await requestLocationAddress();
 
-        if (!approxAddress) {
-          const res2 = await fetch('https://ipapi.co/json/');
-          const data2 = await res2.json();
-          if (data2 && data2.city) {
-            approxAddress = `${data2.city}, ${data2.region || ''}, ${data2.country_name || ''}`.replace(/, ,/g, ',');
-          }
-        }
-        
-        if (approxAddress) {
-          setFormData(prev => ({ ...prev, address: approxAddress }));
-          const warningText = showOverlayWarning 
-            ? `Please close your Messenger Chat Head to allow GPS. For now, we added your approximate area.` 
-            : `Added your approximate area. Please add your House/Flat number.`;
-            
-          setLocationMessage({ type: 'warning', text: warningText });
-        } else {
-          throw new Error("IP APis Failed");
-        }
-      } catch (ipErr) {
-        const text = showOverlayWarning
-          ? "Location blocked by device! Please close the floating Messenger icon on your screen and try again."
-          : "Could not detect location. Please type manually.";
-        setLocationMessage({ type: 'error', text });
-      } finally {
-        setIsLocating(false);
+      if (result.success && result.address) {
+        setFormData(prev => ({ ...prev, address: result.address! }));
+        setLocationStatus('success');
+        setLocationMessage({
+          type: 'success',
+          text: 'Location added! You can edit or refine the address if needed.'
+        });
+      } else {
+        setLocationStatus('error');
+        setLocationMessage({
+          type: 'error',
+          text: result.errorMessage || 'Could not obtain location. Please type your delivery address manually.'
+        });
       }
-    };
-
-    if (!navigator.geolocation) {
-      await fallbackToIP("Browser doesn't support GPS");
-      return;
+    } catch (err) {
+      console.warn('Geolocation execution error:', err);
+      setLocationStatus('error');
+      setLocationMessage({
+        type: 'error',
+        text: 'Could not obtain location. Please type your delivery address manually.'
+      });
+    } finally {
+      setIsLocating(false);
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          
-          if (!response.ok) throw new Error('Network response was not ok');
-          const data = await response.json();
-          
-          if (data && data.display_name) {
-            setFormData(prev => ({ ...prev, address: data.display_name }));
-            setLocationMessage({ type: 'success', text: 'Exact location found!' });
-            setTimeout(() => setLocationMessage(null), 4000);
-          } else {
-            await fallbackToIP("Exact address not found from GPS");
-          }
-          setIsLocating(false);
-        } catch (error) {
-          await fallbackToIP("Network error getting exact address");
-        }
-      },
-      async (error) => {
-        console.warn("Geolocation error:", error.code, error.message);
-        const isDenied = error.code === 1;
-        let reason = isDenied ? "Location permission denied" : "Location request failed";
-        if (error.code === 3) reason = "Location request timed out";
-        
-        await fallbackToIP(reason, isDenied);
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-    );
   };
 
   const checkoutItems = getCheckoutItems();
@@ -587,10 +537,37 @@ export default function Checkout() {
                     type="button"
                     onClick={handleAutoLocate}
                     disabled={isLocating}
-                    className="inline-flex items-center space-x-1 text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 py-1 px-2.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-xs border border-indigo-200/50"
+                    className={`inline-flex items-center space-x-1 text-[10px] sm:text-xs font-bold py-1 px-2.5 rounded-full transition-all active:scale-95 shadow-xs border ${
+                      isLocating
+                        ? 'text-neutral-500 bg-neutral-100 border-neutral-200 cursor-wait'
+                        : locationStatus === 'success'
+                        ? 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 cursor-pointer'
+                        : locationStatus === 'error'
+                        ? 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200 cursor-pointer'
+                        : 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200/60 cursor-pointer'
+                    }`}
                   >
-                    {isLocating ? <Loader2 size={12} className="animate-spin" /> : <MapPin size={12} />}
-                    <span>{isLocating ? 'Locating...' : 'Auto-fill Location'}</span>
+                    {isLocating ? (
+                      <>
+                        <Loader2 size={12} className="animate-spin text-neutral-600" />
+                        <span>Locating...</span>
+                      </>
+                    ) : locationStatus === 'success' ? (
+                      <>
+                        <Check size={12} className="text-emerald-600" />
+                        <span>Location Added</span>
+                      </>
+                    ) : locationStatus === 'error' ? (
+                      <>
+                        <RotateCcw size={12} className="text-amber-700" />
+                        <span>Try Again</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin size={12} className="text-indigo-600" />
+                        <span>Auto-fill Location</span>
+                      </>
+                    )}
                   </button>
                 </div>
                 <textarea 
@@ -605,8 +582,8 @@ export default function Checkout() {
                 />
                 {locationMessage && (
                   <div className={`mt-2 p-2.5 rounded-xl flex items-start space-x-2 text-xs font-medium animate-in fade-in slide-in-from-top-1 ${
-                    locationMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' :
-                    locationMessage.type === 'warning' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                    locationMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' :
+                    locationMessage.type === 'warning' ? 'bg-amber-50 text-amber-800 border border-amber-100' :
                     locationMessage.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' :
                     'bg-blue-50 text-blue-700 border border-blue-100'
                   }`}>

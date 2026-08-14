@@ -1,13 +1,14 @@
 export interface Product {
   id: string;
   name: string;
-  category: 'Men' | 'Women' | 'Kids';
+  category: string;
   subcategory?: string;
   price: number;
   comparePrice?: number;
   discount?: number;
   discountPercentage?: number;
   isFlashSale?: boolean;
+  rating?: number;
   stockQuantity: number;
   sizeOptions?: string[];
   colorOptions?: string[];

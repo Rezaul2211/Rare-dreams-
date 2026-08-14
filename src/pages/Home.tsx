@@ -1,119 +1,635 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
+import { 
+  ArrowRight, 
+  Truck, 
+  RotateCcw, 
+  ShieldCheck, 
+  CreditCard, 
+  Sparkles, 
+  Users, 
+  Headphones,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Product } from '../types';
-import { ProductSkeleton } from '../components/ProductSkeleton';
 import { ProductCard } from '../components/ProductCard';
-import { CompactProductCard } from '../components/CompactProductCard';
-import HomeSkeleton from '../components/HomeSkeleton';
+import { ProductSkeleton } from '../components/ProductSkeleton';
 import { DEFAULT_HERO_SLIDES, BannerSlide } from './admin/AdminSettings';
 import { useCategoryStore } from '../store/useCategoryStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
 import SEO from '../components/SEO';
 
+// Pristine showcase items matching the reference blueprint screenshot exactly
+const MEN_SHOWCASE: Product[] = [
+  {
+    id: 'men-suit-1',
+    name: 'Classic Suit Jacket',
+    category: 'Men',
+    subcategory: 'Clothing',
+    price: 4900,
+    comparePrice: 6790,
+    discount: 28,
+    stockQuantity: 25,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'],
+    description: 'Tailored luxury suit jacket crafted with refined fabric.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'men-shoes-2',
+    name: 'Oxford Shoes',
+    category: 'Men',
+    subcategory: 'Shoes',
+    price: 1360,
+    comparePrice: 1560,
+    discount: 14,
+    stockQuantity: 30,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop'],
+    description: 'Classic genuine leather handcrafted Oxford shoes.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'men-denim-3',
+    name: 'Premium Denim Jacket',
+    category: 'Men',
+    subcategory: 'Clothing',
+    price: 2240,
+    comparePrice: 2800,
+    discount: 20,
+    stockQuantity: 20,
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=800&auto=format&fit=crop'],
+    description: 'Timeless vintage wash premium denim jacket.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'men-watch-4',
+    name: 'Luxury Watch',
+    category: 'Men',
+    subcategory: 'Watches',
+    price: 3650,
+    comparePrice: 4450,
+    discount: 18,
+    stockQuantity: 15,
+    rating: 4.9,
+    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+    description: 'Precision chronograph timepiece with stainless steel band.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'men-polo-5',
+    name: 'Slim-Fit Cotton Polo',
+    category: 'Men',
+    subcategory: 'Clothing',
+    price: 1150,
+    comparePrice: 1450,
+    discount: 20,
+    stockQuantity: 22,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=800&auto=format&fit=crop'],
+    description: 'Breathable pique knit slim-fit polo with ribbed collar.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'men-sunglasses-6',
+    name: 'Aviator Dark Shades',
+    category: 'Men',
+    subcategory: 'Accessories',
+    price: 950,
+    comparePrice: 1200,
+    discount: 21,
+    stockQuantity: 28,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop'],
+    description: 'UV400 polarized classic gunmetal aviator sunglasses.',
+    createdAt: new Date(),
+    status: 'published'
+  }
+];
+
+const WOMEN_SHOWCASE: Product[] = [
+  {
+    id: 'women-bag-1',
+    name: 'Elegant Shoulder Bag',
+    category: 'Women',
+    subcategory: 'Bags',
+    price: 1490,
+    comparePrice: 2190,
+    discount: 32,
+    stockQuantity: 20,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+    description: 'Luxurious designer shoulder bag with golden hardware chain.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'women-dress-2',
+    name: 'Premium Maxi Dress',
+    category: 'Women',
+    subcategory: 'Dresses',
+    price: 1890,
+    comparePrice: 2250,
+    discount: 16,
+    stockQuantity: 18,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=800&auto=format&fit=crop'],
+    description: 'Flowing silky evening maxi dress for special occasions.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'women-floral-3',
+    name: 'Floral Summer Dress',
+    category: 'Women',
+    subcategory: 'Dresses',
+    price: 1650,
+    comparePrice: 2200,
+    discount: 25,
+    stockQuantity: 24,
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=800&auto=format&fit=crop'],
+    description: 'Lightweight breathable cotton floral printed daytime dress.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'women-pinkbag-4',
+    name: 'Chic Pink Handbag',
+    category: 'Women',
+    subcategory: 'Bags',
+    price: 1280,
+    comparePrice: 1600,
+    discount: 20,
+    stockQuantity: 16,
+    rating: 4.9,
+    images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop'],
+    description: 'Chic structured pastel pink crossbody leather handbag.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'women-heels-5',
+    name: 'Velvet Stiletto Heels',
+    category: 'Women',
+    subcategory: 'Shoes',
+    price: 2100,
+    comparePrice: 2600,
+    discount: 19,
+    stockQuantity: 15,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop'],
+    description: 'Classic pointed-toe stiletto heels crafted with premium velvet.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'women-scarf-6',
+    name: 'Silk Patterned Scarf',
+    category: 'Women',
+    subcategory: 'Accessories',
+    price: 650,
+    comparePrice: 850,
+    discount: 23,
+    stockQuantity: 30,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1601924994987-69e26d50dc26?q=80&w=800&auto=format&fit=crop'],
+    description: 'Pure Mulberry silk floral patterned lightweight neck scarf.',
+    createdAt: new Date(),
+    status: 'published'
+  }
+];
+
+const KIDS_SHOWCASE: Product[] = [
+  {
+    id: 'kids-shirt-1',
+    name: 'Boys Casual Shirt',
+    category: 'Kids',
+    subcategory: 'Boys',
+    price: 890,
+    comparePrice: 1120,
+    discount: 20,
+    stockQuantity: 30,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1503945438517-f65904a52ce6?q=80&w=800&auto=format&fit=crop'],
+    description: 'Soft 100% cotton casual button-up shirt for boys.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'kids-dress-2',
+    name: 'Girls Party Dress',
+    category: 'Kids',
+    subcategory: 'Girls',
+    price: 1250,
+    comparePrice: 1470,
+    discount: 15,
+    stockQuantity: 25,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1621452773781-0f992fd1f5cb?q=80&w=800&auto=format&fit=crop'],
+    description: 'Sparkling tulle party frock with soft satin waistband.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'kids-sneakers-3',
+    name: 'Kids Sneakers',
+    category: 'Kids',
+    subcategory: 'Footwear',
+    price: 990,
+    comparePrice: 1200,
+    discount: 18,
+    stockQuantity: 35,
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'],
+    description: 'Lightweight cushioned athletic sneakers with easy velcro strap.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'kids-backpack-4',
+    name: 'Kids Backpack',
+    category: 'Kids',
+    subcategory: 'Accessories',
+    price: 890,
+    comparePrice: 990,
+    discount: 10,
+    stockQuantity: 28,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop'],
+    description: 'Playful waterproof backpack with cushioned straps.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'kids-hoodie-5',
+    name: 'Cozy Fleece Hoodie',
+    category: 'Kids',
+    subcategory: 'Clothing',
+    price: 1050,
+    comparePrice: 1350,
+    discount: 22,
+    stockQuantity: 20,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'],
+    description: 'Super-soft combed cotton fleece hoodie for everyday warmth.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'kids-sandals-6',
+    name: 'Summer Strap Sandals',
+    category: 'Kids',
+    subcategory: 'Footwear',
+    price: 750,
+    comparePrice: 950,
+    discount: 21,
+    stockQuantity: 24,
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'],
+    description: 'Flexible non-slip rubber sole summer sandals.',
+    createdAt: new Date(),
+    status: 'published'
+  }
+];
+
+const ACCESSORIES_SHOWCASE: Product[] = [
+  {
+    id: 'acc-bag-1',
+    name: 'Premium Handbag',
+    category: 'Accessories',
+    subcategory: 'Bags',
+    price: 1890,
+    comparePrice: 2390,
+    discount: 21,
+    stockQuantity: 25,
+    rating: 4.9,
+    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+    description: 'Handcrafted luxury leather handbag with polished brass accents.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'acc-watch-2',
+    name: 'Classic Watch',
+    category: 'Accessories',
+    subcategory: 'Watches',
+    price: 3650,
+    comparePrice: 4450,
+    discount: 18,
+    stockQuantity: 20,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+    description: 'Rose-gold trimmed quartz timepiece with dark brown leather strap.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'acc-sunglasses-3',
+    name: 'Sunglasses',
+    category: 'Accessories',
+    subcategory: 'Sunglasses',
+    price: 890,
+    comparePrice: 1190,
+    discount: 25,
+    stockQuantity: 40,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop'],
+    description: 'Polarized UV400 classic aviator sunglasses.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'acc-belt-4',
+    name: 'Leather Belt',
+    category: 'Accessories',
+    subcategory: 'Belts',
+    price: 650,
+    comparePrice: 850,
+    discount: 21,
+    stockQuantity: 30,
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800&auto=format&fit=crop'],
+    description: 'Genuine full-grain cowhide leather belt with antique buckle.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'acc-wallet-5',
+    name: 'Bifold Leather Wallet',
+    category: 'Accessories',
+    subcategory: 'Wallets',
+    price: 790,
+    comparePrice: 990,
+    discount: 20,
+    stockQuantity: 35,
+    rating: 4.8,
+    images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop'],
+    description: 'Slim RFID blocking genuine leather bifold wallet.',
+    createdAt: new Date(),
+    status: 'published'
+  },
+  {
+    id: 'acc-cap-6',
+    name: 'Embroidered Baseball Cap',
+    category: 'Accessories',
+    subcategory: 'Hats',
+    price: 490,
+    comparePrice: 650,
+    discount: 25,
+    stockQuantity: 40,
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=800&auto=format&fit=crop'],
+    description: '100% cotton adjustable curved brim dad cap with custom embroidery.',
+    createdAt: new Date(),
+    status: 'published'
+  }
+];
+
+interface ProductSectionSliderProps {
+  title: string;
+  link: string;
+  products: Product[];
+  loading: boolean;
+}
+
+function ProductSectionSlider({ title, link, products, loading }: ProductSectionSliderProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeDot, setActiveDot] = useState(0);
+
+  const displayProducts = products.length > 0 ? products : [];
+  const totalDots = Math.min(5, Math.max(2, Math.ceil(displayProducts.length / 2)));
+
+  const updateScrollState = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll > 0) {
+      const progress = Math.min(1, Math.max(0, scrollLeft / maxScroll));
+      const idx = Math.min(totalDots - 1, Math.round(progress * (totalDots - 1)));
+      setActiveDot(idx);
+    }
+  };
+
+  useEffect(() => {
+    updateScrollState();
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', updateScrollState, { passive: true });
+      return () => el.removeEventListener('scroll', updateScrollState);
+    }
+  }, [displayProducts.length, totalDots]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const { clientWidth } = scrollRef.current;
+    const scrollAmount = clientWidth * 0.75;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  const scrollToDot = (dotIndex: number) => {
+    if (!scrollRef.current) return;
+    const { scrollWidth, clientWidth } = scrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll > 0 && totalDots > 1) {
+      const targetScroll = (dotIndex / (totalDots - 1)) * maxScroll;
+      scrollRef.current.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  return (
+    <section className="space-y-1.5 sm:space-y-2.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm sm:text-xl md:text-2xl font-bold font-serif text-neutral-900 tracking-tight">
+            {title}
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Previous / Next Chevron Buttons for Desktop / Tablet */}
+          <div className="hidden sm:flex items-center gap-1">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className={`p-1 rounded-full border border-neutral-200 transition-all ${
+                canScrollLeft 
+                  ? 'text-neutral-900 hover:bg-neutral-100 active:scale-95 cursor-pointer' 
+                  : 'text-neutral-300 opacity-40 cursor-not-allowed'
+              }`}
+              aria-label="Previous products"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className={`p-1 rounded-full border border-neutral-200 transition-all ${
+                canScrollRight 
+                  ? 'text-neutral-900 hover:bg-neutral-100 active:scale-95 cursor-pointer' 
+                  : 'text-neutral-300 opacity-40 cursor-not-allowed'
+              }`}
+              aria-label="Next products"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+          <Link
+            to={link}
+            className="text-[11px] sm:text-sm font-bold text-neutral-900 hover:text-black flex items-center gap-1 hover:underline underline-offset-4"
+          >
+            <span>View All</span>
+            <ArrowRight size={12} className="sm:w-3.5 sm:h-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex gap-1.5 sm:gap-3.5 overflow-hidden">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="w-[calc((100%-18px)/4)] sm:w-[calc((100%-42px)/4)] shrink-0">
+              <ProductSkeleton index={i} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={scrollRef}
+          className="flex gap-1.5 sm:gap-3.5 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-1 pt-0.5"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {displayProducts.map((product, index) => (
+            <div 
+              key={product.id} 
+              className="w-[calc((100%-18px)/4)] sm:w-[calc((100%-42px)/4)] shrink-0 snap-start flex flex-col"
+            >
+              <ProductCard product={product} index={index} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Slider Pagination Dots */}
+      <div className="flex justify-center items-center space-x-1.5 pt-0.5">
+        {Array.from({ length: totalDots }).map((_, dot) => (
+          <button
+            key={dot}
+            onClick={() => scrollToDot(dot)}
+            className={`transition-all rounded-full p-0 border-0 cursor-pointer ${
+              dot === activeDot 
+                ? 'w-3.5 h-1.5 bg-neutral-900' 
+                : 'w-1.5 h-1.5 bg-neutral-300 hover:bg-neutral-400'
+            }`}
+            aria-label={`Go to slide ${dot + 1}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [heroSlides, setHeroSlides] = useState<BannerSlide[]>(DEFAULT_HERO_SLIDES);
+
+  // Read instantly from localStorage cache to prevent any 1-second delay / old image flash on initial load
+  const [heroSlides, setHeroSlides] = useState<BannerSlide[]>(() => {
+    try {
+      const cached = localStorage.getItem('rare_dreams_hero_slides');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_HERO_SLIDES;
+  });
+
   const { categories: storeCategories } = useCategoryStore();
-  const { language, t } = useLanguageStore();
+  const { language } = useLanguageStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingSettings, setLoadingSettings] = useState(true);
 
-  // New Arrivals Horizontal Auto-Scroll Ref & Pause state
-  const newArrivalsRef = React.useRef<HTMLDivElement>(null);
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
-
-  // High-performance smooth auto-scroll using requestAnimationFrame only when in viewport
-  useEffect(() => {
-    if (isUserInteracting || allProducts.length === 0) return;
-    const container = newArrivalsRef.current;
-    if (!container) return;
-
-    let animId: number;
-    let isVisible = false;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisible = entry.isIntersecting;
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(container);
-
-    let lastTime = performance.now();
-    const scrollSpeed = 0.04; // pixels per ms
-
-    const step = (now: number) => {
-      const delta = now - lastTime;
-      lastTime = now;
-
-      if (isVisible && !isUserInteracting && container) {
-        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
-          container.scrollLeft = 0;
-        } else {
-          container.scrollLeft += delta * scrollSpeed;
-        }
-      }
-      animId = requestAnimationFrame(step);
-    };
-
-    animId = requestAnimationFrame(step);
-
-    return () => {
-      cancelAnimationFrame(animId);
-      observer.disconnect();
-    };
-  }, [isUserInteracting, allProducts.length]);
-
-  // Fetch Homepage Customization Settings from Firestore
+  // Fetch Homepage Customization Settings from Firestore & Cache in localStorage
   useEffect(() => {
     let isMounted = true;
     const fetchHomepageSettings = async () => {
       try {
         const docRef = doc(db, 'settings', 'homepage');
         const docSnap = await getDoc(docRef);
-        if (isMounted) {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.banners && Array.isArray(data.banners) && data.banners.length > 0) {
-              setHeroSlides(data.banners);
-            }
+        if (isMounted && docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.banners && Array.isArray(data.banners) && data.banners.length > 0) {
+            const legacyUrl1 = 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=2071&auto=format&fit=crop';
+            const legacyUrl2 = 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop';
+            
+            const merged = data.banners.map((b: any, idx: number) => {
+              const def = DEFAULT_HERO_SLIDES[idx] || DEFAULT_HERO_SLIDES[0];
+              const isOldUnsplash = b.image === legacyUrl1 || b.image === legacyUrl2;
+              const finalImage = (!b.image || isOldUnsplash) ? def.image : b.image;
+
+              return {
+                ...def,
+                ...b,
+                image: finalImage,
+                title: b.title || def.title,
+                titleAccent: b.titleAccent || def.titleAccent,
+                subtitle: b.subtitle || def.subtitle,
+                tag: b.tag || def.tag,
+                theme: b.theme || def.theme,
+                tagColor: b.tagColor || def.tagColor,
+                titleColor: b.titleColor || def.titleColor,
+                accentColor: b.accentColor || def.accentColor,
+                subtitleColor: b.subtitleColor || def.subtitleColor,
+                buttonBg: b.buttonBg || def.buttonBg,
+                buttonText: b.buttonText || def.buttonText,
+              };
+            });
+
+            setHeroSlides(merged);
+            try {
+              localStorage.setItem('rare_dreams_hero_slides', JSON.stringify(merged));
+            } catch {}
           }
-          setLoadingSettings(false);
         }
       } catch {
-        if (isMounted) setLoadingSettings(false);
+        // Use current / cached hero slides
       }
     };
     fetchHomepageSettings();
     return () => { isMounted = false; };
   }, []);
 
-  // Auto-slide logic
+  // Auto-slide timer for Hero Slider
   useEffect(() => {
-    if (heroSlides.length === 0) return;
+    if (heroSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, [heroSlides.length]);
 
-  const nextSlide = () => {
-    if (heroSlides.length > 0) {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }
-  };
-  const prevSlide = () => {
-    if (heroSlides.length > 0) {
-      setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
-    }
-  };
-
-  // Fetch published products
+  // Fetch all published products from Firestore
   useEffect(() => {
     let isMounted = true;
     const fetchProducts = async () => {
@@ -124,333 +640,365 @@ export default function Home() {
         );
         const querySnapshot = await getDocs(q);
         if (isMounted) {
-          const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-          setAllProducts(productsData);
+          const fetchedProducts = querySnapshot.docs.map(d => {
+            const data = d.data();
+            return {
+              id: d.id,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            } as Product;
+          });
+          setAllProducts(fetchedProducts);
           setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching products", error);
-        if (isMounted) setLoading(false);
+      } catch {
+        if (isMounted) {
+          setAllProducts([]);
+          setLoading(false);
+        }
       }
     };
     fetchProducts();
     return () => { isMounted = false; };
   }, []);
 
-  // Filter products by category for section rows
-  const productsByCategory = React.useMemo(() => {
-    const map = new Map<string, Product[]>();
-    storeCategories.forEach(cat => {
-      const target = cat.title.toLowerCase().trim();
-      const catProducts = allProducts.filter(p => {
-        if (!p.category) return false;
-        const c = p.category.toLowerCase().trim();
-        if (c === target) return true;
+  // Filter products by category or fall back to screenshot showcase items
+  const menProducts = React.useMemo(() => {
+    const matched = allProducts.filter(p => 
+      p.category?.toLowerCase().includes('men') && !p.category?.toLowerCase().includes('women')
+    );
+    return matched.length > 0 ? matched : MEN_SHOWCASE;
+  }, [allProducts]);
 
-        if (target.includes('women')) {
-          return c.includes('women') || c.includes('girl');
-        }
-        if (target.includes('men') && !target.includes('women')) {
-          return (c.includes('men') && !c.includes('women')) || c.includes('boy');
-        }
-        if (target.includes('baby') || target.includes('kid')) {
-          return c.includes('baby') || c.includes('kid');
-        }
-        if (target.includes('foot') || target.includes('shoe')) {
-          return c.includes('foot') || c.includes('shoe') || c.includes('sneaker');
-        }
+  const womenProducts = React.useMemo(() => {
+    const matched = allProducts.filter(p => 
+      p.category?.toLowerCase().includes('women')
+    );
+    return matched.length > 0 ? matched : WOMEN_SHOWCASE;
+  }, [allProducts]);
 
-        return c.includes(target) || target.includes(c);
-      });
-      map.set(cat.title, catProducts);
+  const kidsProducts = React.useMemo(() => {
+    const matched = allProducts.filter(p => {
+      const c = p.category?.toLowerCase() || '';
+      return c.includes('kid') || c.includes('boy') || c.includes('girl') || c.includes('baby');
     });
-    return map;
-  }, [allProducts, storeCategories]);
+    return matched.length > 0 ? matched : KIDS_SHOWCASE;
+  }, [allProducts]);
+
+  const accessoriesProducts = React.useMemo(() => {
+    const matched = allProducts.filter(p => {
+      const c = p.category?.toLowerCase() || '';
+      return c.includes('access') || c.includes('watch') || c.includes('bag') || c.includes('belt');
+    });
+    return matched.length > 0 ? matched : ACCESSORIES_SHOWCASE;
+  }, [allProducts]);
+
+  // 4 Main Categories (Men, Women, Kids, Accessories)
+  const displayCategories = React.useMemo(() => {
+    if (storeCategories && storeCategories.length > 0) {
+      return storeCategories.slice(0, 4);
+    }
+    return [
+      { id: '1', title: 'Men', link: '/category/Men', image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop' },
+      { id: '2', title: 'Women', link: '/category/Women', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop' },
+      { id: '3', title: 'Kids', link: '/category/Kids', image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop' },
+      { id: '4', title: 'Accessories', link: '/category/Accessories', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop' },
+    ];
+  }, [storeCategories]);
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="w-full min-h-screen bg-[#FAFAFA] text-neutral-900 pb-16">
       <SEO 
-        title="Rare Dreams | Premium Kids & Fashion Apparel"
-        description="Discover Rare Dreams - Premier online shopping destination in Bangladesh for boys wear, girls dresses, baby essentials, and stylish footwear."
-        keywords="Rare Dreams, kids fashion, boys wear, girls dresses, baby clothes, footwear, Bangladesh online store"
+        title="Rare Dreams | Luxury Fashion & Designer Apparel"
+        description="Elevate your everyday style with timeless looks and premium quality luxury fashion."
+        keywords="Rare Dreams, luxury fashion, men clothing, women dresses, kids, designer accessories"
       />
 
-      {loadingSettings ? (
-        <HomeSkeleton />
-      ) : (
-        <>
-          {/* Hero Slider with Touch Swipe & Reduced Gap */}
-          <section className="relative w-full bg-white pt-2 md:pt-4 pb-2 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
-              <div className="relative rounded-2xl md:rounded-3xl overflow-hidden aspect-[16/9] md:aspect-[21/9] bg-neutral-100 shadow-sm">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentSlide}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4 }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.2}
-                    onDragEnd={(e, { offset, velocity }) => {
-                      if (offset.x < -50 || velocity.x < -300) {
-                        nextSlide();
-                      } else if (offset.x > 50 || velocity.x > 300) {
-                        prevSlide();
-                      }
-                    }}
-                    className="absolute inset-0 cursor-grab active:cursor-grabbing select-none"
-                  >
-                    <Link to={heroSlides[currentSlide]?.link || '/shop'} className="block w-full h-full">
-                      <img 
-                        src={heroSlides[currentSlide]?.image} 
-                        alt={heroSlides[currentSlide]?.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover pointer-events-none"
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-1.5 sm:pt-3 space-y-3.5 sm:space-y-6">
+
+        {/* 1. HERO SLIDER BANNER (Sleek Horizontal Widescreen, Silk Smooth Crossfade) */}
+        <section 
+          aria-label="Hero Carousel"
+          className="relative w-full aspect-[2.1/1] xs:aspect-[2.3/1] sm:aspect-[21/9] md:aspect-[24/9] rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-900 shadow-sm"
+        >
+          {heroSlides.map((slide, index) => {
+            const isActive = index === currentSlide;
+            return (
+              <div
+                key={slide.id || index}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
+                  isActive ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                }`}
+              >
+                {/* Background Image */}
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  className="w-full h-full object-cover object-center transform scale-100 hover:scale-102 transition-transform duration-1000"
+                />
+
+                {/* Ultra Crisp Transparent Gradient Overlay */}
+                <div 
+                  className={`absolute inset-0 ${
+                    slide.theme === 'pink'
+                      ? 'bg-gradient-to-r from-[#FFF5F6]/85 via-[#FFF5F6]/40 to-transparent'
+                      : slide.theme === 'olive'
+                      ? 'bg-gradient-to-r from-[#F7FAF6]/85 via-[#F7FAF6]/40 to-transparent'
+                      : 'bg-gradient-to-r from-black/75 via-black/35 to-transparent'
+                  }`}
+                />
+
+                {/* Banner Content */}
+                <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-10 md:px-14 z-20 max-w-[85%] sm:max-w-[72%]">
+                  {slide.tag && (
+                    <div className="flex flex-col items-start mb-0.5 sm:mb-1.5">
+                      <span 
+                        className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold tracking-[0.2em] uppercase block leading-none"
+                        style={{ color: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
+                      >
+                        {slide.tag}
+                      </span>
+                      <div 
+                        className="w-5 sm:w-8 h-[1.5px] mt-0.5 sm:mt-1 opacity-85"
+                        style={{ backgroundColor: slide.tagColor || (slide.theme === 'dark' ? '#C69A4C' : '#1C1917') }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-5 sm:p-8 md:p-12">
-                        <h2 className="text-white text-xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight max-w-xl drop-shadow-md font-display">
-                          {heroSlides[currentSlide]?.title}
-                        </h2>
-                        {heroSlides[currentSlide]?.subtitle && (
-                          <p className="text-neutral-200 text-xs sm:text-sm md:text-base max-w-lg mt-1 line-clamp-2">
-                            {heroSlides[currentSlide]?.subtitle}
-                          </p>
-                        )}
-                      </div>
+                    </div>
+                  )}
+                  
+                  <h1 
+                    className="text-sm xs:text-lg sm:text-3xl md:text-4xl font-bold font-serif leading-[1.12] mb-0.5 sm:mb-2 tracking-tight"
+                    style={{ color: slide.titleColor || (slide.theme === 'dark' ? '#FFFFFF' : '#1C1917') }}
+                  >
+                    {slide.title}
+                    {slide.titleAccent && (
+                      <span 
+                        className="block italic font-normal"
+                        style={{ color: slide.accentColor || (slide.theme === 'dark' ? '#C69A4C' : '#556B4E') }}
+                      >
+                        {slide.titleAccent}
+                      </span>
+                    )}
+                  </h1>
+
+                  {slide.subtitle && (
+                    <p 
+                      className="text-[8px] xs:text-[10.5px] sm:text-xs md:text-sm font-normal mb-1.5 sm:mb-4 leading-relaxed whitespace-pre-line hidden xs:block"
+                      style={{ color: slide.subtitleColor || (slide.theme === 'dark' ? '#D4D4D8' : '#4A5545') }}
+                    >
+                      {slide.subtitle}
+                    </p>
+                  )}
+
+                  <div>
+                    <Link
+                      to={slide.link || '/shop'}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 xs:px-4 xs:py-2 sm:px-6 sm:py-2.5 rounded-full text-[8.5px] xs:text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+                      style={{
+                        backgroundColor: slide.buttonBg || '#FFFFFF',
+                        color: slide.buttonText || '#000000',
+                      }}
+                    >
+                      <span>SHOP NOW</span>
+                      <ArrowRight size={11} className="sm:w-3.5 sm:h-3.5" />
                     </Link>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Manual Slide Navigation Buttons */}
-                <button 
-                  onClick={prevSlide}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white hover:text-black transition-all flex items-center justify-center cursor-pointer shadow-sm"
-                  aria-label="Previous slide"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                <button 
-                  onClick={nextSlide}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white hover:text-black transition-all flex items-center justify-center cursor-pointer shadow-sm"
-                  aria-label="Next slide"
-                >
-                  <ChevronRight size={20} />
-                </button>
-
-                {/* Slider Dots */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex space-x-1.5">
-                  {heroSlides.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentSlide(idx)}
-                      className={`h-1.5 rounded-full transition-all cursor-pointer ${idx === currentSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            );
+          })}
 
-          {/* Featured Categories (2x2 Grid with Clean Gap) */}
-          <section className="pt-4 pb-8 bg-white w-full">
-            <div className="max-w-6xl mx-auto px-3 sm:px-4">
-              <div className="mb-4">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                  {t('home.explore_categories')}
-                </h2>
-              </div>
-
-              {/* Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-                {storeCategories.map((cat, idx) => (
-                  <motion.div
-                    key={cat.id || cat.title || idx}
-                    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.65, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <Link 
-                      to={cat.link || `/category/${encodeURIComponent(cat.title)}`}
-                      className="group relative rounded-2xl md:rounded-3xl overflow-hidden aspect-[4/3] sm:aspect-[4/3] md:aspect-[1/1] block shadow-2xs hover:shadow-xl transition-all duration-500 bg-neutral-200"
-                    >
-                      <img 
-                        src={cat.image || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop'} 
-                        alt={cat.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                      />
-
-                      {/* Subtle gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
-
-                      {/* Overlay Title */}
-                      <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 text-center z-10 px-2">
-                        <h3 className="text-base sm:text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md group-hover:scale-105 transition-transform duration-500 font-display">
-                          {translateCategory(cat.title, language)}
-                        </h3>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* PRODUCTS DISPLAY SECTIONS */}
-      <div className="space-y-10 pb-12 bg-[#FAFAFA] pt-6">
-        {/* 1. FIRST: ALL NEW ARRIVALS SECTION (Horizontal Compact Single-Row Auto-Scrolling) */}
-        <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
-          <div className="flex items-center justify-between mb-3 border-b border-neutral-200/80 pb-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                {t('home.new_arrivals')}
-              </h2>
-            </div>
-
-            <Link 
-              to="/shop" 
-              className="text-xs font-bold text-amber-800 hover:text-black transition-colors flex items-center gap-0.5 hover:underline decoration-amber-600 underline-offset-2 shrink-0"
-            >
-              <span>{t('home.view_all')}</span>
-              <ChevronRight size={14} />
-            </Link>
+          {/* Hero Slider Pagination Dots */}
+          <div className="absolute bottom-1.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5">
+            {heroSlides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  currentSlide === idx
+                    ? 'w-4 h-1 bg-white shadow-xs'
+                    : 'w-1 h-1 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
           </div>
-
-          {loading ? (
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="w-[145px] sm:w-[170px] aspect-[3/4] bg-neutral-200 animate-pulse rounded-2xl shrink-0" />
-              ))}
-            </div>
-          ) : allProducts.length > 0 ? (
-            <NewArrivalsCarousel products={allProducts.slice(0, 12)} />
-          ) : (
-            <div className="text-center text-neutral-500 py-8 bg-white rounded-2xl border border-neutral-200 text-xs">
-              {'No products found in store catalogue yet.'}
-            </div>
-          )}
         </section>
 
-        {/* 2. SECOND: PRODUCTS BY CATEGORY IN ORDER (Men's -> Women's -> Baby's -> Footwear) */}
-        {storeCategories.map((cat) => {
-          const catProducts = productsByCategory.get(cat.title) || [];
-          if (!loading && catProducts.length === 0) return null; // Skip empty categories
-
-          return (
-            <section key={cat.title} className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full">
-              <div className="flex items-center justify-between mb-4 border-b border-neutral-200/80 pb-2">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">{t('home.explore_categories')}</span>
-                  <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-neutral-900 font-display">
-                    {translateCategory(cat.title, language)}
-                  </h2>
-                </div>
-
-                <Link 
-                  to={cat.link || `/category/${encodeURIComponent(cat.title)}`} 
-                  className="text-xs font-bold text-neutral-700 hover:text-black transition-colors flex items-center gap-0.5 hover:underline underline-offset-2 shrink-0"
-                >
-                  <span>{t('home.view_all')}</span>
-                  <ChevronRight size={14} />
-                </Link>
+        {/* 2. VALUE PROPOSITION STRIP (4 Items in 1 Single Horizontal Row) */}
+        <section className="bg-white rounded-lg sm:rounded-xl border border-neutral-200/80 p-1.5 sm:p-2.5 shadow-2xs">
+          <div className="grid grid-cols-4 gap-1 sm:gap-2.5 divide-x divide-neutral-100">
+            {/* 1. Free Delivery */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 px-0.5 sm:px-1.5 min-w-0">
+              <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-[#FFF8EE] text-[#C69A4C] flex items-center justify-center shrink-0">
+                <Truck size={11} className="sm:w-4 sm:h-4" />
               </div>
+              <div className="min-w-0 leading-none">
+                <h4 className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold text-neutral-900 leading-tight truncate">Free Delivery</h4>
+                <p className="text-[6px] xs:text-[7.5px] sm:text-[10px] text-neutral-500 leading-tight mt-0.5 truncate">Over ৳999</p>
+              </div>
+            </div>
 
-              {loading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {[...Array(4)].map((_, i) => (
-                    <ProductSkeleton key={i} index={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {catProducts.slice(0, 4).map((product, index) => (
-                    <ProductCard key={product.id} product={product} index={index} />
-                  ))}
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+            {/* 2. Easy Returns */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 px-0.5 sm:px-1.5 min-w-0">
+              <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-[#FFF8EE] text-[#C69A4C] flex items-center justify-center shrink-0">
+                <RotateCcw size={11} className="sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0 leading-none">
+                <h4 className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold text-neutral-900 leading-tight truncate">Easy Returns</h4>
+                <p className="text-[6px] xs:text-[7.5px] sm:text-[10px] text-neutral-500 leading-tight mt-0.5 truncate">14 days return</p>
+              </div>
+            </div>
+
+            {/* 3. 100% Authentic */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 px-0.5 sm:px-1.5 min-w-0">
+              <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-[#FFF8EE] text-[#C69A4C] flex items-center justify-center shrink-0">
+                <ShieldCheck size={11} className="sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0 leading-none">
+                <h4 className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold text-neutral-900 leading-tight truncate">100% Authentic</h4>
+                <p className="text-[6px] xs:text-[7.5px] sm:text-[10px] text-neutral-500 leading-tight mt-0.5 truncate">Premium quality</p>
+              </div>
+            </div>
+
+            {/* 4. Secure Payment */}
+            <div className="flex items-center space-x-1 sm:space-x-1.5 px-0.5 sm:px-1.5 min-w-0">
+              <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-[#FFF8EE] text-[#C69A4C] flex items-center justify-center shrink-0">
+                <CreditCard size={11} className="sm:w-4 sm:h-4" />
+              </div>
+              <div className="min-w-0 leading-none">
+                <h4 className="text-[7.5px] xs:text-[9px] sm:text-xs font-bold text-neutral-900 leading-tight truncate">Secure Pay</h4>
+                <p className="text-[6px] xs:text-[7.5px] sm:text-[10px] text-neutral-500 leading-tight mt-0.5 truncate">100% secure</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. 4 INDIVIDUAL CATEGORY CARDS (Men, Women, Kids, Accessories) */}
+        <section className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+          {displayCategories.map((cat) => (
+            <Link
+              key={cat.id || cat.title}
+              to={cat.link || `/category/${cat.title}`}
+              className="group flex items-center space-x-1 sm:space-x-2 p-1 sm:p-2 bg-white rounded-lg sm:rounded-xl border border-neutral-200/80 shadow-2xs hover:border-black/30 hover:shadow-xs transition-all"
+            >
+              <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200 shadow-2xs group-hover:border-black transition-colors">
+                <img
+                  src={cat.image}
+                  alt={cat.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="min-w-0 leading-none">
+                <h3 className="text-[8.5px] xs:text-[10px] sm:text-xs font-bold text-neutral-900 leading-tight group-hover:text-black truncate">
+                  {cat.title}
+                </h3>
+                <span className="text-[6.5px] xs:text-[8px] sm:text-[9.5px] text-neutral-400 font-medium leading-none block mt-0.5">
+                  Explore
+                </span>
+              </div>
+            </Link>
+          ))}
+        </section>
+
+        {/* 4. MEN'S COLLECTION SECTION (Slidable Left & Right Horizontal Product Carousel) */}
+        <ProductSectionSlider
+          title="Men's Collection"
+          link="/category/Men"
+          products={menProducts}
+          loading={loading}
+        />
+
+        {/* 5. WOMEN'S COLLECTION SECTION (Slidable Left & Right Horizontal Product Carousel) */}
+        <ProductSectionSlider
+          title="Women's Collection"
+          link="/category/Women"
+          products={womenProducts}
+          loading={loading}
+        />
+
+        {/* 6. PROMOTIONAL BENTO 3-CARD GRID (Daily Drops, Most Loved, Up to 50% Off) */}
+        <section className="grid grid-cols-3 gap-1 sm:gap-2.5">
+          {/* Bento Card 1: Daily Drops */}
+          <Link
+            to="/shop"
+            className="group relative rounded-md sm:rounded-lg overflow-hidden bg-neutral-950 px-2 py-1.5 sm:px-3 sm:py-2 flex items-center justify-between shadow-2xs min-h-[48px] xs:min-h-[54px] sm:min-h-[66px] hover:shadow-xs transition-all"
+          >
+            <div className="relative z-10 min-w-0 pr-1 flex flex-col justify-center">
+              <span className="text-[6px] xs:text-[7px] sm:text-[8px] font-bold text-[#C69A4C] tracking-wider uppercase block leading-none">NEW ARRIVALS</span>
+              <h3 className="text-[9.5px] xs:text-[10.5px] sm:text-xs font-bold font-serif text-white leading-tight mt-0.5">Daily Drops</h3>
+              <span className="inline-flex items-center gap-0.5 text-[7px] xs:text-[8px] sm:text-[10px] font-semibold text-[#C69A4C] group-hover:underline underline-offset-2 mt-0.5 leading-none">
+                Shop Now <ArrowRight size={8} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 shrink-0 relative rounded overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=400&auto=format&fit=crop"
+                alt="Daily Drops"
+                className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-500"
+              />
+            </div>
+          </Link>
+
+          {/* Bento Card 2: Most Loved */}
+          <Link
+            to="/shop"
+            className="group relative rounded-md sm:rounded-lg overflow-hidden bg-gradient-to-br from-[#F6E7CF] to-[#EBD2AA] px-2 py-1.5 sm:px-3 sm:py-2 flex items-center justify-between shadow-2xs min-h-[48px] xs:min-h-[54px] sm:min-h-[66px] hover:shadow-xs transition-all"
+          >
+            <div className="relative z-10 min-w-0 pr-1 flex flex-col justify-center">
+              <span className="text-[6px] xs:text-[7px] sm:text-[8px] font-bold text-[#6D4C13] tracking-wider uppercase block leading-none">BEST SELLERS</span>
+              <h3 className="text-[9.5px] xs:text-[10.5px] sm:text-xs font-bold font-serif text-neutral-900 leading-tight mt-0.5">Most Loved</h3>
+              <span className="inline-flex items-center gap-0.5 text-[7px] xs:text-[8px] sm:text-[10px] font-semibold text-neutral-900 group-hover:underline underline-offset-2 mt-0.5 leading-none">
+                Explore Now <ArrowRight size={8} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center text-sm xs:text-base sm:text-xl drop-shadow-xs">
+              🏆
+            </div>
+          </Link>
+
+          {/* Bento Card 3: Up to 50% Off */}
+          <Link
+            to="/shop"
+            className="group relative rounded-md sm:rounded-lg overflow-hidden bg-gradient-to-br from-[#162419] to-[#1F2F23] px-2 py-1.5 sm:px-3 sm:py-2 flex items-center justify-between shadow-2xs min-h-[48px] xs:min-h-[54px] sm:min-h-[66px] hover:shadow-xs transition-all"
+          >
+            <div className="relative z-10 min-w-0 pr-1 flex flex-col justify-center">
+              <span className="text-[6px] xs:text-[7px] sm:text-[8px] font-bold text-[#C69A4C] tracking-wider uppercase block leading-none">MEGA SALE</span>
+              <h3 className="text-[9.5px] xs:text-[10.5px] sm:text-xs font-bold font-serif text-white leading-tight mt-0.5">Up to 50% Off</h3>
+              <span className="inline-flex items-center gap-0.5 text-[7px] xs:text-[8px] sm:text-[10px] font-semibold text-[#C69A4C] group-hover:underline underline-offset-2 mt-0.5 leading-none">
+                Shop Now <ArrowRight size={8} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+            <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 shrink-0 relative rounded overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&auto=format&fit=crop"
+                alt="Mega Sale"
+                className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-500"
+              />
+              <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[6px] sm:text-[7.5px] font-extrabold px-0.5 py-0.1 rounded-full shadow-xs">
+                %
+              </div>
+            </div>
+          </Link>
+        </section>
+
+        {/* 7. KIDS COLLECTION SECTION (Slidable Left & Right Horizontal Product Carousel) */}
+        <ProductSectionSlider
+          title="Kids Collection"
+          link="/category/Kids"
+          products={kidsProducts}
+          loading={loading}
+        />
+
+        {/* 8. ACCESSORIES COLLECTION SECTION (Slidable Left & Right Horizontal Product Carousel) */}
+        <ProductSectionSlider
+          title="Accessories"
+          link="/category/Accessories"
+          products={accessoriesProducts}
+          loading={loading}
+        />
+
+      </main>
     </div>
   );
 }
-
-function NewArrivalsCarousel({ products }: { products: Product[] }) {
-  const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    if (isPaused || products.length === 0) return;
-    const container = scrollRef.current;
-    if (!container) return;
-
-    // Smooth, jitter-free scroll interval
-    const interval = setInterval(() => {
-      if (!container) return;
-      // If reached end, seamlessly reset scroll to start without triggering smooth-scroll animation conflict
-      if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 6) {
-        container.scrollLeft = 0;
-      } else {
-        container.scrollLeft += 1;
-      }
-    }, 45);
-
-    return () => clearInterval(interval);
-  }, [isPaused, products.length]);
-
-  const handleScrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -240, behavior: 'smooth' });
-    }
-  };
-
-  const handleScrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 240, behavior: 'smooth' });
-    }
-  };
-
-  return (
-    <div className="relative group/carousel">
-      {/* Scroll Navigation Buttons */}
-      <button
-        onClick={handleScrollLeft}
-        className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/90 shadow-md border border-neutral-200 text-neutral-800 flex items-center justify-center hover:bg-black hover:text-white transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer"
-        aria-label="Scroll left"
-      >
-        <ChevronLeft size={18} />
-      </button>
-
-      <button
-        onClick={handleScrollRight}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/90 shadow-md border border-neutral-200 text-neutral-800 flex items-center justify-center hover:bg-black hover:text-white transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer"
-        aria-label="Scroll right"
-      >
-        <ChevronRight size={18} />
-      </button>
-
-      <div
-        ref={scrollRef}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-        className="flex flex-nowrap overflow-x-auto gap-2.5 pb-2 pt-1 no-scrollbar scrollbar-none touch-auto cursor-grab active:cursor-grabbing"
-      >
-        {products.map((product, idx) => (
-          <CompactProductCard key={product.id || idx} product={product} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
