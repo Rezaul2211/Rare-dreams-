@@ -3,11 +3,8 @@ import re
 with open('src/pages/Checkout.tsx', 'r', encoding='utf-8') as f:
     content = f.read()
 
-# 1. Remove showPermissionGuide from state
-content = content.replace("  const [showPermissionGuide, setShowPermissionGuide] = useState(false);", "")
+old_logic_pattern = r"  const handleAutoLocate = async \(\) => \{.*?\{ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 \}\s*\);\s*\};"
 
-# 2. Replace the handleAutoLocate logic completely
-old_logic_pattern = r"  const fallbackToIP = async.*?catch \(e\) \{\s*// Fallback if query fails\s*setShowPermissionGuide\(true\);\s*\}\s*\};"
 new_logic = """  const handleAutoLocate = async () => {
     setIsLocating(true);
     setLocationMessage(null);
@@ -15,23 +12,42 @@ new_logic = """  const handleAutoLocate = async () => {
     const fallbackToIP = async (reason: string, showOverlayWarning = false) => {
       try {
         setLocationMessage({ type: 'info', text: 'Getting approximate area...' });
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
         
-        if (data && data.city) {
-          const approxAddress = `${data.city}, ${data.region || ''}, ${data.country_name || ''}`.replace(/, ,/g, ',');
+        let approxAddress = '';
+        
+        try {
+          const res1 = await fetch('https://ipwho.is/');
+          const data1 = await res1.json();
+          if (data1 && data1.success && data1.city) {
+             approxAddress = `${data1.city}, ${data1.region || ''}, ${data1.country || ''}`.replace(/, ,/g, ',');
+          }
+        } catch (e1) {
+          // ignore and try next
+        }
+
+        if (!approxAddress) {
+          const res2 = await fetch('https://ipapi.co/json/');
+          const data2 = await res2.json();
+          if (data2 && data2.city) {
+            approxAddress = `${data2.city}, ${data2.region || ''}, ${data2.country_name || ''}`.replace(/, ,/g, ',');
+          }
+        }
+        
+        if (approxAddress) {
           setFormData(prev => ({ ...prev, address: approxAddress }));
-          
           const warningText = showOverlayWarning 
-            ? `Android Users: Close Messenger bubbles to allow GPS. We found your approximate area instead.` 
-            : `${reason}. We found your approximate area.`;
+            ? `Please close your Messenger Chat Head to allow GPS. For now, we added your approximate area.` 
+            : `Added your approximate area. Please add your House/Flat number.`;
             
           setLocationMessage({ type: 'warning', text: warningText });
         } else {
-          setLocationMessage({ type: 'error', text: `${reason}, and approximate location also failed. Please type manually.` });
+          throw new Error("IP APis Failed");
         }
       } catch (ipErr) {
-        setLocationMessage({ type: 'error', text: 'Could not detect location. Please type manually.' });
+        const text = showOverlayWarning
+          ? "Location blocked by device! Please close the floating Messenger icon on your screen and try again."
+          : "Could not detect location. Please type manually.";
+        setLocationMessage({ type: 'error', text });
       } finally {
         setIsLocating(false);
       }
@@ -78,10 +94,6 @@ new_logic = """  const handleAutoLocate = async () => {
   };"""
 
 content = re.sub(old_logic_pattern, new_logic, content, flags=re.DOTALL)
-
-# 3. Remove the Modal UI completely
-modal_pattern = r"\s*\{\/\* Permission Guide Modal \*\/\}.*?\{\/\* Gateway Processing Modal \*\/\}"
-content = re.sub(modal_pattern, "\n      {/* Gateway Processing Modal */}", content, flags=re.DOTALL)
 
 with open('src/pages/Checkout.tsx', 'w', encoding='utf-8') as f:
     f.write(content)
