@@ -32,7 +32,7 @@ export interface CategoryImageSetting {
 export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
   {
     id: 1,
-    image: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=2070&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=1200&q=70&auto=format&fit=crop',
     tag: 'NEW COLLECTION 2026',
     title: 'Elevate Your',
     titleAccent: 'Everyday Style',
@@ -48,7 +48,7 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&q=70&auto=format&fit=crop',
     tag: 'NEW COLLECTION 2026',
     title: 'Redefine Your',
     titleAccent: 'Every Occasion',
@@ -64,7 +64,7 @@ export const DEFAULT_HERO_SLIDES: BannerSlide[] = [
   },
   {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=2070&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1200&q=70&auto=format&fit=crop',
     tag: 'LUXURY ACCESSORIES',
     title: 'The Finest Details',
     titleAccent: 'Make The Difference',
@@ -84,22 +84,22 @@ export const DEFAULT_CATEGORIES: CategoryImageSetting[] = [
   {
     title: 'Men',
     link: '/category/Men',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&q=60&auto=format&fit=crop'
   },
   {
     title: 'Women',
     link: '/category/Women',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&q=60&auto=format&fit=crop'
   },
   {
     title: 'Kids',
     link: '/category/Kids',
-    image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=400&q=60&auto=format&fit=crop'
   },
   {
     title: 'Accessories',
     link: '/category/Accessories',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=400&q=60&auto=format&fit=crop'
   }
 ];
 
@@ -182,7 +182,7 @@ export default function AdminSettings() {
       id: crypto.randomUUID(),
       title,
       link: `/category/${encodeURIComponent(title)}`,
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop'
+      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=400&q=60&auto=format&fit=crop'
     };
     setCategories(prev => [...prev, newCat]);
   };
@@ -293,25 +293,25 @@ export default function AdminSettings() {
           id: 'men',
           title: 'Men',
           link: '/category/Men',
-          image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
+          image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&q=60&auto=format&fit=crop'
         },
         {
           id: 'women',
           title: 'Women',
           link: '/category/Women',
-          image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
+          image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&q=60&auto=format&fit=crop'
         },
         {
           id: 'kids',
           title: 'Kids',
           link: '/category/Kids',
-          image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
+          image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=400&q=60&auto=format&fit=crop'
         },
         {
           id: 'accessories',
           title: 'Accessories',
           link: '/category/Accessories',
-          image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
+          image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=400&q=60&auto=format&fit=crop'
         }
       ];
       setCategories(standard);

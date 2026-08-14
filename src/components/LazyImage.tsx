@@ -63,10 +63,10 @@ export function LazyImage({
       ref={containerRef}
       className={clsx("relative overflow-hidden bg-neutral-100/90 flex-shrink-0", containerClassName)}
     >
-      {/* Soft Shimmer Backdrop for Loading State */}
+      {/* Soft Backdrop for Loading State */}
       <div 
         className={clsx(
-          "absolute inset-0 bg-gradient-to-r from-neutral-100 via-neutral-200/50 to-neutral-100 bg-[length:200%_100%] animate-pulse pointer-events-none transition-opacity duration-500 ease-out z-0",
+          "absolute inset-0 bg-neutral-200 pointer-events-none transition-opacity duration-300 ease-out z-0",
           isLoaded || hasError ? "opacity-0 pointer-events-none" : "opacity-100"
         )} 
       />
@@ -81,8 +81,8 @@ export function LazyImage({
           onLoad={() => setIsLoaded(true)}
           onError={() => setHasError(true)}
           className={clsx(
-            "w-full h-full object-cover relative z-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu",
-            !isLoaded ? "opacity-0 scale-[1.03] filter blur-xs" : "opacity-100 scale-100 filter blur-0",
+            "w-full h-full object-cover relative z-10 transition-opacity duration-300 ease-in-out",
+            !isLoaded ? "opacity-0" : "opacity-100",
             className
           )}
           {...props}

@@ -56,16 +56,16 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
 
   return (
     <div
-      className="group flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xs hover:shadow-md transition-shadow duration-300 overflow-hidden border border-neutral-200/70 relative select-none w-full"
+      className="group flex flex-col bg-white rounded-lg sm:rounded-xl shadow-2xs hover:shadow-sm transition-shadow duration-200 overflow-hidden border border-neutral-200/70 relative select-none w-full"
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 transform-gpu">
         <Link to={`/product/${product.id}`} className="block w-full h-full">
           {product.images && product.images.length > 0 ? (
             <LazyImage
               src={product.images[0]}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               containerClassName="w-full h-full"
             />
           ) : (
@@ -87,10 +87,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, in
           type="button"
           onClick={handleWishlistClick}
           aria-label={favorited ? "Remove from Wishlist" : "Add to Wishlist"}
-          className={`absolute top-1 sm:top-2 right-1 sm:right-2 z-20 w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+          className={`absolute top-1 sm:top-2 right-1 sm:right-2 z-20 w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
             favorited 
-              ? 'bg-white text-red-500 shadow-sm scale-105' 
-              : 'bg-white/90 backdrop-blur-xs text-neutral-700 hover:text-red-500 hover:bg-white shadow-2xs'
+              ? 'bg-white text-red-500 shadow-sm' 
+              : 'bg-white/95 text-neutral-700 hover:text-red-500 shadow-2xs'
           }`}
         >
           <Heart 

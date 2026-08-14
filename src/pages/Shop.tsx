@@ -49,7 +49,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 28,
         rating: 4.8,
         stockQuantity: 45,
-        images: ['https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Tailored classic suit jacket crafted from breathable wool-blend fabric.',
         status: 'published',
         createdAt: new Date()
@@ -64,7 +64,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 14,
         rating: 4.7,
         stockQuantity: 30,
-        images: ['https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Handcrafted genuine leather Oxford shoes for formal elegance.',
         status: 'published',
         createdAt: new Date()
@@ -79,7 +79,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.6,
         stockQuantity: 50,
-        images: ['https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Heavyweight washed denim jacket with vintage contrast stitching.',
         status: 'published',
         createdAt: new Date()
@@ -94,7 +94,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 18,
         rating: 4.9,
         stockQuantity: 25,
-        images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Chronograph luxury wristwatch with sapphire crystal and genuine leather strap.',
         status: 'published',
         createdAt: new Date()
@@ -109,7 +109,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 10,
         rating: 4.7,
         stockQuantity: 65,
-        images: ['https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Slim-fit breathable cotton casual shirt for effortless style.',
         status: 'published',
         createdAt: new Date()
@@ -124,7 +124,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 21,
         rating: 4.6,
         stockQuantity: 40,
-        images: ['https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Multi-pocket utility cargo pants in relaxed durable cotton twill.',
         status: 'published',
         createdAt: new Date()
@@ -139,7 +139,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 22,
         rating: 4.8,
         stockQuantity: 28,
-        images: ['https://images.unsplash.com/photo-1638247025967-b4e38f787b76?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1638247025967-b4e38f787b76?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Sleek leather chelsea boots with elastic side gussets.',
         status: 'published',
         createdAt: new Date()
@@ -154,7 +154,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.7,
         stockQuantity: 80,
-        images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Full-grain leather belt with a brushed nickel buckle.',
         status: 'published',
         createdAt: new Date()
@@ -177,7 +177,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 32,
         rating: 4.8,
         stockQuantity: 40,
-        images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Spacious structured shoulder bag with dual gold-toned metallic hardware.',
         status: 'published',
         createdAt: new Date()
@@ -192,7 +192,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 16,
         rating: 4.7,
         stockQuantity: 35,
-        images: ['https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Floor-length flowy maxi dress in soft blush pink crepe.',
         status: 'published',
         createdAt: new Date()
@@ -207,7 +207,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 25,
         rating: 4.6,
         stockQuantity: 50,
-        images: ['https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Breezy wrap floral dress with flutter sleeves and waist tie.',
         status: 'published',
         createdAt: new Date()
@@ -222,7 +222,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.9,
         stockQuantity: 42,
-        images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Iconic rose handbag with detachable shoulder strap and tassel charm.',
         status: 'published',
         createdAt: new Date()
@@ -237,7 +237,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 21,
         rating: 4.7,
         stockQuantity: 30,
-        images: ['https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Comfortable block-heel strappy sandals in warm tan finish.',
         status: 'published',
         createdAt: new Date()
@@ -252,7 +252,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 18,
         rating: 4.9,
         stockQuantity: 75,
-        images: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=400&q=60&auto=format&fit=crop'],
         description: '24K gold plated crystal textured drop earrings.',
         status: 'published',
         createdAt: new Date()
@@ -267,7 +267,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 25,
         rating: 4.8,
         stockQuantity: 40,
-        images: ['https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Lustrous satin button-down blouse for everyday luxury.',
         status: 'published',
         createdAt: new Date()
@@ -282,7 +282,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 26,
         rating: 4.8,
         stockQuantity: 60,
-        images: ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Minimalist golden coin pendant chain necklace.',
         status: 'published',
         createdAt: new Date()
@@ -305,7 +305,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.7,
         stockQuantity: 60,
-        images: ['https://images.unsplash.com/photo-1503945438517-f65904a52ce6?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1503945438517-f65904a52ce6?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Soft 100% cotton casual button-up shirt for boys.',
         status: 'published',
         createdAt: new Date()
@@ -320,7 +320,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 15,
         rating: 4.8,
         stockQuantity: 45,
-        images: ['https://images.unsplash.com/photo-1621452773781-0f992fd1f5cb?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1621452773781-0f992fd1f5cb?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Sparkling tulle party frock with soft satin waistband for girls.',
         status: 'published',
         createdAt: new Date()
@@ -335,7 +335,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 18,
         rating: 4.6,
         stockQuantity: 50,
-        images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Lightweight cushioned athletic sneakers with easy velcro strap.',
         status: 'published',
         createdAt: new Date()
@@ -350,7 +350,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 10,
         rating: 4.7,
         stockQuantity: 38,
-        images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Water-resistant playful school backpack with padded shoulder straps.',
         status: 'published',
         createdAt: new Date()
@@ -365,7 +365,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 24,
         rating: 4.7,
         stockQuantity: 48,
-        images: ['https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Stretch cotton denim pants with adjustable elastic waistband.',
         status: 'published',
         createdAt: new Date()
@@ -380,7 +380,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 21,
         rating: 4.8,
         stockQuantity: 36,
-        images: ['https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Breathable organic cotton summer dress with sweet ruffle trim.',
         status: 'published',
         createdAt: new Date()
@@ -395,7 +395,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.6,
         stockQuantity: 29,
-        images: ['https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Anti-slip flexible first-walker shoes for toddlers.',
         status: 'published',
         createdAt: new Date()
@@ -410,7 +410,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 25,
         rating: 4.9,
         stockQuantity: 55,
-        images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Wide-brim UV-protection cotton bucket hat with chin strap.',
         status: 'published',
         createdAt: new Date()
@@ -433,7 +433,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 21,
         rating: 4.9,
         stockQuantity: 40,
-        images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Handcrafted luxury leather handbag with polished brass accents.',
         status: 'published',
         createdAt: new Date()
@@ -448,7 +448,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 18,
         rating: 4.8,
         stockQuantity: 28,
-        images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Rose-gold trimmed quartz timepiece with dark brown stitched leather strap.',
         status: 'published',
         createdAt: new Date()
@@ -463,7 +463,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 25,
         rating: 4.7,
         stockQuantity: 56,
-        images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Polarized UV400 classic aviator frame sunglasses with metal temples.',
         status: 'published',
         createdAt: new Date()
@@ -478,7 +478,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 21,
         rating: 4.6,
         stockQuantity: 45,
-        images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Genuine full-grain cowhide leather belt with antique buckle.',
         status: 'published',
         createdAt: new Date()
@@ -493,7 +493,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 22,
         rating: 4.6,
         stockQuantity: 38,
-        images: ['https://images.unsplash.com/photo-1611591475102-1ef994689622?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1611591475102-1ef994689622?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Italian cuban link gold plated chain bracelet with lobster clasp.',
         status: 'published',
         createdAt: new Date()
@@ -508,7 +508,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 20,
         rating: 4.7,
         stockQuantity: 42,
-        images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'RFID-blocking slim bi-fold leather wallet with multiple card slots.',
         status: 'published',
         createdAt: new Date()
@@ -523,7 +523,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 18,
         rating: 4.9,
         stockQuantity: 95,
-        images: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Sparkling diamond-cut hoop earrings in 18K yellow gold tone.',
         status: 'published',
         createdAt: new Date()
@@ -538,7 +538,7 @@ const COLLECTIONS_CONFIG: Record<string, CollectionMeta> = {
         discount: 26,
         rating: 4.8,
         stockQuantity: 34,
-        images: ['https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop'],
+        images: ['https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&q=60&auto=format&fit=crop'],
         description: 'Retro gold frame aviator sunglasses with tinted gradient lenses.',
         status: 'published',
         createdAt: new Date()

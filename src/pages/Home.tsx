@@ -35,7 +35,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 28,
     stockQuantity: 25,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Tailored luxury suit jacket crafted with refined fabric.',
     createdAt: new Date(),
     status: 'published'
@@ -50,7 +50,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 14,
     stockQuantity: 30,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Classic genuine leather handcrafted Oxford shoes.',
     createdAt: new Date(),
     status: 'published'
@@ -65,7 +65,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 20,
     stockQuantity: 20,
     rating: 4.6,
-    images: ['https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Timeless vintage wash premium denim jacket.',
     createdAt: new Date(),
     status: 'published'
@@ -80,7 +80,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 18,
     stockQuantity: 15,
     rating: 4.9,
-    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Precision chronograph timepiece with stainless steel band.',
     createdAt: new Date(),
     status: 'published'
@@ -95,7 +95,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 20,
     stockQuantity: 22,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Breathable pique knit slim-fit polo with ribbed collar.',
     createdAt: new Date(),
     status: 'published'
@@ -110,7 +110,7 @@ const MEN_SHOWCASE: Product[] = [
     discount: 21,
     stockQuantity: 28,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'UV400 polarized classic gunmetal aviator sunglasses.',
     createdAt: new Date(),
     status: 'published'
@@ -128,7 +128,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 32,
     stockQuantity: 20,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Luxurious designer shoulder bag with golden hardware chain.',
     createdAt: new Date(),
     status: 'published'
@@ -143,7 +143,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 16,
     stockQuantity: 18,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Flowing silky evening maxi dress for special occasions.',
     createdAt: new Date(),
     status: 'published'
@@ -158,7 +158,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 25,
     stockQuantity: 24,
     rating: 4.6,
-    images: ['https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Lightweight breathable cotton floral printed daytime dress.',
     createdAt: new Date(),
     status: 'published'
@@ -173,7 +173,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 20,
     stockQuantity: 16,
     rating: 4.9,
-    images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Chic structured pastel pink crossbody leather handbag.',
     createdAt: new Date(),
     status: 'published'
@@ -188,7 +188,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 19,
     stockQuantity: 15,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Classic pointed-toe stiletto heels crafted with premium velvet.',
     createdAt: new Date(),
     status: 'published'
@@ -203,7 +203,7 @@ const WOMEN_SHOWCASE: Product[] = [
     discount: 23,
     stockQuantity: 30,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1601924994987-69e26d50dc26?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1601924994987-69e26d50dc26?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Pure Mulberry silk floral patterned lightweight neck scarf.',
     createdAt: new Date(),
     status: 'published'
@@ -221,7 +221,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 20,
     stockQuantity: 30,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1503945438517-f65904a52ce6?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1503945438517-f65904a52ce6?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Soft 100% cotton casual button-up shirt for boys.',
     createdAt: new Date(),
     status: 'published'
@@ -236,7 +236,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 15,
     stockQuantity: 25,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1621452773781-0f992fd1f5cb?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1621452773781-0f992fd1f5cb?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Sparkling tulle party frock with soft satin waistband.',
     createdAt: new Date(),
     status: 'published'
@@ -251,7 +251,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 18,
     stockQuantity: 35,
     rating: 4.6,
-    images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Lightweight cushioned athletic sneakers with easy velcro strap.',
     createdAt: new Date(),
     status: 'published'
@@ -266,7 +266,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 10,
     stockQuantity: 28,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Playful waterproof backpack with cushioned straps.',
     createdAt: new Date(),
     status: 'published'
@@ -281,7 +281,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 22,
     stockQuantity: 20,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Super-soft combed cotton fleece hoodie for everyday warmth.',
     createdAt: new Date(),
     status: 'published'
@@ -296,7 +296,7 @@ const KIDS_SHOWCASE: Product[] = [
     discount: 21,
     stockQuantity: 24,
     rating: 4.6,
-    images: ['https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Flexible non-slip rubber sole summer sandals.',
     createdAt: new Date(),
     status: 'published'
@@ -314,7 +314,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 21,
     stockQuantity: 25,
     rating: 4.9,
-    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Handcrafted luxury leather handbag with polished brass accents.',
     createdAt: new Date(),
     status: 'published'
@@ -329,7 +329,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 18,
     stockQuantity: 20,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Rose-gold trimmed quartz timepiece with dark brown leather strap.',
     createdAt: new Date(),
     status: 'published'
@@ -344,7 +344,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 25,
     stockQuantity: 40,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Polarized UV400 classic aviator sunglasses.',
     createdAt: new Date(),
     status: 'published'
@@ -359,7 +359,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 21,
     stockQuantity: 30,
     rating: 4.6,
-    images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Genuine full-grain cowhide leather belt with antique buckle.',
     createdAt: new Date(),
     status: 'published'
@@ -374,7 +374,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 20,
     stockQuantity: 35,
     rating: 4.8,
-    images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=400&q=60&auto=format&fit=crop'],
     description: 'Slim RFID blocking genuine leather bifold wallet.',
     createdAt: new Date(),
     status: 'published'
@@ -389,7 +389,7 @@ const ACCESSORIES_SHOWCASE: Product[] = [
     discount: 25,
     stockQuantity: 40,
     rating: 4.7,
-    images: ['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=800&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400&q=60&auto=format&fit=crop'],
     description: '100% cotton adjustable curved brim dad cap with custom embroidery.',
     createdAt: new Date(),
     status: 'published'
@@ -429,9 +429,22 @@ function ProductSectionSlider({ title, link, products, loading }: ProductSection
   useEffect(() => {
     updateScrollState();
     const el = scrollRef.current;
+    let timeoutId: any;
+    
+    const handleScroll = () => {
+      if (timeoutId) return;
+      timeoutId = setTimeout(() => {
+        updateScrollState();
+        timeoutId = null;
+      }, 50); // Throttle to 50ms
+    };
+
     if (el) {
-      el.addEventListener('scroll', updateScrollState, { passive: true });
-      return () => el.removeEventListener('scroll', updateScrollState);
+      el.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        el.removeEventListener('scroll', handleScroll);
+        if (timeoutId) clearTimeout(timeoutId);
+      };
     }
   }, [displayProducts.length, totalDots]);
 
@@ -706,10 +719,10 @@ export default function Home() {
       return storeCategories.slice(0, 4);
     }
     return [
-      { id: '1', title: 'Men', link: '/category/Men', image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop' },
-      { id: '2', title: 'Women', link: '/category/Women', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop' },
-      { id: '3', title: 'Kids', link: '/category/Kids', image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop' },
-      { id: '4', title: 'Accessories', link: '/category/Accessories', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop' },
+      { id: '1', title: 'Men', link: '/category/Men', image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&q=60&auto=format&fit=crop' },
+      { id: '2', title: 'Women', link: '/category/Women', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&q=60&auto=format&fit=crop' },
+      { id: '3', title: 'Kids', link: '/category/Kids', image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=400&q=60&auto=format&fit=crop' },
+      { id: '4', title: 'Accessories', link: '/category/Accessories', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=400&q=60&auto=format&fit=crop' },
     ];
   }, [storeCategories]);
 
