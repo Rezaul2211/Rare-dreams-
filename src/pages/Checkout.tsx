@@ -106,8 +106,14 @@ export default function Checkout() {
         }
       },
       (error) => {
-        console.error("Geolocation error:", error);
-        alert("Please allow location access to use this feature.");
+        console.error("Geolocation error:", error.code, error.message);
+        
+        let errorMessage = "Failed to get location.";
+        if (error.code === 1) errorMessage = "Location access denied. Please allow location permissions in your browser settings.";
+        else if (error.code === 2) errorMessage = "Location position unavailable.";
+        else if (error.code === 3) errorMessage = "Location request timed out.";
+        
+        alert(errorMessage);
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
