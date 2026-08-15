@@ -14,14 +14,12 @@ import {
 import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { useCategoryStore } from '../store/useCategoryStore';
 import { useLanguageStore, translateCategory } from '../store/useLanguageStore';
-import PolicyModal from './PolicyModal';
 import Logo from './Logo';
 
 export default function Footer() {
   const { config } = useStoreConfigStore();
   const { categories } = useCategoryStore();
   const { language, t } = useLanguageStore();
-  const [activePolicyModal, setActivePolicyModal] = useState<'returns' | 'privacy' | 'terms' | 'license' | null>(null);
   const [subscribed, setSubscribed] = useState(false);
   const [emailInput, setEmailInput] = useState('');
 
@@ -138,18 +136,18 @@ export default function Footer() {
                     <Link to="/contact" onClick={scrollToTop} className="hover:text-white transition-colors">Contact Us</Link>
                   </li>
                   <li>
-                    <button onClick={() => setActivePolicyModal('returns')} className="hover:text-white transition-colors text-left w-full">Returns & Refunds</button>
+                    <Link to="/returns" onClick={scrollToTop} className="hover:text-white transition-colors">Returns & Refunds</Link>
                   </li>
                   <li>
-                    <button onClick={() => setActivePolicyModal('privacy')} className="hover:text-white transition-colors text-left w-full">Privacy Policy</button>
+                    <Link to="/privacy" onClick={scrollToTop} className="hover:text-white transition-colors">Privacy Policy</Link>
                   </li>
                   <li>
-                    <button onClick={() => setActivePolicyModal('terms')} className="hover:text-white transition-colors text-left w-full">Terms & Conditions</button>
+                    <Link to="/terms" onClick={scrollToTop} className="hover:text-white transition-colors">Terms & Conditions</Link>
                   </li>
                   <li>
-                    <button onClick={() => setActivePolicyModal('license')} className="hover:text-white transition-colors text-left w-full flex items-center gap-1">
+                    <Link to="/license" onClick={scrollToTop} className="hover:text-white transition-colors flex items-center gap-1">
                       Trade License
-                    </button>
+                    </Link>
                   </li>
                </ul>
             </div>
@@ -210,11 +208,6 @@ export default function Footer() {
         </div>
       </footer>
 
-      {/* Policy Modal */}
-      <PolicyModal 
-        type={activePolicyModal} 
-        onClose={() => setActivePolicyModal(null)} 
-      />
     </>
   );
 }

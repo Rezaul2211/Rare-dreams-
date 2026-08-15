@@ -22,6 +22,10 @@ const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
 const Login = lazy(() => import('./pages/Login'));
 const Account = lazy(() => import('./pages/Account'));
 const Contact = lazy(() => import("./pages/Contact"));
+const Returns = lazy(() => import("./pages/Returns"));
+const License = lazy(() => import("./pages/License"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 // Admin routes lazy loaded to prevent loading heavy backend code on client visits
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
@@ -72,6 +76,10 @@ export default function App() {
             <Route path="login" element={<Login />} />
             <Route path="account" element={<Account />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="returns" element={<Returns />} />
+            <Route path="license" element={<License />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
           </Route>
           
           <Route path="/admin" element={<AdminLayout />}>
