@@ -859,11 +859,26 @@ export default function AdminSettings() {
 
       <div className="flex justify-end gap-3 mt-8">
         <button
-          onClick={saveStoreSettings}
+          onClick={handleSave}
           disabled={saving}
-          className="bg-black hover:bg-neutral-800 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-md transition-all flex items-center justify-center min-w-[140px]"
+          className="bg-black hover:bg-neutral-800 text-white rounded-2xl px-6 py-3.5 text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center justify-center space-x-2 min-w-[160px] cursor-pointer disabled:opacity-50"
         >
-          {saving ? 'Saving...' : 'Save Settings'}
+          {saving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : savedSuccess ? (
+            <>
+              <Check size={16} className="text-emerald-400" />
+              <span>Saved Successfully!</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Save All Settings</span>
+            </>
+          )}
         </button>
       </div>
     </div>
