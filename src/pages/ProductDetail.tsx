@@ -377,7 +377,7 @@ export default function ProductDetail() {
                 </div>
                 <div className="text-sm font-bold text-neutral-900 ml-1">
                   {product.rating || "4.8"}
-                  <span className="text-[#B48538] ml-1 font-medium">({reviewSummary.totalCount || product.reviewsCount || 128} reviews)</span>
+                  <span className="text-[#B48538] ml-1 font-medium">({reviewSummary.totalCount || product.reviewsCount || 0} reviews)</span>
                 </div>
               </div>
 
@@ -565,7 +565,7 @@ export default function ProductDetail() {
                     className="flex-1 py-3 text-xs sm:text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 border-b-2 border-transparent text-neutral-500 hover:text-neutral-800"
                   >
                     <Star size={16} />
-                    Reviews (128)
+                    Reviews ({reviewSummary.totalCount || product.reviewsCount || 0})
                   </button>
                 </div>
                 

@@ -21,6 +21,7 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
 const Login = lazy(() => import('./pages/Login'));
 const Account = lazy(() => import('./pages/Account'));
+const Contact = lazy(() => import("./pages/Contact"));
 
 // Admin routes lazy loaded to prevent loading heavy backend code on client visits
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="order-success/:id" element={<OrderSuccess />} />
             <Route path="login" element={<Login />} />
             <Route path="account" element={<Account />} />
+            <Route path="contact" element={<Contact />} />
           </Route>
           
           <Route path="/admin" element={<AdminLayout />}>

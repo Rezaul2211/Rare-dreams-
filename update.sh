@@ -1,76 +1,5 @@
-import { create } from 'zustand';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-
-export interface CategoryItem {
-  id?: string;
-  title: string;
-  link: string;
-  image?: string;
-  description?: string;
-}
-
-export const DEFAULT_CATEGORIES: CategoryItem[] = [
-  {
-    id: 'men',
-    title: "Men",
-    link: "/category/Men",
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    id: 'women',
-    title: "Women",
-    link: "/category/Women",
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    id: 'kids',
-    title: 'Kids',
-    link: '/category/Kids',
-    image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    id: 'accessories',
-    title: 'Accessories',
-    link: '/category/Accessories',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop'
-  }
-];
-
-export function normalizeCategoryTitle(title: string): string {
-  const lower = title.toLowerCase().trim();
-  if (lower.includes('women')) return 'Women';
-  if (lower.includes('men')) return 'Men';
-  if (lower.includes('baby') || lower.includes('kid')) return 'Kids';
-  if (lower.includes('access') || lower.includes('foot') || lower.includes('shoe')) return 'Accessories';
-  return title;
-}
-
-export function sortCategoriesByStandardOrder(list: CategoryItem[]): CategoryItem[] {
-  const getOrderIndex = (title: string) => {
-    const norm = normalizeCategoryTitle(title);
-    if (norm === 'Men') return 0;
-    if (norm === 'Women') return 1;
-    if (norm === 'Kids') return 2;
-    if (norm === 'Accessories') return 3;
-    return 4;
-  };
-
-  return [...list]
-    .map(item => ({ ...item, title: normalizeCategoryTitle(item.title) }))
-    .sort((a, b) => getOrderIndex(a.title) - getOrderIndex(b.title));
-}
-
-interface CategoryState {
-  categories: CategoryItem[];
-  loading: boolean;
-  fetchCategories: () => void;
-  saveCategories: (categories: CategoryItem[]) => Promise<void>;
-  addCategory: (category: Omit<CategoryItem, 'id'>) => Promise<void>;
-  updateCategory: (index: number, category: Partial<CategoryItem>) => Promise<void>;
-  deleteCategory: (index: number) => Promise<void>;
-}
-
+cat src/store/useCategoryStore.ts | sed -n '1,74p' > temp.ts
+cat << 'INNEREOF' >> temp.ts
 export const useCategoryStore = create<CategoryState>((set, get) => {
   const getInitialCategories = () => {
     try {
@@ -129,7 +58,7 @@ export const useCategoryStore = create<CategoryState>((set, get) => {
       const catItem: CategoryItem = {
         id: crypto.randomUUID(),
         title: newCat.title,
-        link: newCat.link || `/category/\${encodeURIComponent(newCat.title)}`,
+        link: newCat.link || \`/category/\${encodeURIComponent(newCat.title)}\`,
         image: newCat.image || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop',
         description: newCat.description || ''
       };
@@ -141,7 +70,7 @@ export const useCategoryStore = create<CategoryState>((set, get) => {
       if (index >= 0 && index < current.length) {
         current[index] = { ...current[index], ...updatedFields };
         if (updatedFields.title && !updatedFields.link) {
-          current[index].link = `/category/\${updatedFields.title}`;
+          current[index].link = \`/category/\${updatedFields.title}\`;
         }
         await get().saveCategories(current);
       }
@@ -155,3 +84,5 @@ export const useCategoryStore = create<CategoryState>((set, get) => {
     }
   };
 });
+INNEREOF
+mv temp.ts src/store/useCategoryStore.ts
