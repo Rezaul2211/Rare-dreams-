@@ -82,41 +82,78 @@ export default function ProductForm() {
         alert('Please select valid image files');
         return;
       }
+
+      if (file.size > 15 * 1024 * 1024) {
+        alert("A file exceeds 15MB limit. Please select smaller images.");
+        return;
+      }
+
       const reader = new FileReader();
+      
+      reader.onerror = () => {
+        alert("Error: Browser could not read a file. Please ensure it is fully downloaded.");
+      };
+
       reader.onload = (uploadEvent) => {
         const result = uploadEvent.target?.result as string;
         if (result) {
           const img = new Image();
+          
+          img.onerror = () => {
+             // Fallback for unsupported canvas formats (like some HEIC/WebP on Android) if small enough
+             if (file.size < 500 * 1024) {
+                setFormData(prev => ({
+                  ...prev,
+                  images: [...(prev.images || []), result]
+                }));
+             } else {
+                alert("Image format not supported or file too large to process. Please use a standard JPEG/PNG image.");
+             }
+          };
+
           img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
-            let width = img.width;
-            let height = img.height;
+            try {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 800;
+              const MAX_HEIGHT = 800;
+              let width = img.width;
+              let height = img.height;
 
-            if (width > height) {
-              if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
               }
-            } else {
-              if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              
+              if (ctx) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+                
+                setFormData(prev => ({
+                  ...prev,
+                  images: [...(prev.images || []), compressedBase64]
+                }));
               }
+            } catch (err) {
+              console.error("Canvas error:", err);
+              // Fallback
+              setFormData(prev => ({
+                ...prev,
+                images: [...(prev.images || []), result]
+              }));
             }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0, width, height);
-
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
-            
-            setFormData(prev => ({
-              ...prev,
-              images: [...(prev.images || []), compressedBase64]
-            }));
           };
           img.src = result;
         }

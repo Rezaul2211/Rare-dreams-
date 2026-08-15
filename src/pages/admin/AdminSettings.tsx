@@ -214,7 +214,7 @@ export default function AdminSettings() {
 
     const reader = new FileReader();
     reader.onerror = () => {
-      alert("Failed to read image file.");
+      alert("Error: Browser could not read the file. Please ensure it is a valid image (JPEG/PNG) and fully downloaded to your device.");
       setUploadingIndex(null);
     };
 
@@ -227,15 +227,24 @@ export default function AdminSettings() {
 
       const img = new window.Image();
       img.onerror = () => {
-        alert("Failed to process image. Please try another image.");
+        // If image format (like HEIC/WEBP) isn't supported by the canvas parser, fallback to direct upload if size is small enough
+        if (file.size < 500 * 1024) { // Under 500kb, skip compression
+          if (type === 'banner') {
+            handleBannerChange(index, 'image', dataUrl);
+          } else {
+            handleCategoryChange(index, 'image', dataUrl);
+          }
+        } else {
+          alert("Image format not supported or file too large to process. Please use a standard JPEG/PNG image.");
+        }
         setUploadingIndex(null);
       };
 
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          const MAX_WIDTH = type === 'category' ? 400 : 1200;
+          const MAX_HEIGHT = type === 'category' ? 400 : 1200;
           let width = img.width;
           let height = img.height;
 
@@ -259,7 +268,8 @@ export default function AdminSettings() {
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, width, height);
 
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.80);
+            const quality = type === 'category' ? 0.70 : 0.80;
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
 
             if (type === 'banner') {
               handleBannerChange(index, 'image', compressedBase64);
