@@ -88,12 +88,12 @@ export default function Checkout() {
 
   const checkoutItems = getCheckoutItems();
 
-  // Form State
+  // Form State (kept clean & empty by default)
   const [formData, setFormData] = useState({
-    name: user?.displayName || '',
-    phone: user?.phoneNumber || '',
+    name: '',
+    phone: '',
     address: '',
-    email: user?.email || '',
+    email: '',
     orderNotes: '',
     deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka',
     paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
