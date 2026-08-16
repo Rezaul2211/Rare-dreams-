@@ -23,7 +23,7 @@ import {
   RotateCcw,
   MapPin,
   AlertCircle,
-  Info
+  AlertTriangle
 } from 'lucide-react';
 
 interface DeliveryOption {
@@ -38,29 +38,32 @@ interface DeliveryOption {
 const DELIVERY_OPTIONS: DeliveryOption[] = [
   {
     id: 'inside_dhaka',
-    labelBn: 'Inside Dhaka City',
+    labelBn: 'ঢাকার ভিতরে',
     labelEn: 'Inside Dhaka City',
-    subLabelBn: 'Home Delivery (1-2 Days)',
+    subLabelBn: 'হোম ডেলিভারি (১-২ দিন)',
     subLabelEn: 'Home Delivery (1-2 days)',
     cost: 60,
   },
   {
     id: 'dhaka_suburbs',
-    labelBn: 'Sub-Dhaka Area',
+    labelBn: 'ঢাকা সাব-এরিয়া',
     labelEn: 'Dhaka Suburbs / Outskirts',
-    subLabelBn: 'Savar, Gazipur, Keraniganj, etc. (2-3 Days)',
+    subLabelBn: 'সাভার, গাজীপুর, কেরানীগঞ্জ ইত্যাদি (২-৩ দিন)',
     subLabelEn: 'Savar, Gazipur, Keraniganj, etc (2-3 days)',
     cost: 80,
   },
   {
     id: 'outside_dhaka',
-    labelBn: 'Outside Dhaka / Nationwide',
+    labelBn: 'ঢাকার বাইরে / সারাদেশে',
     labelEn: 'Outside Dhaka / Whole Bangladesh',
-    subLabelBn: 'Courier Delivery (2-4 Days)',
+    subLabelBn: 'কুরিয়ার হোম ডেলিভারি (২-৪ দিন)',
     subLabelEn: 'Courier Home Delivery (2-4 days)',
     cost: 120,
   },
 ];
+
+// Bangladeshi Mobile Number Validation (013, 014, 015, 016, 017, 018, 019 - 11 digits)
+const BD_PHONE_REGEX = /^(?:\+8801|8801|01)[3-9]\d{8}$/;
 
 export default function Checkout() {
   const { directCheckoutItem, getCheckoutItems, getCheckoutSubtotal, clearCart, setDirectCheckoutItem, removeItem } = useCartStore();
@@ -76,10 +79,44 @@ export default function Checkout() {
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
+  // Toast / Banner alert state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isLocating, setIsLocating] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [locationMessage, setLocationMessage] = useState<{type: 'error'|'success'|'info'|'warning', text: string} | null>(null);
+
+  const checkoutItems = getCheckoutItems();
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: user?.displayName || '',
+    phone: user?.phoneNumber || '',
+    address: '',
+    email: user?.email || '',
+    orderNotes: '',
+    deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka',
+    paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
+    senderNumber: '',
+    transactionId: '',
+  });
+
+  const BKASH_NUMBER = config.bkashNumber || '01954710343';
+  const NAGAD_NUMBER = config.nagadNumber || '01342563522';
+
+  const subtotal = Math.round(getCheckoutSubtotal());
+  const selectedDeliveryOption = DELIVERY_OPTIONS.find(d => d.id === formData.deliveryArea) || DELIVERY_OPTIONS[0];
+  const shipping = selectedDeliveryOption.cost;
+  const total = subtotal + (subtotal > 0 ? shipping : 0);
+
+  React.useEffect(() => {
+    if (checkoutItems.length > 0) {
+      trackInitiateCheckout({
+        num_items: checkoutItems.length,
+        value: total,
+      });
+    }
+  }, []);
 
   const handleAutoLocate = async () => {
     if (isLocating) return;
@@ -117,38 +154,6 @@ export default function Checkout() {
     }
   };
 
-  const checkoutItems = getCheckoutItems();
-
-  // Simplified Form State matching streamlined requirements (starts completely empty with no user info auto-filled)
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    email: '',
-    orderNotes: '',
-    deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka',
-    paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
-    senderNumber: '',
-    transactionId: '',
-  });
-
-  const BKASH_NUMBER = config.bkashNumber || '01954710343';
-  const NAGAD_NUMBER = config.nagadNumber || '01342563522';
-
-  const subtotal = getCheckoutSubtotal();
-  const selectedDeliveryOption = DELIVERY_OPTIONS.find(d => d.id === formData.deliveryArea) || DELIVERY_OPTIONS[0];
-  const shipping = selectedDeliveryOption.cost;
-  const total = subtotal + (subtotal > 0 ? shipping : 0);
-
-  React.useEffect(() => {
-    if (checkoutItems.length > 0) {
-      trackInitiateCheckout({
-        num_items: checkoutItems.length,
-        value: total,
-      });
-    }
-  }, []);
-
   if (checkoutItems.length === 0 && !isOrderPlaced && !loading) {
     return <Navigate to="/cart" replace />;
   }
@@ -171,6 +176,7 @@ export default function Checkout() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (errorMessage) setErrorMessage(null);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -180,22 +186,34 @@ export default function Checkout() {
     setTimeout(() => setCopiedNumber(false), 2000);
   };
 
+  // Validate Primary Checkout Details
+  const validateForm = (): boolean => {
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      setErrorMessage('Please enter your full name (minimum 2 characters).');
+      return false;
+    }
+
+    const cleanPhone = formData.phone.trim().replace(/[\s-]/g, '');
+    if (!cleanPhone || !BD_PHONE_REGEX.test(cleanPhone)) {
+      setErrorMessage('Please enter a valid 11-digit Bangladeshi mobile number (e.g. 017XXXXXXXX).');
+      return false;
+    }
+
+    if (!formData.address.trim() || formData.address.trim().length < 5) {
+      setErrorMessage('Please provide a complete delivery address (House/Road, Area, District).');
+      return false;
+    }
+
+    setErrorMessage(null);
+    return true;
+  };
+
   // Main Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      alert('Please enter your name.');
-      return;
-    }
-
-    if (!formData.phone.trim()) {
-      alert('Please enter your mobile phone number.');
-      return;
-    }
-
-    if (!formData.address.trim()) {
-      alert('Please enter your delivery address.');
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -204,7 +222,7 @@ export default function Checkout() {
       setTimeout(() => {
         setIsConnectingGateway(false);
         setShowGatewayModal(true);
-      }, 1000);
+      }, 700);
       return;
     }
 
@@ -215,30 +233,49 @@ export default function Checkout() {
   // Finalize order writing to Firestore
   const finalizeOrder = async () => {
     setLoading(true);
+    setErrorMessage(null);
 
     try {
       const orderRef = doc(collection(db, 'orders'));
       const orderId = orderRef.id;
 
+      // Sanitize products array to ensure complete JSON serializability
+      const sanitizedProducts = checkoutItems.map(item => ({
+        id: item.id || '',
+        cartItemId: item.cartItemId || '',
+        name: item.name || 'Product',
+        category: item.category || '',
+        price: Number(item.price) || 0,
+        discount: Number(item.discount) || 0,
+        quantity: Math.max(1, Number(item.quantity) || 1),
+        selectedSize: item.selectedSize || '',
+        selectedColor: item.selectedColor || '',
+        images: Array.isArray(item.images) ? item.images.slice(0, 3) : [],
+      }));
+
+      const cleanPhone = formData.phone.trim().replace(/[\s-]/g, '');
+
       const orderData = {
         id: orderId,
         userId: user?.uid || 'guest',
         customerName: formData.name.trim(),
-        phone: formData.phone.trim(),
+        phone: cleanPhone,
         address: formData.address.trim(),
         email: formData.email.trim() || '',
         orderNotes: formData.orderNotes.trim() || '',
         deliveryArea: selectedDeliveryOption.labelEn,
         deliveryAreaBn: selectedDeliveryOption.labelBn,
+        deliveryCost: shipping,
         city: selectedDeliveryOption.labelEn,
-        products: checkoutItems,
+        products: sanitizedProducts,
+        itemsCount: sanitizedProducts.reduce((acc, item) => acc + item.quantity, 0),
         subtotal,
         shipping,
         total,
         paymentMethod: formData.paymentMethod,
-        senderNumber: formData.senderNumber || 'N/A',
-        transactionId: formData.transactionId || 'N/A',
-        paymentStatus: formData.paymentMethod === 'cod' ? 'pending' : 'pending',
+        senderNumber: formData.senderNumber.trim() || 'N/A',
+        transactionId: formData.transactionId.trim().toUpperCase() || 'N/A',
+        paymentStatus: formData.paymentMethod === 'cod' ? 'pending' : 'pending_verification',
         status: 'Pending',
         createdAt: serverTimestamp(),
       };
@@ -250,9 +287,10 @@ export default function Checkout() {
       trackPurchase({
         order_id: orderId,
         value: total,
-        num_items: checkoutItems.reduce((acc, item) => acc + item.quantity, 0),
+        num_items: sanitizedProducts.reduce((acc, item) => acc + item.quantity, 0),
       });
 
+      // Clear Cart State cleanly
       if (directCheckoutItem) {
         if (directCheckoutItem.cartItemId) {
           removeItem(directCheckoutItem.cartItemId);
@@ -261,12 +299,13 @@ export default function Checkout() {
       } else {
         clearCart();
       }
+
       setShowGatewayModal(false);
       navigate(`/order-success/${orderId}`, { replace: true });
     } catch (error) {
-      console.error("Error placing order", error);
+      console.error("Error placing order:", error);
       setIsOrderPlaced(false);
-      alert("Failed to place order. Please try again.");
+      setErrorMessage("We could not place your order due to a network or server error. Please try again.");
     } finally {
       setLoading(false);
       setIsVerifyingPayment(false);
@@ -276,24 +315,44 @@ export default function Checkout() {
   // Gateway Modal Submit
   const handleGatewayModalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.senderNumber.trim()) {
-      alert(`Please enter your ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} mobile number.`);
+    const cleanSender = formData.senderNumber.trim().replace(/[\s-]/g, '');
+    
+    if (!cleanSender || !BD_PHONE_REGEX.test(cleanSender)) {
+      alert(`Please enter a valid 11-digit ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} mobile number.`);
       return;
     }
-    if (!formData.transactionId.trim()) {
-      alert('Please enter the Transaction ID (TrxID).');
+
+    const cleanTrx = formData.transactionId.trim();
+    if (!cleanTrx || cleanTrx.length < 6) {
+      alert('Please enter a valid Transaction ID (minimum 6 characters).');
       return;
     }
 
     setIsVerifyingPayment(true);
     setTimeout(() => {
       finalizeOrder();
-    }, 1200);
+    }, 800);
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 w-full flex-grow relative">
       
+      {/* ERROR BANNER */}
+      {errorMessage && (
+        <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+          <AlertTriangle size={20} className="shrink-0 mt-0.5 text-red-600" />
+          <div className="flex-1 text-xs sm:text-sm font-semibold">
+            {errorMessage}
+          </div>
+          <button 
+            onClick={() => setErrorMessage(null)}
+            className="text-red-400 hover:text-red-700 p-1 transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* FULLSCREEN GATEWAY CONNECTING LOADER */}
       {isConnectingGateway && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
@@ -333,6 +392,7 @@ export default function Checkout() {
                 </div>
               </div>
               <button 
+                type="button"
                 onClick={() => setShowGatewayModal(false)}
                 className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition-colors cursor-pointer"
               >
@@ -432,7 +492,7 @@ export default function Checkout() {
                   formData.paymentMethod === 'bKash' ? 'bg-[#D12053] hover:bg-[#b0133f]' : 'bg-[#F7921E] hover:bg-[#d97c12]'
                 } disabled:opacity-60`}
               >
-                {isVerifyingPayment ? (
+                {isVerifyingPayment || loading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
                     <span>Verifying Transaction...</span>
@@ -503,7 +563,7 @@ export default function Checkout() {
                   name="name" 
                   placeholder={'Enter your full name'} 
                   required 
-                  autoComplete="off"
+                  autoComplete="name"
                   value={formData.name} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
@@ -520,7 +580,7 @@ export default function Checkout() {
                   name="phone" 
                   placeholder={'11-digit mobile number (e.g. 017XXXXXXXX)'} 
                   required 
-                  autoComplete="off"
+                  autoComplete="tel"
                   value={formData.phone} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 font-mono transition-all placeholder:text-neutral-400 placeholder:font-sans" 
@@ -575,7 +635,7 @@ export default function Checkout() {
                   rows={2}
                   placeholder={'House/Flat No, Area, Thana/Upazila, District'} 
                   required 
-                  autoComplete="off"
+                  autoComplete="street-address"
                   value={formData.address} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400 resize-none" 
@@ -602,7 +662,7 @@ export default function Checkout() {
                   type="email" 
                   name="email" 
                   placeholder={'Your email address (optional)'} 
-                  autoComplete="off"
+                  autoComplete="email"
                   value={formData.email} 
                   onChange={handleChange} 
                   className="w-full bg-neutral-50/70 border border-neutral-200 hover:border-neutral-300 focus:border-neutral-900 px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/10 rounded-2xl text-sm font-medium text-neutral-900 transition-all placeholder:text-neutral-400" 
@@ -929,3 +989,4 @@ export default function Checkout() {
     </div>
   );
 }
+
