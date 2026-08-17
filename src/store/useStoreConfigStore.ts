@@ -34,9 +34,24 @@ interface StoreConfigState {
   updateConfig: (newConfig: Partial<StoreConfig>) => Promise<void>;
 }
 
+const STORAGE_KEY = 'rare_dreams_cached_store_config';
+
+const getInitialConfig = (): StoreConfig => {
+  try {
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      return { ...DEFAULT_STORE_CONFIG, ...parsed };
+    }
+  } catch (e) {
+    console.warn("Could not read cached store config from localStorage", e);
+  }
+  return DEFAULT_STORE_CONFIG;
+};
+
 export const useStoreConfigStore = create<StoreConfigState>((set, get) => ({
-  config: DEFAULT_STORE_CONFIG,
-  loading: true,
+  config: getInitialConfig(),
+  loading: false,
 
   fetchConfig: () => {
     try {
@@ -45,10 +60,16 @@ export const useStoreConfigStore = create<StoreConfigState>((set, get) => ({
       onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as Partial<StoreConfig>;
+          const merged = { ...DEFAULT_STORE_CONFIG, ...data };
           set({
-            config: { ...DEFAULT_STORE_CONFIG, ...data },
+            config: merged,
             loading: false,
           });
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          } catch (e) {
+            // ignore storage full errors
+          }
         } else {
           set({ config: DEFAULT_STORE_CONFIG, loading: false });
         }
@@ -65,6 +86,11 @@ export const useStoreConfigStore = create<StoreConfigState>((set, get) => ({
   updateConfig: async (newConfig: Partial<StoreConfig>) => {
     const updated = { ...get().config, ...newConfig };
     set({ config: updated });
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      // ignore
+    }
     try {
       const docRef = doc(db, 'settings', 'storeConfig');
       await setDoc(docRef, updated, { merge: true });

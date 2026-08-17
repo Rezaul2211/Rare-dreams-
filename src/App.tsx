@@ -26,6 +26,7 @@ const Returns = lazy(() => import("./pages/Returns"));
 const License = lazy(() => import("./pages/License"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const TrackOrder = lazy(() => import("./pages/TrackOrder"));
 
 // Admin routes lazy loaded to prevent loading heavy backend code on client visits
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
@@ -80,6 +81,8 @@ export default function App() {
             <Route path="license" element={<License />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="terms" element={<Terms />} />
+            <Route path="track-order" element={<TrackOrder />} />
+            <Route path="track" element={<TrackOrder />} />
           </Route>
           
           <Route path="/admin" element={<AdminLayout />}>

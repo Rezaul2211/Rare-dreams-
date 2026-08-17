@@ -73,6 +73,8 @@ export default function Checkout() {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [orderProgressStep, setOrderProgressStep] = useState<number>(1);
 
   // Toast / Banner alert state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -277,10 +279,16 @@ export default function Checkout() {
   const finalizeOrder = async () => {
     setLoading(true);
     setErrorMessage(null);
+    setIsProcessingOrder(true);
+    setOrderProgressStep(1);
 
     try {
       const orderRef = doc(collection(db, 'orders'));
       const orderId = orderRef.id;
+
+      // Step 1: Validating details
+      await new Promise(r => setTimeout(r, 400));
+      setOrderProgressStep(2);
 
       // Sanitize products array to ensure complete JSON serializability
       const sanitizedProducts = checkoutItems.map(item => ({
@@ -327,6 +335,10 @@ export default function Checkout() {
       setIsOrderPlaced(true);
       await setDoc(orderRef, orderData);
 
+      // Step 3: Success Confirmation
+      setOrderProgressStep(3);
+      await new Promise(r => setTimeout(r, 500));
+
       // Track Meta Pixel Purchase event
       trackPurchase({
         order_id: orderId,
@@ -349,6 +361,7 @@ export default function Checkout() {
     } catch (error) {
       console.error("Error placing order:", error);
       setIsOrderPlaced(false);
+      setIsProcessingOrder(false);
       setErrorMessage("We could not place your order due to a network or server error. Please try again.");
     } finally {
       setLoading(false);
@@ -393,6 +406,53 @@ export default function Checkout() {
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {/* FULLSCREEN ORDER PROCESSING ANIMATED MODAL */}
+      {isProcessingOrder && (
+        <div className="fixed inset-0 z-50 bg-neutral-900/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl space-y-6 flex flex-col items-center border border-neutral-100 animate-in zoom-in-95">
+            {/* Animated Icon Ring */}
+            <div className="relative">
+              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-inner">
+                {orderProgressStep === 3 ? (
+                  <CheckCircle2 size={42} className="text-emerald-600 animate-bounce" />
+                ) : (
+                  <Loader2 size={36} className="text-emerald-600 animate-spin" />
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                {orderProgressStep === 3 ? 'Order Secured' : 'Processing Order'}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-neutral-900 mt-2 uppercase tracking-tight">
+                {orderProgressStep === 1 && 'Validating Details...'}
+                {orderProgressStep === 2 && 'Registering Your Order...'}
+                {orderProgressStep === 3 && 'Order Confirmed!'}
+              </h3>
+              <p className="text-xs text-neutral-500 mt-1">
+                Please wait a moment while we secure your booking at Rare Dreams.
+              </p>
+            </div>
+
+            {/* Live Progress Bar */}
+            <div className="w-full space-y-2">
+              <div className="w-full bg-neutral-100 h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-emerald-500 h-full transition-all duration-500 rounded-full" 
+                  style={{ width: `${(orderProgressStep / 3) * 100}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] font-bold text-neutral-400">
+                <span className={orderProgressStep >= 1 ? 'text-emerald-600' : ''}>1. Address Check</span>
+                <span className={orderProgressStep >= 2 ? 'text-emerald-600' : ''}>2. Reserving Stock</span>
+                <span className={orderProgressStep >= 3 ? 'text-emerald-600' : ''}>3. Confirmation</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -133,6 +133,11 @@ export default function Footer() {
                </h4>
                <ul className="space-y-3 text-sm text-neutral-400">
                   <li>
+                    <Link to="/track-order" onClick={scrollToTop} className="hover:text-white transition-colors flex items-center gap-1.5 font-medium text-emerald-400">
+                      <span>Track Order (অর্ডার ট্র্যাক)</span>
+                    </Link>
+                  </li>
+                  <li>
                     <Link to="/contact" onClick={scrollToTop} className="hover:text-white transition-colors">Contact Us</Link>
                   </li>
                   <li>

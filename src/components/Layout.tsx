@@ -10,7 +10,8 @@ import {
   ShieldCheck, 
   X,
   ArrowRight,
-  Menu
+  Menu,
+  Truck
 } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
@@ -478,6 +479,21 @@ function LayoutInner() {
 
                   {/* Account & Admin Section */}
                   <div className="pt-3 space-y-2">
+                    <Link 
+                      to="/track-order" 
+                      className="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-neutral-800 bg-neutral-100/70 hover:bg-neutral-100 rounded-xl transition-colors" 
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        scrollToTop();
+                      }}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Truck size={16} className="text-neutral-700" />
+                        <span>Track Order (অর্ডার ট্র্যাক)</span>
+                      </div>
+                      <ArrowRight size={14} className="text-neutral-400" />
+                    </Link>
+
                     {user?.role === 'admin' && (
                       <Link 
                         to="/admin" 

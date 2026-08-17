@@ -3,15 +3,37 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useLanguageStore } from '../store/useLanguageStore';
-import { CheckCircle2, ShoppingBag, Phone, MapPin, CreditCard, MessageCircle, ArrowRight, Loader2, PackageCheck } from 'lucide-react';
+import { useStoreConfigStore } from '../store/useStoreConfigStore';
+import { 
+  CheckCircle2, 
+  ShoppingBag, 
+  Phone, 
+  MapPin, 
+  CreditCard, 
+  MessageCircle, 
+  ArrowRight, 
+  Loader2, 
+  PackageCheck, 
+  Truck, 
+  Copy, 
+  Check, 
+  Sparkles,
+  Box
+} from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function OrderSuccess() {
   const { language } = useLanguageStore();
+  const { config } = useStoreConfigStore();
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(false);
 
   useEffect(() => {
+    // Instant scroll to top on mount
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
     const fetchOrder = async () => {
       if (!id) return;
       try {
@@ -24,39 +46,134 @@ export default function OrderSuccess() {
         console.error("Error fetching order confirmation:", error);
       } finally {
         setLoading(false);
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
     };
     fetchOrder();
   }, [id]);
 
+  const copyOrderId = () => {
+    if (!id) return;
+    navigator.clipboard.writeText(id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2500);
+  };
+
+  const cleanWhatsappNumber = (config.whatsappNumber || '+8801712345678').replace(/[^0-9]/g, '');
   const whatsappMessage = encodeURIComponent(
-    `Hello Rare Dreams! I have placed an order #${id}. Please confirm my order.`
+    `Hello Rare Dreams! I have just placed order #${id}. Please confirm my order.`
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 md:py-14 w-full flex-grow">
-      {/* Top Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-10 border border-neutral-200/80 shadow-xs text-center space-y-4 mb-8">
-        <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-          <CheckCircle2 size={48} className="animate-bounce" />
+    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-10 w-full flex-grow">
+      <SEO 
+        title={`Order #${id} Confirmed | Rare Dreams`}
+        description="Your order has been confirmed successfully at Rare Dreams."
+      />
+
+      {/* Top Banner with Celebration Animation */}
+      <div className="bg-white rounded-3xl p-6 sm:p-10 border border-neutral-200/80 shadow-xs text-center space-y-4 mb-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        
+        {/* Animated Celebration Ring */}
+        <div className="relative inline-block">
+          <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <CheckCircle2 size={46} className="text-emerald-600 animate-bounce" />
+          </div>
+          <div className="absolute -top-1 -right-1 text-amber-500 animate-pulse">
+            <Sparkles size={22} />
+          </div>
         </div>
 
         <div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            {'Order Confirmed & Received'}
+          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+            Order Confirmed & Received
           </span>
-          <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-3 font-display">
-            {'Your Order Has Been Successfully Placed!'}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight text-neutral-900 mt-3 font-display">
+            Thank You For Your Order!
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto mt-2 leading-relaxed">
-            {'Thank you! Our representative will contact you shortly and dispatch your parcel.'}
+            Our team will call or SMS you shortly to confirm the order and dispatch your package immediately.
           </p>
         </div>
 
-        <div className="pt-2">
-          <div className="inline-block bg-neutral-900 text-white px-5 py-2 rounded-2xl text-xs font-mono font-bold tracking-wider">
-            Order ID: #{id}
+        {/* Order ID Pill with Copy Button */}
+        <div className="pt-2 flex items-center justify-center gap-2">
+          <div className="inline-flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 rounded-2xl text-xs font-mono font-bold tracking-wider shadow-sm">
+            <span>Order ID: #{id}</span>
+            <button 
+              onClick={copyOrderId} 
+              className="p-1 hover:bg-neutral-800 rounded-md transition-colors text-neutral-300 hover:text-white cursor-pointer"
+              title="Copy Order ID"
+            >
+              {copiedId ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+            </button>
           </div>
+        </div>
+      </div>
+
+      {/* Live Order Stage Tracker */}
+      <div className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-xs mb-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+            <Truck size={16} className="text-neutral-800" /> Real-Time Live Status
+          </h3>
+          <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+            {order?.status || 'Pending'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2 relative py-2">
+          {/* Connecting Line */}
+          <div className="absolute top-1/2 left-0 right-0 h-1 bg-neutral-100 -translate-y-1/2 z-0" />
+          <div className="absolute top-1/2 left-0 h-1 bg-emerald-500 -translate-y-1/2 z-0 w-1/4" />
+
+          {/* Step 1: Placed */}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold bg-emerald-600 text-white shadow-xs">
+              <CheckCircle2 size={18} />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-neutral-800 mt-2">Placed</span>
+            <span className="text-[9px] text-neutral-400 hidden sm:block">Received</span>
+          </div>
+
+          {/* Step 2: Processing */}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold bg-neutral-100 text-neutral-500 border border-neutral-200">
+              <Box size={16} />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-neutral-600 mt-2">Packing</span>
+            <span className="text-[9px] text-neutral-400 hidden sm:block">QC Check</span>
+          </div>
+
+          {/* Step 3: Shipped */}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold bg-neutral-100 text-neutral-500 border border-neutral-200">
+              <Truck size={16} />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-neutral-600 mt-2">Shipped</span>
+            <span className="text-[9px] text-neutral-400 hidden sm:block">Courier</span>
+          </div>
+
+          {/* Step 4: Delivered */}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold bg-neutral-100 text-neutral-500 border border-neutral-200">
+              <CheckCircle2 size={16} />
+            </div>
+            <span className="text-[10px] sm:text-xs font-bold text-neutral-600 mt-2">Delivered</span>
+            <span className="text-[9px] text-neutral-400 hidden sm:block">Handover</span>
+          </div>
+        </div>
+
+        {/* Live Track Button for Guest */}
+        <div className="pt-2">
+          <Link
+            to={`/track-order?id=${id}`}
+            className="w-full bg-neutral-900 hover:bg-black text-white font-bold py-3 px-4 rounded-2xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+          >
+            <Truck size={16} />
+            <span>Track Parcel Live (অর্ডার ট্র্যাক করুন)</span>
+            <ArrowRight size={14} />
+          </Link>
         </div>
       </div>
 
@@ -179,13 +296,13 @@ export default function OrderSuccess() {
       {/* Action Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a 
-          href={`https://wa.me/8801954710343?text=${whatsappMessage}`}
+          href={`https://wa.me/${cleanWhatsappNumber}?text=${whatsappMessage}`}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
         >
           <MessageCircle size={18} />
-          <span>{'Need Help? Chat on WhatsApp'}</span>
+          <span>{'Chat with Rare Dreams on WhatsApp'}</span>
         </a>
 
         <Link 
@@ -199,4 +316,5 @@ export default function OrderSuccess() {
     </div>
   );
 }
+
 

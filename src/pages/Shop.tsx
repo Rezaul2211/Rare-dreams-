@@ -750,58 +750,25 @@ export default function Shop() {
         keywords={`${currentMeta.title}, luxury fashion, apparel, collection, Rare Dreams`}
       />
 
-      {/* 1. TOP HEADER (Arrow Left, Search, Wishlist, Cart) matching screenshot */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-100 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Go Back"
-          className="p-1.5 -ml-1 text-neutral-900 hover:text-black hover:bg-neutral-100 rounded-full transition-all cursor-pointer"
-        >
-          <ArrowLeft size={22} strokeWidth={1.75} />
-        </button>
-
-        {/* Right Action Icons: Search, Wishlist Badge, Cart Badge */}
-        <div className="flex items-center space-x-2 sm:space-x-3.5">
-          {/* Search Button */}
-          <Link
-            to="/shop"
-            className="p-1.5 text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors"
-            aria-label="Search"
-          >
-            <Search size={20} strokeWidth={1.75} />
-          </Link>
-
-          {/* Wishlist Icon with Red Badge */}
-          <Link 
-            to="/shop" 
-            className="p-1.5 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-900"
-            aria-label="Wishlist"
-          >
-            <Heart size={20} strokeWidth={1.75} />
-            <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[9.5px] font-bold leading-none text-white bg-red-600 rounded-full shadow-2xs">
-              {wishlistCount > 0 ? wishlistCount : 2}
-            </span>
-          </Link>
-
-          {/* Cart Bag Icon with Red Badge */}
-          <Link 
-            id="header-cart-icon"
-            to="/cart" 
-            className="p-1.5 hover:bg-neutral-100 rounded-full transition-all relative text-neutral-900"
-            aria-label="Cart"
-          >
-            <ShoppingBag size={20} strokeWidth={1.75} />
-            <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[9.5px] font-bold leading-none text-white bg-red-600 rounded-full shadow-2xs">
-              {cartCount > 0 ? cartCount : 3}
-            </span>
-          </Link>
-        </div>
-      </header>
-
       {/* Main Category Content Container */}
-      <main className="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 pt-3 sm:pt-5 space-y-3.5 sm:space-y-4">
+      <main className="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 pt-4 sm:pt-6 space-y-3.5 sm:space-y-4">
         
+        {/* Navigation Breadcrumb / Back Button */}
+        <div className="flex items-center space-x-2 text-xs font-medium text-neutral-500">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Go Back"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 -ml-1 text-neutral-700 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} strokeWidth={2} />
+            <span className="font-semibold">Back</span>
+          </button>
+          <span className="text-neutral-300">/</span>
+          <Link to="/" className="hover:text-black transition-colors">Home</Link>
+          <span className="text-neutral-300">/</span>
+          <span className="text-neutral-900 font-semibold">{currentMeta.title}</span>
+        </div>
+
         {/* 2. CATEGORY TITLE & SUBTITLE */}
         <section className="space-y-1">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-serif text-neutral-900 tracking-tight">
