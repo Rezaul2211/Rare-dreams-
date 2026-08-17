@@ -8,6 +8,7 @@ import { useStoreConfigStore } from '../store/useStoreConfigStore';
 import { useLanguageStore } from '../store/useLanguageStore';
 import { trackInitiateCheckout, trackPurchase } from '../lib/pixel';
 import { requestLocationAddress } from '../lib/geolocation';
+import { BD_DISTRICTS, DistrictInfo } from '../lib/bdData';
 import { 
   ShieldCheck, 
   ChevronLeft, 
@@ -23,11 +24,13 @@ import {
   RotateCcw,
   MapPin,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  Search
 } from 'lucide-react';
 
 interface DeliveryOption {
-  id: 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka';
+  id: 'inside_dhaka' | 'outside_dhaka';
   labelBn: string;
   labelEn: string;
   subLabelBn: string;
@@ -40,23 +43,15 @@ const DELIVERY_OPTIONS: DeliveryOption[] = [
     id: 'inside_dhaka',
     labelBn: 'ঢাকার ভিতরে',
     labelEn: 'Inside Dhaka City',
-    subLabelBn: 'হোম ডেলিভারি (১-২ দিন)',
+    subLabelBn: 'ঢাকা সিটির ভেতর দ্রুত হোম ডেলিভারি (১-২ দিন)',
     subLabelEn: 'Home Delivery (1-2 days)',
-    cost: 60,
-  },
-  {
-    id: 'dhaka_suburbs',
-    labelBn: 'ঢাকা সাব-এরিয়া',
-    labelEn: 'Dhaka Suburbs / Outskirts',
-    subLabelBn: 'সাভার, গাজীপুর, কেরানীগঞ্জ ইত্যাদি (২-৩ দিন)',
-    subLabelEn: 'Savar, Gazipur, Keraniganj, etc (2-3 days)',
     cost: 80,
   },
   {
     id: 'outside_dhaka',
-    labelBn: 'ঢাকার বাইরে / সারাদেশে',
-    labelEn: 'Outside Dhaka / Whole Bangladesh',
-    subLabelBn: 'কুরিয়ার হোম ডেলিভারি (২-৪ দিন)',
+    labelBn: 'ঢাকার বাহিরে / অল বাংলাদেশ',
+    labelEn: 'All Bangladesh',
+    subLabelBn: 'সারাদেশের যেকোনো জেলা ও থানা পর্যায়ে হোম ডেলিভারি (২-৪ দিন)',
     subLabelEn: 'Courier Home Delivery (2-4 days)',
     cost: 120,
   },
@@ -86,16 +81,21 @@ export default function Checkout() {
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [locationMessage, setLocationMessage] = useState<{type: 'error'|'success'|'info'|'warning', text: string} | null>(null);
 
+  // District Search Filter in UI
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState(false);
+
   const checkoutItems = getCheckoutItems();
 
   // Form State (kept clean & empty by default)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    district: 'Dhaka',
     address: '',
     email: '',
     orderNotes: '',
-    deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'dhaka_suburbs' | 'outside_dhaka',
+    deliveryArea: 'inside_dhaka' as 'inside_dhaka' | 'outside_dhaka',
     paymentMethod: 'cod' as 'cod' | 'bKash' | 'nagad',
     senderNumber: '',
     transactionId: '',
@@ -108,6 +108,44 @@ export default function Checkout() {
   const selectedDeliveryOption = DELIVERY_OPTIONS.find(d => d.id === formData.deliveryArea) || DELIVERY_OPTIONS[0];
   const shipping = selectedDeliveryOption.cost;
   const total = subtotal + (subtotal > 0 ? shipping : 0);
+
+  // Handle District Selection with auto-sync to delivery area
+  const handleSelectDistrict = (district: DistrictInfo) => {
+    const isDhaka = district.isDhaka;
+    const targetArea: 'inside_dhaka' | 'outside_dhaka' = isDhaka ? 'inside_dhaka' : 'outside_dhaka';
+    setFormData(prev => ({
+      ...prev,
+      district: district.nameEn,
+      deliveryArea: targetArea
+    }));
+    setIsDistrictDropdownOpen(false);
+    setDistrictSearch('');
+    if (errorMessage) setErrorMessage(null);
+  };
+
+  // Handle Delivery Option change with intelligent district suggestion
+  const handleSelectDeliveryOption = (optionId: 'inside_dhaka' | 'outside_dhaka') => {
+    setFormData(prev => {
+      let newDistrict = prev.district;
+      if (optionId === 'inside_dhaka' && prev.district !== 'Dhaka') {
+        newDistrict = 'Dhaka';
+      } else if (optionId === 'outside_dhaka' && prev.district === 'Dhaka') {
+        newDistrict = 'Chattogram';
+      }
+      return {
+        ...prev,
+        deliveryArea: optionId,
+        district: newDistrict
+      };
+    });
+  };
+
+  const filteredDistricts = BD_DISTRICTS.filter(d => 
+    d.nameEn.toLowerCase().includes(districtSearch.toLowerCase()) || 
+    d.nameBn.includes(districtSearch)
+  );
+
+  const selectedDistrictInfo = BD_DISTRICTS.find(d => d.nameEn.toLowerCase() === (formData.district || 'dhaka').toLowerCase()) || BD_DISTRICTS[0];
 
   React.useEffect(() => {
     if (checkoutItems.length > 0) {
@@ -199,8 +237,13 @@ export default function Checkout() {
       return false;
     }
 
+    if (!formData.district.trim()) {
+      setErrorMessage('Please select your delivery district.');
+      return false;
+    }
+
     if (!formData.address.trim() || formData.address.trim().length < 5) {
-      setErrorMessage('Please provide a complete delivery address (House/Road, Area, District).');
+      setErrorMessage('Please provide a complete delivery address (House/Road, Area, Thana/Upazila).');
       return false;
     }
 
@@ -260,13 +303,14 @@ export default function Checkout() {
         userId: user?.uid || 'guest',
         customerName: formData.name.trim(),
         phone: cleanPhone,
+        district: formData.district,
         address: formData.address.trim(),
         email: formData.email.trim() || '',
         orderNotes: formData.orderNotes.trim() || '',
         deliveryArea: selectedDeliveryOption.labelEn,
         deliveryAreaBn: selectedDeliveryOption.labelBn,
         deliveryCost: shipping,
-        city: selectedDeliveryOption.labelEn,
+        city: formData.district || selectedDeliveryOption.labelEn,
         products: sanitizedProducts,
         itemsCount: sanitizedProducts.reduce((acc, item) => acc + item.quantity, 0),
         subtotal,
@@ -318,20 +362,19 @@ export default function Checkout() {
     const cleanSender = formData.senderNumber.trim().replace(/[\s-]/g, '');
     
     if (!cleanSender || !BD_PHONE_REGEX.test(cleanSender)) {
-      alert(`Please enter a valid 11-digit ${formData.paymentMethod === 'bKash' ? 'bKash' : 'Nagad'} mobile number.`);
+      setErrorMessage('Please enter your valid 11-digit bKash/Nagad sender mobile number.');
       return;
     }
 
-    const cleanTrx = formData.transactionId.trim();
-    if (!cleanTrx || cleanTrx.length < 6) {
-      alert('Please enter a valid Transaction ID (minimum 6 characters).');
+    if (!formData.transactionId.trim() || formData.transactionId.trim().length < 6) {
+      setErrorMessage('Please enter a valid Transaction ID (at least 6 characters from SMS).');
       return;
     }
 
     setIsVerifyingPayment(true);
-    setTimeout(() => {
-      finalizeOrder();
-    }, 800);
+    setTimeout(async () => {
+      await finalizeOrder();
+    }, 1000);
   };
 
   return (
@@ -587,6 +630,150 @@ export default function Checkout() {
                 />
               </div>
 
+              {/* Field: District Selection (64 Districts of Bangladesh) */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-neutral-900">
+                    {'District / জেলা'} <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200">
+                    {selectedDistrictInfo.isDhaka ? '৳80 ডেলিভারি চার্জ' : '৳120 ডেলিভারি চার্জ'}
+                  </span>
+                </div>
+
+                {/* Selected District Trigger Button */}
+                <div 
+                  onClick={() => setIsDistrictDropdownOpen(!isDistrictDropdownOpen)}
+                  className="w-full bg-white border border-neutral-200 hover:border-neutral-400 focus-within:border-neutral-900 px-4 py-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all shadow-2xs"
+                >
+                  <div className="flex items-center space-x-2.5 overflow-hidden">
+                    <MapPin size={18} className="text-neutral-700 shrink-0" />
+                    <div className="truncate">
+                      <span className="text-sm font-bold text-neutral-900">
+                        {selectedDistrictInfo.nameEn}
+                      </span>
+                      <span className="text-xs text-neutral-500 font-medium ml-1.5">
+                        ({selectedDistrictInfo.nameBn})
+                      </span>
+                      {selectedDistrictInfo.division && selectedDistrictInfo.division !== selectedDistrictInfo.nameEn && (
+                        <span className="text-[11px] text-neutral-400 font-normal ml-1.5 hidden sm:inline">
+                          • {selectedDistrictInfo.division} বিভাগ
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md border ${
+                      selectedDistrictInfo.isDhaka 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                    }`}>
+                      {selectedDistrictInfo.isDhaka ? 'ঢাকা সিটি (৳80)' : `${selectedDistrictInfo.nameEn} (৳120)`}
+                    </span>
+                    <ChevronDown size={16} className={`text-neutral-500 transition-transform duration-200 ${isDistrictDropdownOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </div>
+
+                {/* Dropdown Menu with Search */}
+                {isDistrictDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-30" 
+                      onClick={() => setIsDistrictDropdownOpen(false)} 
+                    />
+                    <div className="absolute left-0 right-0 top-full mt-2 z-40 bg-white rounded-2xl border border-neutral-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                      {/* Search Bar inside Dropdown */}
+                      <div className="p-3 border-b border-neutral-100 bg-neutral-50/80">
+                        <div className="relative">
+                          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                          <input 
+                            type="text"
+                            placeholder="Search 64 districts (জেলা খুঁজুন)..."
+                            value={districtSearch}
+                            onChange={(e) => setDistrictSearch(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            className="w-full bg-white border border-neutral-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium outline-none focus:border-neutral-900"
+                          />
+                        </div>
+
+                        {/* Quick filter popular districts */}
+                        <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-none">
+                          {['Dhaka', 'Chattogram', 'Gazipur', 'Sylhet', 'Rajshahi', 'Khulna', 'Bogura', 'Cumilla'].map(popName => {
+                            const d = BD_DISTRICTS.find(item => item.nameEn === popName);
+                            if (!d) return null;
+                            const isCurrent = formData.district.toLowerCase() === d.nameEn.toLowerCase();
+                            return (
+                              <button
+                                key={d.nameEn}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectDistrict(d);
+                                }}
+                                className={`text-[11px] px-2.5 py-1 rounded-lg font-bold shrink-0 transition-colors ${
+                                  isCurrent 
+                                    ? 'bg-neutral-900 text-white' 
+                                    : 'bg-neutral-200/70 text-neutral-700 hover:bg-neutral-300'
+                                }`}
+                              >
+                                {d.nameEn}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* District List */}
+                      <div className="max-h-60 overflow-y-auto p-1 divide-y divide-neutral-100/60">
+                        {filteredDistricts.length > 0 ? (
+                          filteredDistricts.map((district) => {
+                            const isSelected = formData.district.toLowerCase() === district.nameEn.toLowerCase();
+                            return (
+                              <button
+                                key={district.nameEn}
+                                type="button"
+                                onClick={() => handleSelectDistrict(district)}
+                                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-between transition-colors ${
+                                  isSelected 
+                                    ? 'bg-neutral-900 text-white font-bold' 
+                                    : 'hover:bg-neutral-100 text-neutral-800 font-medium'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-semibold">{district.nameEn}</span>
+                                  <span className={isSelected ? 'text-neutral-300' : 'text-neutral-400 text-[11px]'}>
+                                    ({district.nameBn})
+                                  </span>
+                                  {district.division && district.division !== district.nameEn && (
+                                    <span className={`text-[10px] ${isSelected ? 'text-neutral-300' : 'text-neutral-400'}`}>
+                                      • {district.division}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md ${
+                                  isSelected
+                                    ? 'bg-white/20 text-white'
+                                    : district.isDhaka
+                                    ? 'bg-emerald-50 text-emerald-700'
+                                    : 'bg-neutral-100 text-neutral-700'
+                                }`}>
+                                  ৳{district.isDhaka ? '80' : '120'}
+                                </span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="p-4 text-center text-xs text-neutral-500">
+                            No district found matching "{districtSearch}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {/* Field: Full Address */}
               <div className="relative">
                 <div className="flex items-center justify-between mb-1.5">
@@ -633,7 +820,7 @@ export default function Checkout() {
                 <textarea 
                   name="address" 
                   rows={2}
-                  placeholder={'House/Flat No, Area, Thana/Upazila, District'} 
+                  placeholder={'House/Flat No, Road, Area, Thana/Upazila'} 
                   required 
                   autoComplete="street-address"
                   value={formData.address} 
@@ -687,48 +874,51 @@ export default function Checkout() {
 
             </div>
 
-            {/* 2. Delivery Location Selection */}
+            {/* 2. Delivery Location Selection - Simplified to 2 tiers (Inside Dhaka 80 TK, Outside Dhaka 120 TK) */}
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-3">
               <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-neutral-900 mb-1 flex items-center justify-between">
-                <span>{'Delivery Area'}</span>
-                <span className="text-xs font-semibold text-neutral-400 lowercase">{'select one'}</span>
+                <span>{'Delivery Area & Charge'}</span>
+                <span className="text-xs font-semibold text-neutral-400">{'2 tiers'}</span>
               </label>
 
-              <div className="space-y-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {DELIVERY_OPTIONS.map((opt) => {
                   const isSelected = formData.deliveryArea === opt.id;
                   return (
-                    <label 
+                    <div 
                       key={opt.id}
-                      onClick={() => setFormData({ ...formData, deliveryArea: opt.id })}
-                      className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer select-none ${
+                      onClick={() => handleSelectDeliveryOption(opt.id)}
+                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer select-none flex flex-col justify-between ${
                         isSelected 
                           ? 'border-neutral-900 bg-neutral-900/5 shadow-xs' 
                           : 'border-neutral-200/90 hover:border-neutral-300 bg-white'
                       }`}
                     >
-                      <div className="flex items-center space-x-3.5">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300 bg-white'
-                        }`}>
-                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2.5">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isSelected ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300 bg-white'
+                          }`}>
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                          </div>
+                          <div>
+                            <p className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-neutral-950 font-black' : 'text-neutral-800'}`}>
+                              {opt.labelBn}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 font-medium">
+                              {opt.labelEn}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-neutral-950 font-black' : 'text-neutral-800'}`}>
-                            {opt.labelEn}
-                          </p>
-                          <p className="text-[11px] text-neutral-500 font-medium">
-                            {opt.subLabelEn}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <span className={`text-xs sm:text-sm font-black ${isSelected ? 'text-neutral-900' : 'text-neutral-700'}`}>
-                          {opt.cost} TK
+                        <span className={`text-sm sm:text-base font-black ${isSelected ? 'text-neutral-900' : 'text-neutral-700'}`}>
+                          ৳{opt.cost}
                         </span>
                       </div>
-                    </label>
+                      
+                      <div className="mt-3 pt-2.5 border-t border-neutral-100 text-[11px] text-neutral-500">
+                        {opt.subLabelBn}
+                      </div>
+                    </div>
                   );
                 })}
               </div>

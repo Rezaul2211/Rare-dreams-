@@ -4,6 +4,7 @@ import { db } from '../lib/firebase';
 import { StoreConfig } from '../types';
 
 export const DEFAULT_STORE_CONFIG: StoreConfig = {
+  logoUrl: '',
   facebookUrl: 'https://facebook.com/raredreamsbd',
   instagramUrl: 'https://instagram.com/raredreamsbd',
   whatsappNumber: '+8801712345678',

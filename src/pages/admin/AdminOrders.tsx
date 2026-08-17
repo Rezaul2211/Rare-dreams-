@@ -486,6 +486,11 @@ export default function AdminOrders() {
                   <MapPin size={14} className="text-black" />
                   <span>Delivery Address</span>
                 </h4>
+                {selectedOrder.district && (
+                  <p className="text-xs text-neutral-900 font-semibold">
+                    District: <span className="font-bold text-black">{selectedOrder.district}</span>
+                  </p>
+                )}
                 <p className="text-xs font-bold text-neutral-900 whitespace-pre-wrap">{selectedOrder.address}</p>
                 {selectedOrder.deliveryArea && (
                   <p className="text-xs text-neutral-600 font-medium">

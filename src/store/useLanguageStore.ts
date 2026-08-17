@@ -115,6 +115,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'checkout.trx_id': 'Transaction ID (TrxID)',
     'checkout.sender_number': 'Sender bKash/Nagad Number',
     'checkout.order_summary': 'Order Summary',
+    'checkout.back_to_cart': 'Back to Cart',
     'checkout.place_order': 'Confirm Order',
     'checkout.submitting': 'Processing Order...',
     'checkout.delivery_inside_dhaka': 'Inside Dhaka City (৳60)',

@@ -296,6 +296,67 @@ export default function AdminSettings() {
     reader.readAsDataURL(file);
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size exceeds 10MB limit. Please select a smaller logo image.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => {
+      alert("Error: Failed to read image file.");
+    };
+
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) return;
+
+      // If it's a PNG or SVG, preserve full transparency with canvas/direct dataUrl
+      const img = new window.Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round(height * (MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+          if (height > MAX_HEIGHT) {
+            width = Math.round(width * (MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Export as PNG to preserve transparent background
+            const transparentPng = canvas.toDataURL('image/png');
+            handleStoreFormChange('logoUrl', transparentPng);
+          }
+        } catch (err) {
+          console.error("Logo processing error:", err);
+          handleStoreFormChange('logoUrl', dataUrl);
+        }
+      };
+      img.src = dataUrl;
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   const handleResetCategories = () => {
     if (confirm("Reset categories to standard 4 clean categories (Men, Women, Kids, Accessories)? Old custom categories will be cleared.")) {
       const standard: CategoryItem[] = [
@@ -409,6 +470,107 @@ export default function AdminSettings() {
             </>
           )}
         </button>
+      </div>
+
+      {/* SECTION 0: STORE BRAND LOGO */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-neutral-200 shadow-xs space-y-6">
+        <div className="border-b border-neutral-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center space-x-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+              <Sparkles size={14} />
+              <span>Brand Identity & Logo</span>
+            </div>
+            <h2 className="text-lg font-black uppercase text-neutral-900 tracking-tight flex items-center gap-2">
+              <ImageIcon size={20} className="text-neutral-700" />
+              <span>Website Header & Brand Logo</span>
+            </h2>
+            <p className="text-xs text-neutral-500 mt-1">
+              Upload your custom transparent background PNG, SVG or JPEG logo. It will seamlessly display in the header bar and footer.
+            </p>
+          </div>
+
+          {storeForm.logoUrl && (
+            <button
+              type="button"
+              onClick={() => handleStoreFormChange('logoUrl', '')}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 bg-neutral-100 text-red-600 hover:text-red-700 text-xs font-bold uppercase rounded-xl hover:bg-red-50 transition-colors cursor-pointer shrink-0 border border-neutral-200"
+            >
+              <Trash2 size={14} />
+              <span>Remove Custom Logo</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          {/* Logo Live Previews */}
+          <div className="space-y-3">
+            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-500 block">
+              Live Preview
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              {/* White Background Preview (Header Bar) */}
+              <div className="p-4 rounded-2xl bg-white border border-neutral-200 flex flex-col items-center justify-center min-h-[110px] text-center shadow-2xs">
+                <span className="text-[9px] font-bold uppercase text-neutral-400 mb-2">Header Bar Preview</span>
+                {storeForm.logoUrl ? (
+                  <img
+                    src={storeForm.logoUrl}
+                    alt="Logo Preview"
+                    className="max-h-12 w-auto object-contain"
+                  />
+                ) : (
+                  <span className="text-xs font-bold text-neutral-500 italic">Using Default Logo</span>
+                )}
+              </div>
+
+              {/* Dark Background Preview (Footer) */}
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col items-center justify-center min-h-[110px] text-center shadow-2xs">
+                <span className="text-[9px] font-bold uppercase text-neutral-500 mb-2">Dark Footer Preview</span>
+                {storeForm.logoUrl ? (
+                  <img
+                    src={storeForm.logoUrl}
+                    alt="Logo Dark Preview"
+                    className="max-h-12 w-auto object-contain"
+                  />
+                ) : (
+                  <span className="text-xs font-bold text-neutral-400 italic">Using Default Logo</span>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-neutral-400">
+              💡 Tip: Upload a transparent background PNG file (PNG format with transparent background) for the best result.
+            </p>
+          </div>
+
+          {/* Upload Controls */}
+          <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200/80 space-y-4">
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1.5 flex items-center gap-1.5">
+                <Upload size={14} className="text-blue-600" />
+                <span>Upload Logo from Device (Phone/Computer)</span>
+              </label>
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/webp, image/svg+xml"
+                onChange={handleLogoUpload}
+                className="block w-full text-xs text-neutral-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-neutral-800 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-neutral-700 mb-1.5 flex items-center gap-1.5">
+                <Globe size={14} className="text-neutral-500" />
+                <span>Or Direct Logo Image URL</span>
+              </label>
+              <input
+                type="url"
+                value={storeForm.logoUrl || ''}
+                onChange={(e) => handleStoreFormChange('logoUrl', e.target.value)}
+                placeholder="https://example.com/logo.png"
+                className="w-full bg-white border border-neutral-300 px-3.5 py-2.5 rounded-xl text-xs font-mono text-neutral-900 outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* SECTION 1: HERO BANNERS (3 SLIDES) */}

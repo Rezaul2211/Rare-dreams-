@@ -87,6 +87,8 @@ export interface Order {
 }
 
 export interface StoreConfig {
+  logoUrl?: string;
+  faviconUrl?: string;
   facebookUrl: string;
   instagramUrl: string;
   whatsappNumber: string;
